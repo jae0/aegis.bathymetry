@@ -211,7 +211,7 @@
 
       if ( "lobster" %in% additional.data ) {
         current.year = lubridate::year(lubridate::now())
-        p0temp = aegis_parameters( DS="temperature", yrs=1900:current.year )
+        p0temp = aegis.temperature::temperature_parameters( yrs=1900:current.year )
         lob = temperature.db( p=p0temp, DS="lobster", yr=1900:current.year ) # FSRS data ...  new additions have to be made at the rawdata level manually; yr must be passed to retrieve data ..
         lob = lob[, c("lon","lat", "z") ]
         lob = lob[ which( is.finite(rowSums(lob) ) ) ,]
