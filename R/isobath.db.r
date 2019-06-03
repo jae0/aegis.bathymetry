@@ -3,7 +3,7 @@ isobath.db = function( ip=NULL, p=NULL, depths=c(100, 200), DS="isobath", crs="+
   #\\ create or return isobaths and coastlines/coast polygons
   # require(stmv)
   if (DS %in% c( "isobath", "isobath.redo" )) {
-    fn.iso = file.path( p$data_root, "isobaths" ), paste("isobaths", p$spatial.domain, "rdata", sep=".") )
+    fn.iso = file.path( p$data_root, "isobaths", paste("isobaths", p$spatial.domain, "rdata", sep=".") )
     isobaths = NULL
     notfound = NULL
 
