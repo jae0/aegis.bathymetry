@@ -1,5 +1,5 @@
 Package: aegis.bathymetry
-Title: Base tools to bootstrap and interoperate with 'em*' and associated projects.
+Title: Bathymetry.
 Version: 0.1
 Authors@R: c( person("Jae", "Choi", email="choijaeseok@gmail.com", role=c("aut", "cre")) )
 Description: This project provides tools to assimilate bathymetry data and interpolate them.
