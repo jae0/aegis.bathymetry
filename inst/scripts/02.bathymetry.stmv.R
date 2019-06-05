@@ -116,7 +116,7 @@ if( bathyclines.redo ) {
   for (g in c("canada.east.superhighres", "canada.east.highres", "canada.east", "SSE", "SSE.mpa", "snowcrab")) {
     print(g)
     pb = aegis.bathymetry::bathymetry_parameters( project.mode="stmv", spatial.domain=g )
-    if( g=="snowcrab") depths = c( 10, 20, 50, 75, 100, 200, 250, 300, 350 )  # by definition .. in aegis::geo_subset
+    if( g=="snowcrab") depths = c( 10, 20, 50, 75, 100, 200, 250, 300, 350 )  # by definition .. in geo_subset
     if( g=="SSE") depths = depthsall[ depthsall < 801] # by definition
     if( g=="SSE.mpa") depths = depthsall[depthsall<2001]  # by definition
     if( grepl( "canada.east", g)) depths = depthsall
