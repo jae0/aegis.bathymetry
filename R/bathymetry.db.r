@@ -1,8 +1,15 @@
 
-  bathymetry.db = function( p=bathymetry_parameters(), DS=NULL, varnames=NULL ) {
+  bathymetry.db = function( p=NULL, DS=NULL, varnames=NULL, ... ) {
 
     #\\ Note inverted convention: depths are positive valued
     #\\ i.e., negative valued for above sea level and positive valued for below sea level
+    if ( is.null(p)) p = bathymetry_parameters(...)
+
+    if ( !exists("project.name", p)) p$project.name = "bathymetry"
+    if ( !exists("data_root", p) ) p$data_root = project.datadirectory( "aegis", p$project.name )
+    if ( !exists("datadir", p) )   p$datadir  = file.path( p$data_root, "data" )
+    if ( !exists("modeldir", p) )  p$modeldir = file.path( p$data_root, "modelled" )
+
 
     if ( DS=="gebco") {
       #library(RNetCDF)
@@ -302,7 +309,7 @@
         return( hm )
       }
 
-      print( "Warning: this needs a lot of RAM .. ~60GB depending upon resolution of discretization and time (hours).. " )
+      print( "Warning: this needs a lot of RAM .. ~60GB depending upon resolution of discretization .. a few hours " )
 
       B = bathymetry.db ( p=p, DS="z.lonlat.rawdata" )  # 16 GB in RAM just to store!
       # B = B[ which(B$z > -100),]  # take part of the land to define coastline
@@ -334,7 +341,7 @@
         print( nn)
         ii = pos + (1:nl)
         out = B[ii,]
-        tmpfn[[nn]] =  tempfile( tmpdir=p$data_root )
+        tmpfn[[nn]] =  file.path( p$data_root, paste("tmp", nn, "rdata", sep=".") )
         save(out, file=tmpfn[[nn]])
         out = NULL; gc()
         pos = ii[nl] # update last index
@@ -344,14 +351,13 @@
         # get stragglers
         ii = (pos + 1) : nr
         out = B[ii,]
-        tmpfn[[ns+1]] =  tempfile( tmpdir=p$data_root )
+        tmpfn[[ns+1]] =  file.path( p$data_root, paste("tmp", (ns+1), "rdata", sep=".") )
         save(out, file=tmpfn[[ns+1]])
         out = NULL; gc()
       }
       B = NULL;
       gc()
 
-      B = NULL;
       for ( nn in 1:ns ) {
         print(nn)
         load( tmpfn[[nn]] )
@@ -371,8 +377,6 @@
       bb = NULL
       gc()
       B = as.data.frame( as.table (B) )
-      B = NULL; gc()
-
       B[,1] = as.numeric(as.character( B[,1] ))
       B[,2] = as.numeric(as.character( B[,2] ))
       B = B[ which( is.finite( B[,3] )) ,]

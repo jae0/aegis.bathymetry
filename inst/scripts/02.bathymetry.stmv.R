@@ -127,6 +127,7 @@ if( bathyclines.redo ) {
 
 ### -----------------------------------------------------------------
 # some test plots
+RLibrary( "aegis.bathymetry" , "aegis.coastline", "aegis.polygons")
 
 pb = aegis.bathymetry::bathymetry_parameters( project.mode="stmv", spatial.domain="canada.east" ) # reset to lower resolution
 depths = c( 100, 200, 300, 500, 1000)
