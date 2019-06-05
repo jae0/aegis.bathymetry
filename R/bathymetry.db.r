@@ -1,5 +1,5 @@
 
-  bathymetry.db = function( p=NULL, DS=NULL, varnames=NULL, ... ) {
+  bathymetry.db = function( p=NULL, DS=NULL, varnames=NULL, redo=FALSE, ... ) {
 
     #\\ Note inverted convention: depths are positive valued
     #\\ i.e., negative valued for above sea level and positive valued for below sea level
@@ -362,26 +362,31 @@
         print(nn)
         load( tmpfn[[nn]] )
         bb = tapply( X=out$z, INDEX=list(paste( out$plon, out$plat) ), FUN = function(w) {median(w, na.rm=TRUE)}, simplify=TRUE )
-        B = rbind( B, bb )
+        locs = sapply( strsplit(rownames(bb), " ", fixed=TRUE ), unlist)
+        rownames(bb) = NULL
+        B = rbind( B, cbind(bb, as.numeric(locs[1,]), as.numeric(locs[2,]) ) )
+        bb = NULL
+        locs = NULL
         out = NULL
         gc()
       }
       if (pos < nr) {
         # get stragglers
         load( tmpfn[[ns+1]] )
-        bb = tapply( X=out$z, INDEX=list(paste( out$plon, out$plat)) , FUN = function(w) {median(w, na.rm=TRUE)}, simplify=TRUE )
-        B = rbind( B, bb )
+        bb = tapply( X=out$z, INDEX=as.list(out[, c("plon", "plat")]), FUN = function(w) {median(w, na.rm=TRUE)}, simplify=TRUE )
+        locs = sapply( strsplit(rownames(bb), " ", fixed=TRUE ), unlist)
+        rownames(bb) = NULL
+        B = rbind( B, cbind(bb, as.numeric(locs[1,]), as.numeric(locs[2,]) ) )
+        bb = NULL
+        locs = NULL
         out = NULL
         gc()
       }
       bb = NULL
       gc()
-      B = as.data.frame( as.table (B) )
-      B[,1] = as.numeric(as.character( B[,1] ))
-      B[,2] = as.numeric(as.character( B[,2] ))
-      B = B[ which( is.finite( B[,3] )) ,]
-      names(B) = c("plon", "plat", "z")
-    # }
+      B = as.data.frame( B )
+      names(B) = c("z", "plon", "plat")
+      B = B[ which( is.finite( B$z )) ,]
 
       hm = list( input=B, output=list( LOCS = spatial_grid(p) ) )
       B = NULL; gc()
@@ -576,5 +581,54 @@
     }
 
 
+
+
+    if (DS=="areal_units") {
+      fn = file.path( p$datadir, paste( "areal_units", p$spatial.domain, p$resolution, "rdata", sep=".") )
+      sppoly = NULL
+      if (!redo) {
+        if (file.exists(fn)) load(fn)
+        return(sppoly)
+      }
+
+      sppoly = areal_units(
+        strata_type="aegis_lattice",
+        resolution=p$resolution,
+        spatial.domain=p$spatial.domain,
+        proj4string_planar_km="+proj=utm +ellps=WGS84 +zone=20 +units=km",
+        overlay="none",
+        redo=TRUE
+      )
+
+      W.nb = poly2nb(sppoly, row.names=sppoly$StrataID, queen=TRUE)  # slow .. ~1hr?
+      W.remove = which(card(W.nb) == 0)
+
+      if ( length(W.remove) > 0 ) {
+        # remove isolated locations and recreate sppoly .. alternatively add links to W.nb
+        W.keep = which(card(W.nb) > 0)
+        W.nb = nb_remove( W.nb, W.remove )
+        sppoly = sppoly[W.keep,]
+        row.names(sppoly) = as.character(sppoly$StrataID)
+        sppoly = sp::spChFIDs( sppoly, row.names(sppoly) )  #fix id's
+        sppoly$StrataID = factor( as.character(sppoly$StrataID) )
+        sppoly$strata = as.numeric( sppoly$StrataID )
+        sppoly = sppoly[order(sppoly$strata),]
+      }
+
+      attr(sppoly, "nb") = W.nb
+      save(sppoly, file=fn, compress=TRUE)
+      return( sppoly )
+    }
+
+
+
+
+
+    if (DS=="carstm.inputs") {
+
+    }
+
+
+    }
 
   }  # end bathymetry.db

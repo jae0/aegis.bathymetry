@@ -13,11 +13,11 @@ if (0) reset_input_data = TRUE # choose this if we are redoing input data "views
 p = aegis.bathymetry::bathymetry_parameters(
   project.mode="carstm",
   id = "bathymetry",
-  resolution = 20, # km
+  resolution = 100, # km
   internal.crs = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs",
   internal.crs_planar = "+proj=omerc +lat_0=44.0 +lonc=-63.0 +gamma=0.0 +k=1 +alpha=325 +x_0=0 +y_0=0 +ellps=WGS84 +units=km",  # oblique mercator, centred on Scotian Shelf rotated by 325 degrees
   boundingbox = list( xlim = c(-70.5, -56.5), ylim=c(39.5, 47.5)), # bounding box for plots using spplot
-  libs = RLibrary ( "sp", "spdep", "rgeos", "INLA", "raster", "aegis",  "aegis.polygons", "aegis.bathymetry")
+  libs = RLibrary ( "sp", "spdep", "rgeos", "INLA", "raster", "aegis",  "aegis.polygons", "aegis.bathymetry" )
 )
 
 
@@ -27,12 +27,23 @@ p$variables$Y = "z"  # name to give variable in extraction and model
 
 
 # set up default map projection
-p = c(p, coastline_layout( p=p, redo=reset_input_data ) )
+p = c(p, aegis.coastline::coastline_layout( p=p, redo=reset_input_data ) )
 p$mypalette = RColorBrewer::brewer.pal(9, "YlOrRd")
 
 
 # --------------------------------
 # Get the data
+
+sppoly = areal_units(
+  strata_type="lattice",
+  resolution=p$resolution,
+  spatial.domain=p$spatial.domain,
+  proj4string_planar_km="+proj=utm +ellps=WGS84 +zone=20 +units=km",
+  overlay="none",
+  redo=TRUE
+)
+
+sppoly =  neighbourhood_structure( sppoly=sppoly, strata_type="lattice" ) # add neighbourhood structure
 
 
 if (exists(tmpdir)) {
@@ -45,61 +56,25 @@ if (exists(tmpdir)) {
 # ensure if polys exist and create if required
 # for (au in c("cfanorth", "cfasouth", "cfa4x", "cfaall" )) plot(polygons_managementarea( species="snowcrab", au))
 
-sppoly = areal_units(
-  strata_type="aegis_lattice",
-  resolution=p$resolution,
-  spatial.domain=p$spatial.domain,
-  proj4string_planar_km="+proj=utm +ellps=WGS84 +zone=20 +units=km",
-  overlay="none",
-  redo=reset_input_data
+# data for modelling
+
+# StrataID reset to be consistent in both data and prediction areal units
+o = over( SpatialPoints( set[,c("plon", "plat")], sp::CRS(p$internal.crs) ), spTransform(sppoly, sp::CRS(p$internal.crs) ) ) # match each datum to an area
+set$StrataID = o$StrataID
+
+
+o = over( SpatialPoints( APS[,c("plon", "plat")], sp::CRS(p$internal.crs) ), spTransform(sppoly, sp::CRS(p$internal.crs) ) ) # match each datum to an area
+APS$StrataID = o$StrataID
+
+o = NULL
+
+#  good data
+ok = which(
+  is.finite(set[,p$variables$Y]) &   # INLA can impute Y-data
+  is.finite(set$data_offset) &
+  is.finite(set$StrataID)
 )
 
-W.nb = neighbourhood_structure( sppoly=sppoly, strata_type="aegis_lattice" )
-
-
-
-## ----------------------------------
-# covariate estimates for prediction in strata and year
-# collapse PS vars with time into APS (and regrid via raster)
-  APS = aegis_db_extract(
-    vars=p$lookupvars,
-    yrs=p$yrs,
-    spatial.domain=p$spatial.domain,
-    dyear=p$prediction.dyear,
-    resolution=p$resolution,
-    proj4string=sp::CRS(p$internal.crs),
-    returntype="data.frame",
-    redo = reset_input_data
-  )
-
-  APS$yr = as.numeric( APS$year)
-  APS$Y = NA
-  APS$data_offset = 1  # force to be density n/km^2
-  APS$tag = "predictions"
-
-
-  # StrataID reset to be consistent in both data and prediction areal units
-  o = over( SpatialPoints( set[,c("plon", "plat")], sp::CRS(p$internal.crs) ), spTransform(sppoly, sp::CRS(p$internal.crs) ) ) # match each datum to an area
-  set$StrataID = o$StrataID
-
-
-  o = over( SpatialPoints( APS[,c("plon", "plat")], sp::CRS(p$internal.crs) ), spTransform(sppoly, sp::CRS(p$internal.crs) ) ) # match each datum to an area
-  APS$StrataID = o$StrataID
-
-  o = NULL
-
-  #  good data
-  ok = which(
-    is.finite(set[,p$variables$Y]) &   # INLA can impute Y-data
-    is.finite(set$data_offset) &
-    is.finite(set$StrataID)
-  )
-
-
-# construct meanweights matrix
-weight_year = meanweights_by_strata( set=set, StrataID=as.character( sppoly$StrataID ), yrs=p$yrs, fillall=TRUE, annual_breakdown=TRUE )
-# weight_year = weight_year[, match(as.character(p$yrs), colnames(weight_year) )]
-# weight_year = weight_year[ match(as.character(sppoly$StrataID), rownames(weight_year) )]
 
 
 varstokeep = unique( c( "Y", "StrataID", "yr", "data_offset", "tag", p$lookupvars) )
@@ -118,39 +93,6 @@ M$year  = as.numeric( M$yr_factor)
 M$iid_error = 1:nrow(M) # for inla indexing for set level variation
 
 
-M$t[!is.finite(M$t)] = median(M$t, na.rm=TRUE )  # missing data .. quick fix .. do something better
-M$tsd[!is.finite(M$tsd)] = median(M$tsd, na.rm=TRUE )  # missing data .. quick fix .. do something better
-M$tmin[!is.finite(M$tmin)] = median(M$tmin, na.rm=TRUE )  # missing data .. quick fix .. do something better
-M$tmax[!is.finite(M$tmax)] = median(M$tmax, na.rm=TRUE )  # missing data .. quick fix .. do something better
-M$degreedays[!is.finite(M$degreedays)] = median(M$degreedays, na.rm=TRUE )  # missing data .. quick fix .. do something better
-M$z[!is.finite(M$z)] = median(M$z, na.rm=TRUE )  # missing data .. quick fix .. do something better
-M$dZ[!is.finite(M$dZ)] = median(M$dZ, na.rm=TRUE )  # missing data .. quick fix .. do something better
-M$ddZ[!is.finite(M$ddZ)] = median(M$ddZ, na.rm=TRUE )  # missing data .. quick fix .. do something better
-M$substrate.grainsize[!is.finite(M$substrate.grainsize)] = median(M$substrate.grainsize, na.rm=TRUE )  # missing data .. quick fix .. do something better
-
-
-dd_t = c(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)
-dd_tsd = seq( min(M$tsd, na.rm=TRUE), max(M$tsd, na.rm=TRUE), length.out=15 )
-dd_tmin = seq( -2, 10, by=1 ) # seq( min(M$tmin, na.rm=TRUE), max(M$tmin, na.rm=TRUE), length.out=15 )
-dd_tmax = seq( 2, 14, by=1 ) # seq( min(M$tmax, na.rm=TRUE), max(M$tmax, na.rm=TRUE), length.out=15 )
-dd_dday = c(10, 100, 200, 400, 800, 1000, 2000, 3000, 4000, 5000)
-dd_z = c(2.5, 5, 10, 20, 40, 80, 120, 160, 220, 320, 480, 640, 1000 )
-dd_dz = c(0.01, 0.1, 1, 2, 4, 6, 8, 10, 12)
-dd_ddz = c(0.01, 0.1, 0.2, 0.4, 0.8, 1, 2, 3, 4)
-dd_sstr = c( 0, 0.1, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.6, 2.0, 4.0, 8.0 )
-
-
-M$ti = as.numeric( as.character( cut( M$t, breaks=dd_t, labels=diff(dd_t)/2 + dd_t[-length(dd_t)], include.lowest=TRUE ) ))
-M$tisd = as.numeric( as.character( cut( M$tsd, breaks=dd_tsd, labels=diff(dd_tsd)/2 + dd_tsd[-length(dd_tsd)], include.lowest=TRUE ) ))
-M$timin = as.numeric( as.character( cut( M$tmin, breaks=dd_tmin, labels=diff(dd_tmin)/2 + dd_tmin[-length(dd_tmin)], include.lowest=TRUE ) ))
-M$timax = as.numeric( as.character( cut( M$tmax, breaks=dd_tmax, labels=diff(dd_tmax)/2 + dd_tmax[-length(dd_tmax)], include.lowest=TRUE ) ))
-M$tidday = as.numeric( as.character( cut( M$degreedays, breaks=dd_dday, labels=diff(dd_dday)/2 + dd_dday[-length(dd_dday)], include.lowest=TRUE ) ))
-M$zi = as.numeric( as.character( cut( M$z, breaks=dd_z, labels=diff(dd_z)/2 + dd_z[-length(dd_z)], include.lowest=TRUE ) ))
-M$zid = as.numeric( as.character( cut( M$dZ, breaks=dd_dz, labels=diff(dd_dz)/2 + dd_dz[-length(dd_dz)], include.lowest=TRUE ) ))
-M$zidd = as.numeric( as.character( cut( M$ddZ, breaks=dd_ddz, labels=diff(dd_ddz)/2 + dd_ddz[-length(dd_ddz)], include.lowest=TRUE ) ))
-M$si = as.numeric( as.character( cut( M$substrate.grainsize, breaks=dd_sstr, labels=diff(dd_sstr)/2 + dd_sstr[-length(dd_sstr)], include.lowest=TRUE ) ))
-
-
 totest = setdiff(1:ncol(M), which(names(M) %in% c("Y", "StrataID", "tag", "yr_factor") ))
 ii = which(is.finite(rowSums(M[,totest])))
 
@@ -160,8 +102,6 @@ M = M[ii,]
 # generic PC priors
 m = log( {set$Y / set$data_offset}[ok] )
 m[!is.finite(m)] = min(m[is.finite(m)])
-
-
 
 
 carstm_hyperparameters = function( reference_sd, alpha=0.5, reference_mean=0 ) {
@@ -472,7 +412,7 @@ spplot( sppoly, vn, col.regions=p$mypalette, main=vn, at=brks, sp.layout=p$coast
 fit = inla(
   formula =
     Y ~ 1 + offset( log( data_offset) )
-      + f(strata, model="bym2", graph=W.nb, scale.model=TRUE, constr=TRUE, hyper=H$bym2)
+      + f(strata, model="bym2", graph=sppoly@W.nb, scale.model=TRUE, constr=TRUE, hyper=H$bym2)
       + f(year, model="iid", hyper=H$iid )
       + f(iid_error, model="iid", hyper=H$iid)
     ,
@@ -526,7 +466,7 @@ spplot( sppoly, vn, col.regions=p$mypalette, main=vn, at=brks, sp.layout=p$coast
 fit = inla(
   formula =
     Y ~ 1 + offset( log( data_offset) )
-      + f(strata, model="bym2", graph=W.nb, group=year, scale.model=TRUE, constr=TRUE, hyper=H$bym2)
+      + f(strata, model="bym2", graph=sppoly@W.nb, group=year, scale.model=TRUE, constr=TRUE, hyper=H$bym2)
       + f(year, model="iid", hyper=H$iid )
       + f(iid_error, model="iid", hyper=H$iid)
       # + f(ti, model="rw2", scale.model=TRUE, diagonal=1e-6, hyper=H$rw2)
@@ -615,7 +555,7 @@ spplot( sppoly, vn, col.regions=p$mypalette, main=vn, at=brks, sp.layout=p$coast
 fit = inla(
   formula =
     Y ~ 1 + offset( log( data_offset) )
-      + f(strata, model="bym2", graph=W.nb, scale.model=TRUE, constr=TRUE, hyper=H$bym2)
+      + f(strata, model="bym2", graph=sppoly@W.nb, scale.model=TRUE, constr=TRUE, hyper=H$bym2)
       + f(year, model="iid", hyper=H$iid )
       + f(iid_error, model="iid", hyper=H$iid)
       + f(ti, model="rw2", scale.model=TRUE, diagonal=1e-6, hyper=H$rw2)
@@ -707,7 +647,7 @@ spplot( sppoly, vn, col.regions=p$mypalette, main=vn, at=brks, sp.layout=p$coast
 fit = inla(
   formula =
     Y ~ 1 + offset( log( data_offset) )
-      + f(strata, model="bym2", graph=W.nb, scale.model=TRUE, constr=TRUE, hyper=H$bym2)
+      + f(strata, model="bym2", graph=sppoly@W.nb, scale.model=TRUE, constr=TRUE, hyper=H$bym2)
       + f(year, model="iid", hyper=H$iid )
       + f(iid_error, model="iid", hyper=H$iid)
       + f(ti, model="rw2", scale.model=TRUE, diagonal=1e-6, hyper=H$rw2)
@@ -1031,7 +971,7 @@ fit = inla(
   + f(zi, model="rw2", scale.model=TRUE, hyper=H$rw2)
   + f(di, model="rw2", scale.model=TRUE, hyper=H$rw2)
   + f(year, model="iid", hyper=H$iid)
-  + f(strata, model="bym2", graph=W.nb, scale.model=TRUE, constr=TRUE, hyper=H$bym2),
+  + f(strata, model="bym2", graph=sppoly@W.nb, scale.model=TRUE, constr=TRUE, hyper=H$bym2),
   family="binomial",  # alternates family="zeroinflatedbinomial0", family="zeroinflatedbinomial1",
   data=M,
   control.family=list(control.link=list(model="logit")),
