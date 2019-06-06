@@ -392,8 +392,8 @@
       B = NULL; gc()
       save( hm, file=fn, compress=TRUE)
 
-      for ( fn in tmpfn ) {
-        if (file.exists (fn)) file.remove(fn)
+      for ( fnt in tmpfn ) {
+        if (file.exists (fnt)) file.remove(fnt)
       }
 
 

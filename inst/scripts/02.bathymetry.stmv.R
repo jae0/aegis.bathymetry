@@ -12,13 +12,13 @@
 # krige method is a bit too oversmoothed, especially where rapid changes are occuring
 
 
-# 30 hrs
-scale_ram_required_main_process = 1 # GB twostep / fft
-scale_ram_required_per_process  = 1 # twostep / fft /fields vario ..  (mostly 0.5 GB, but up to 5 GB)
+# 50 hrs
+scale_ram_required_main_process = 17.3 # GB twostep / fft
+scale_ram_required_per_process  = 10 # twostep / fft /fields vario ..  (mostly 0.5 GB, but up to 5 GB)
 scale_ncpus = min( parallel::detectCores(), floor( (ram_local()- scale_ram_required_main_process) / scale_ram_required_per_process ) )
 
 # 54 hrs
-interpolate_ram_required_main_process = 4 # GB twostep / fft
+interpolate_ram_required_main_process = 20 # GB twostep / fft
 interpolate_ram_required_per_process  = 8 # twostep / fft /fields vario ..
 interpolate_ncpus = min( parallel::detectCores(), floor( (ram_local()- interpolate_ram_required_main_process) / interpolate_ram_required_per_process ) )
 
@@ -45,7 +45,7 @@ p = aegis.bathymetry::bathymetry_parameters(
     invers = function(x) {10^(x - 5000)}
   ), # data range is from -1667 to 5467 m: make all positive valued
   stmv_rsquared_threshold = 0.75, # lower threshold
-  stmv_distance_statsgrid = 5, # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
+  stmv_distance_statsgrid = 4, # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
   stmv_distance_scale = c(10, 15, 20, 25), # km ... approx guess of 95% AC range
   stmv_distance_prediction_fraction = 4/5, # i.e. 4/5 * 5 = 4 km
   stmv_nmin = 500,  # min number of data points req before attempting to model in a localized space

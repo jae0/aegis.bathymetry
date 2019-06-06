@@ -21,7 +21,6 @@ p = aegis.bathymetry::bathymetry_parameters(
 )
 
 
-
 p$variables$Y = "z"  # name to give variable in extraction and model
 
 
@@ -43,38 +42,41 @@ sppoly = areal_units(
   redo=TRUE
 )
 
-sppoly =  neighbourhood_structure( sppoly=sppoly, strata_type="lattice" ) # add neighbourhood structure
+sppoly =  neighbourhood_structure( sppoly=sppoly ) # add neighbourhood structure
 
-
-if (exists(tmpdir)) {
-  setwd( tmpdir )  # temp files saved here
-} else {
-  tmpdir = getwd()
-}
 
 # --------------------------------
 # ensure if polys exist and create if required
 # for (au in c("cfanorth", "cfasouth", "cfa4x", "cfaall" )) plot(polygons_managementarea( species="snowcrab", au))
 
 # data for modelling
+if (DS=="carstm.inputs") {
 
-# StrataID reset to be consistent in both data and prediction areal units
-o = over( SpatialPoints( set[,c("plon", "plat")], sp::CRS(p$internal.crs) ), spTransform(sppoly, sp::CRS(p$internal.crs) ) ) # match each datum to an area
-set$StrataID = o$StrataID
+  # StrataID reset to be consistent in both data and prediction areal units
 
+  B = bathymetry.db ( p=p, DS="z.lonlat.rawdata" )  # 16 GB in RAM just to store!
+  # B = B[ which(B$z > -100),]  # take part of the land to define coastline
+  B = lonlat2planar( B, proj.type=p$internal.crs )
+  B$lon = NULL
+  B$lat = NULL
+  gc()
 
-o = over( SpatialPoints( APS[,c("plon", "plat")], sp::CRS(p$internal.crs) ), spTransform(sppoly, sp::CRS(p$internal.crs) ) ) # match each datum to an area
-APS$StrataID = o$StrataID
+  o = over( SpatialPoints( B[,c("plon", "plat")], sp::CRS(p$internal.crs) ), spTransform(sppoly, sp::CRS(p$internal.crs) ) ) # match each datum to an area
+  B$StrataID = o$StrataID
 
-o = NULL
+  o = over( SpatialPoints( APS[,c("plon", "plat")], sp::CRS(p$internal.crs) ), spTransform(sppoly, sp::CRS(p$internal.crs) ) ) # match each datum to an area
+  APS$StrataID = o$StrataID
 
-#  good data
-ok = which(
-  is.finite(set[,p$variables$Y]) &   # INLA can impute Y-data
-  is.finite(set$data_offset) &
-  is.finite(set$StrataID)
-)
+  o = NULL
 
+  #  good data
+  ok = which(
+    is.finite(B[,p$variables$Y]) &   # INLA can impute Y-data
+    is.finite(B$data_offset) &
+    is.finite(set$StrataID)
+  )
+
+}
 
 
 varstokeep = unique( c( "Y", "StrataID", "yr", "data_offset", "tag", p$lookupvars) )
