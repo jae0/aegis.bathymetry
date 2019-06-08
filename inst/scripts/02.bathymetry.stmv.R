@@ -13,12 +13,12 @@
 
 
 # 50 hrs
-scale_ram_required_main_process = 17.3 # GB twostep / fft
-scale_ram_required_per_process  = 10 # twostep / fft /fields vario ..  (mostly 0.5 GB, but up to 5 GB)
+scale_ram_required_main_process = 30 # GB twostep / fft
+scale_ram_required_per_process  = 7 # twostep / fft /fields vario ..  (mostly 0.5 GB, but up to 5 GB)
 scale_ncpus = min( parallel::detectCores(), floor( (ram_local()- scale_ram_required_main_process) / scale_ram_required_per_process ) )
 
 # 54 hrs
-interpolate_ram_required_main_process = 20 # GB twostep / fft
+interpolate_ram_required_main_process = 30 # GB twostep / fft
 interpolate_ram_required_per_process  = 8 # twostep / fft /fields vario ..
 interpolate_ncpus = min( parallel::detectCores(), floor( (ram_local()- interpolate_ram_required_main_process) / interpolate_ram_required_per_process ) )
 
@@ -46,7 +46,7 @@ p = aegis.bathymetry::bathymetry_parameters(
   ), # data range is from -1667 to 5467 m: make all positive valued
   stmv_rsquared_threshold = 0.75, # lower threshold
   stmv_distance_statsgrid = 4, # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
-  stmv_distance_scale = c(10, 15, 20, 25), # km ... approx guess of 95% AC range
+  stmv_distance_scale = c(5, 10, 15), # km ... approx guess of 95% AC range
   stmv_distance_prediction_fraction = 4/5, # i.e. 4/5 * 5 = 4 km
   stmv_nmin = 500,  # min number of data points req before attempting to model in a localized space
   stmv_nmax = 1000, # no real upper bound.. just speed
@@ -57,19 +57,6 @@ p = aegis.bathymetry::bathymetry_parameters(
 if (0) {  # model testing
   # if resetting data for input to stmv run this or if altering discretization resolution
   bathymetry.db( p=p, DS="stmv.inputs.redo" )  # recreate fields for .. requires 60GB+
-
-  o = bathymetry.db( p=p, DS="stmv.inputs" )  # create fields for
-  B = o$input
-  p$stmv_global_modelformula = formula(z ~ 1)
-  p$stmv_global_family= gaussian("log")
-  p = stmv_variablelist(p=p)  # decompose into covariates, etc
-  #  ii = which( is.finite (rowSums(B[ , c(p$variables$Y,p$variables$COV) ])) )
-  # wgts = 1/B$b.sdTotal[ii]
-  # wgts = wgts / mean(wgts)
-  global_model = try( gam( formula=p$stmv_global_modelformula, data=B, #B[ii,],
-      optimizer= p$stmv_gam_optimizer, family=p$stmv_global_family) ) #, weights=wgts ) )
-  summary( global_model )
-  plot(global_model, all.terms=TRUE, trans=bio.snowcrab::inverse.logit, seWithMean=TRUE, jit=TRUE, rug=TRUE )
 }
 
 # runmode=c( "globalmodel", "scale", "interpolate", "interpolate_boost", "interpolate_force_complete", "save_completed_data")
