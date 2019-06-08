@@ -629,6 +629,4 @@
     }
 
 
-    }
-
   }  # end bathymetry.db

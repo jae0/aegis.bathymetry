@@ -14,7 +14,7 @@
 
 # 50 hrs
 scale_ram_required_main_process = 30 # GB twostep / fft
-scale_ram_required_per_process  = 7 # twostep / fft /fields vario ..  (mostly 0.5 GB, but up to 5 GB)
+scale_ram_required_per_process  = 6 # twostep / fft /fields vario ..  (mostly 0.5 GB, but up to 5 GB)
 scale_ncpus = min( parallel::detectCores(), floor( (ram_local()- scale_ram_required_main_process) / scale_ram_required_per_process ) )
 
 # 54 hrs
@@ -39,13 +39,15 @@ p = aegis.bathymetry::bathymetry_parameters(
   stmv_lowpass_nu = 0.5,
   stmv_lowpass_phi = 0.1,  # p$pres = 0.2
   stmv_range_correlation_fft_taper = 0.5,  # in local smoothing convolutions occur of this correlation scale
+  stmv_variogram_method = "fft",
+  stmv_variogram_nbreaks = 20,
   depth.filter = FALSE,  # need data above sea level to get coastline
   stmv_Y_transform =list(
     transf = function(x) {log10(x + 5000)} ,
     invers = function(x) {10^(x - 5000)}
   ), # data range is from -1667 to 5467 m: make all positive valued
   stmv_rsquared_threshold = 0.75, # lower threshold
-  stmv_distance_statsgrid = 4, # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
+  stmv_distance_statsgrid = 2, # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
   stmv_distance_scale = c(5, 10, 15), # km ... approx guess of 95% AC range
   stmv_distance_prediction_fraction = 4/5, # i.e. 4/5 * 5 = 4 km
   stmv_nmin = 500,  # min number of data points req before attempting to model in a localized space
