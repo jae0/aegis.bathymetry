@@ -12,9 +12,9 @@
 # krige method is a bit too oversmoothed, especially where rapid changes are occuring
 
 
-# 50 hrs
-scale_ram_required_main_process = 30 # GB twostep / fft
-scale_ram_required_per_process  = 6 # twostep / fft /fields vario ..  (mostly 0.5 GB, but up to 5 GB)
+# 48 hrs
+scale_ram_required_main_process = 12 # GB twostep / fft
+scale_ram_required_per_process  = 12 # twostep / fft /fields vario ..  (mostly 0.5 GB, but up to 5 GB)
 scale_ncpus = min( parallel::detectCores(), floor( (ram_local()- scale_ram_required_main_process) / scale_ram_required_per_process ) )
 
 # 54 hrs
@@ -28,7 +28,7 @@ p = aegis.bathymetry::bathymetry_parameters(
   DATA = 'bathymetry.db( p=p, DS="stmv.inputs" )',
   spatial.domain = "canada.east.superhighres",
   spatial.domain.subareas = c( "canada.east.highres", "canada.east",  "SSE", "SSE.mpa" , "snowcrab"),
-  pres_discretization_bathymetry = 0.2 / 10,  # 0.2==p$pres; controls resolution of data prior to modelling (km .. ie 20 linear units smaller than the final discretization pres)
+  pres_discretization_bathymetry = 0.2 / 2,  # 0.2==p$pres; controls resolution of data prior to modelling (km .. ie 20 linear units smaller than the final discretization pres)
   stmv_dimensionality="space",
   variables = list(Y="z"),  # required as fft has no formulae
   stmv_global_modelengine = "none",  # too much data to use glm as an entry into link space ... use a direct transformation
@@ -38,20 +38,20 @@ p = aegis.bathymetry::bathymetry_parameters(
   stmv_fft_filter = "lowpass_matern_tapered", #  act as a low pass filter first before matern .. depth has enough data for this. Otherwise, use:
   stmv_lowpass_nu = 0.5,
   stmv_lowpass_phi = 0.1,  # p$pres = 0.2
-  stmv_range_correlation_fft_taper = 0.5,  # in local smoothing convolutions occur of this correlation scale
+  stmv_range_correlation_fft_taper = 0.01,  # in local smoothing convolutions occur of this correlation scale
   stmv_variogram_method = "fft",
-  stmv_variogram_nbreaks = 20,
+  stmv_variogram_nbreaks = 32,
   depth.filter = FALSE,  # need data above sea level to get coastline
   stmv_Y_transform =list(
-    transf = function(x) {log10(x + 5000)} ,
-    invers = function(x) {10^(x - 5000)}
+    transf = function(x) {log10(x + 2500)} ,
+    invers = function(x) {10^(x - 2500)}
   ), # data range is from -1667 to 5467 m: make all positive valued
   stmv_rsquared_threshold = 0.75, # lower threshold
-  stmv_distance_statsgrid = 2, # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
-  stmv_distance_scale = c(5, 10, 15), # km ... approx guess of 95% AC range
+  stmv_distance_statsgrid = 5, # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
+  stmv_distance_scale = c(5, 10, 15, 20), # km ... approx guess of 95% AC range
   stmv_distance_prediction_fraction = 4/5, # i.e. 4/5 * 5 = 4 km
-  stmv_nmin = 500,  # min number of data points req before attempting to model in a localized space
-  stmv_nmax = 1000, # no real upper bound.. just speed
+  stmv_nmin = 600,  # min number of data points req before attempting to model in a localized space
+  stmv_nmax = 900, # no real upper bound.. just speed
   stmv_clusters = list( scale=rep("localhost", scale_ncpus), interpolate=rep("localhost", interpolate_ncpus) )  # ncpus for each runmode
 )
 
@@ -79,7 +79,6 @@ bathymetry.db( p=p, DS="baseline.redo" )  # coords of areas of interest ..filter
 pb = aegis.bathymetry::bathymetry_parameters( project.mode="stmv", spatial.domain="canada.east.highres" )
 bathymetry.figures( p=pb, varnames=c("z", "dZ", "ddZ", "b.ndata", "b.range"), logyvar=TRUE, savetofile="png" )
 bathymetry.figures( p=pb, varnames=c("b.sdTotal", "b.sdSpatial", "b.sdObs"), logyvar=FALSE, savetofile="png" )
-
 
 pb = aegis.bathymetry::bathymetry_parameters( project.mode="stmv", spatial.domain="canada.east.superhighres" )
 bathymetry.figures( p=pb, varnames=c("z", "dZ", "ddZ", "b.ndata", "b.range"), logyvar=TRUE, savetofile="png" )
