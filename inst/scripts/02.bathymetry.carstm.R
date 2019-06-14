@@ -42,6 +42,19 @@ sppoly = areal_units(
   redo=TRUE
 )
 
+
+
+
+sppoly = areal_units(
+  strata_type="lattice",
+  resolution=p$resolution,
+  spatial.domain="SSE",
+  overlay="snowcrab",
+  proj4string_planar_km="+proj=utm +ellps=WGS84 +zone=20 +units=km",
+  constraint=set[, c("lon", "lat")],
+  redo=TRUE
+)
+
 sppoly =  neighbourhood_structure( sppoly=sppoly ) # add neighbourhood structure
 
 
@@ -414,7 +427,7 @@ spplot( sppoly, vn, col.regions=p$mypalette, main=vn, at=brks, sp.layout=p$coast
 fit = inla(
   formula =
     Y ~ 1 + offset( log( data_offset) )
-      + f(strata, model="bym2", graph=sppoly@W.nb, scale.model=TRUE, constr=TRUE, hyper=H$bym2)
+      + f(strata, model="bym2", graph=sppoly@nb, scale.model=TRUE, constr=TRUE, hyper=H$bym2)
       + f(year, model="iid", hyper=H$iid )
       + f(iid_error, model="iid", hyper=H$iid)
     ,
@@ -468,7 +481,7 @@ spplot( sppoly, vn, col.regions=p$mypalette, main=vn, at=brks, sp.layout=p$coast
 fit = inla(
   formula =
     Y ~ 1 + offset( log( data_offset) )
-      + f(strata, model="bym2", graph=sppoly@W.nb, group=year, scale.model=TRUE, constr=TRUE, hyper=H$bym2)
+      + f(strata, model="bym2", graph=sppoly@nb, group=year, scale.model=TRUE, constr=TRUE, hyper=H$bym2)
       + f(year, model="iid", hyper=H$iid )
       + f(iid_error, model="iid", hyper=H$iid)
       # + f(ti, model="rw2", scale.model=TRUE, diagonal=1e-6, hyper=H$rw2)
@@ -557,7 +570,7 @@ spplot( sppoly, vn, col.regions=p$mypalette, main=vn, at=brks, sp.layout=p$coast
 fit = inla(
   formula =
     Y ~ 1 + offset( log( data_offset) )
-      + f(strata, model="bym2", graph=sppoly@W.nb, scale.model=TRUE, constr=TRUE, hyper=H$bym2)
+      + f(strata, model="bym2", graph=sppoly@nb, scale.model=TRUE, constr=TRUE, hyper=H$bym2)
       + f(year, model="iid", hyper=H$iid )
       + f(iid_error, model="iid", hyper=H$iid)
       + f(ti, model="rw2", scale.model=TRUE, diagonal=1e-6, hyper=H$rw2)
@@ -649,7 +662,7 @@ spplot( sppoly, vn, col.regions=p$mypalette, main=vn, at=brks, sp.layout=p$coast
 fit = inla(
   formula =
     Y ~ 1 + offset( log( data_offset) )
-      + f(strata, model="bym2", graph=sppoly@W.nb, scale.model=TRUE, constr=TRUE, hyper=H$bym2)
+      + f(strata, model="bym2", graph=sppoly@nb, scale.model=TRUE, constr=TRUE, hyper=H$bym2)
       + f(year, model="iid", hyper=H$iid )
       + f(iid_error, model="iid", hyper=H$iid)
       + f(ti, model="rw2", scale.model=TRUE, diagonal=1e-6, hyper=H$rw2)
@@ -973,7 +986,7 @@ fit = inla(
   + f(zi, model="rw2", scale.model=TRUE, hyper=H$rw2)
   + f(di, model="rw2", scale.model=TRUE, hyper=H$rw2)
   + f(year, model="iid", hyper=H$iid)
-  + f(strata, model="bym2", graph=sppoly@W.nb, scale.model=TRUE, constr=TRUE, hyper=H$bym2),
+  + f(strata, model="bym2", graph=sppoly@nb, scale.model=TRUE, constr=TRUE, hyper=H$bym2),
   family="binomial",  # alternates family="zeroinflatedbinomial0", family="zeroinflatedbinomial1",
   data=M,
   control.family=list(control.link=list(model="logit")),
