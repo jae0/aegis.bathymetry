@@ -19,7 +19,7 @@ scale_ncpus = min( parallel::detectCores(), floor( (ram_local()- scale_ram_requi
 
 # 54 hrs
 interpolate_ram_required_main_process = 32 # GB twostep / fft
-interpolate_ram_required_per_process  = 8 # twostep / fft /fields vario ..
+interpolate_ram_required_per_process  = 12 # twostep / fft /fields vario ..
 interpolate_ncpus = min( parallel::detectCores(), floor( (ram_local()- interpolate_ram_required_main_process) / interpolate_ram_required_per_process ) )
 
 p = aegis.bathymetry::bathymetry_parameters(

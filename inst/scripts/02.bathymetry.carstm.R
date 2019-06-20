@@ -47,10 +47,7 @@ sppoly = areal_units(
 
 sppoly = areal_units(
   strata_type="lattice",
-  resolution=p$resolution,
-  spatial.domain="SSE",
-  overlay="snowcrab",
-  proj4string_planar_km="+proj=utm +ellps=WGS84 +zone=20 +units=km",
+ C  proj4string_planar_km="+proj=utm +ellps=WGS84 +zone=20 +units=km",
   constraint=set[, c("lon", "lat")],
   redo=TRUE
 )

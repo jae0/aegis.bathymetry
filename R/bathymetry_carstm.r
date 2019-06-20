@@ -1,5 +1,5 @@
 
-  bathymetry_carstm = function( p=NULL, DS="aggregated_data", varnames=NULL, sppoly=NULL, redo=FALSE, ... ) {
+  bathymetry_carstm = function( p=NULL, DS="aggregated_data", sppoly=NULL, id=NULL, redo=FALSE, map=TRUE, ... ) {
 
     #\\ Note inverted convention: depths are positive valued
     #\\ i.e., negative valued for above sea level and positive valued for below sea level
@@ -10,11 +10,12 @@
     if ( !exists("datadir", p) )   p$datadir  = file.path( p$data_root, "data" )
     if ( !exists("modeldir", p) )  p$modeldir = file.path( p$data_root, "modelled" )
 
+    if (is.null(id)) id = paste( p$resolution, p$spatial.domain, p$overlay, sep="_" )
 
     if ( DS=="aggregated_data") {
 
-      fn = file.path( p$modeldir, paste( "bathymetry", "aggregated_data", "rdata", sep=".") )
-      if (!redo) ) {
+      fn = file.path( p$modeldir, paste( "bathymetry", "aggregated_data", id, "rdata", sep=".") )
+      if (!redo)  {
         print( "Warning: aggregated_data is loading from a saved instance ... add redo=TRUE if data needs to be refresh" )
         if (file.exists(fn)) {
           load( fn)
@@ -60,14 +61,24 @@
 
 
 
-    if ( DS=="carstm_modelled") {
+    if ( DS %in% c("carstm_modelled", "carstm_modelled_fit") ) {
 
-      fn = file.path( p$modeldir, paste( "bathymetry", "carstm_modelled", "rdata", sep=".") )
-      if (!redo) ) {
+      fn = file.path( p$modeldir, paste( "bathymetry", "carstm_modelled", id, "rdata", sep=".") )
+      fn_fit = file.path( p$modeldir, paste( "bathymetry", "carstm_modelled_fit", id, "rdata", sep=".") )
+
+      if (!redo)  {
         print( "Warning: carstm_modelled is loading from a saved instance ... add redo=TRUE if data needs to be refresh" )
-        if (file.exists(fn)) {
-          load( fn)
-          return( sppoly )
+        if (DS=="carstm_modelled") {
+          if (file.exists(fn)) {
+            load( fn)
+            return( sppoly )
+          }
+        }
+        if (DS=="carstm_modelled_fit") {
+          if (file.exists(fn_fit)) {
+            load( fn_fit )
+            return( fit )
+          }
         }
         print( "Warning: carstm_modelled load from saved instance failed ... " )
       }
@@ -118,6 +129,7 @@
         blas.num.threads=2,
         verbose=TRUE
       )
+      save( fit, file=fn_fit, compress=TRUE )
       s = summary(fit)
       s$dic$dic  # 31225
       s$dic$p.eff # 5200
@@ -126,16 +138,24 @@
 
       # reformat predictions into matrix form
       ii = which(M$tag=="predictions")
-      out = exp( fit$summary.fitted.values[ ii, "mean" ]) - 2500
-      vn = "z.predicted"
-      sppoly@data[,vn] = out[ match(M$StrataID[ii], sppoly$StrataID)  ]
-
-      brks = interval_break(X= sppoly[[vn]], n=length(p$mypalette), style="quantile")
-      spplot( sppoly, vn, col.regions=p$mypalette, main=vn, at=brks, sp.layout=p$coastLayout, col="transparent" )
-      attr( spplot, "fit") = fit
+      jj = match(M$StrataID[ii], sppoly$StrataID)
+      sppoly@data$z.predicted = exp( fit$summary.fitted.values[ ii[jj], "mean" ]) - 2500
+      sppoly@data$z.predicted_lb = exp( fit$summary.fitted.values[ ii[jj], "0.025quant" ]) - 2500
+      sppoly@data$z.predicted_ub = exp( fit$summary.fitted.values[ ii[jj], "0.975quant" ]) - 2500
+      sppoly@data$z.random_strata_nonspatial = exp( fit$summary.random$strata[ jj, "mean" ])
+      sppoly@data$z.random_strata_spatial = exp( fit$summary.random$strata[ jj+max(jj), "mean" ])
+      sppoly@data$z.random_sample_iid = exp( fit$summary.random$iid_error[ ii[jj], "mean" ])
       save( spplot, file=fn, compress=TRUE )
 
+      if (map) {
+        vn = "z.predicted"
+        brks = interval_break(X= sppoly[[vn]], n=length(p$mypalette), style="quantile")
+        dev.new()
+        spplot( sppoly, vn, col.regions=p$mypalette, main=vn, at=brks, sp.layout=p$coastLayout, col="transparent" )
+      }
+
       return( sppoly )
+
     }
 
   }
