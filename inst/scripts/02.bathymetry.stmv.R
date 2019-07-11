@@ -12,14 +12,14 @@
 # krige method is a bit too oversmoothed, especially where rapid changes are occuring
 
 
-# 48 hrs
+#  100.182 hrs
 scale_ram_required_main_process = 30 # GB twostep / fft
 scale_ram_required_per_process  = 10 # twostep / fft /fields vario ..  (mostly 0.5 GB, but up to 5 GB)
 scale_ncpus = min( parallel::detectCores(), floor( (ram_local()- scale_ram_required_main_process) / scale_ram_required_per_process ) )
 
-# 54 hrs
-interpolate_ram_required_main_process = 32 # GB twostep / fft
-interpolate_ram_required_per_process  = 12 # twostep / fft /fields vario ..
+# interpolate = 2.4 days; boost = ...
+interpolate_ram_required_main_process = 30 # GB twostep / fft
+interpolate_ram_required_per_process  = 10 # twostep / fft /fields vario ..
 interpolate_ncpus = min( parallel::detectCores(), floor( (ram_local()- interpolate_ram_required_main_process) / interpolate_ram_required_per_process ) )
 
 p = aegis.bathymetry::bathymetry_parameters(
@@ -36,14 +36,16 @@ p = aegis.bathymetry::bathymetry_parameters(
   stmv_global_family ="none",
   stmv_local_modelengine="fft",
   stmv_fft_filter = "lowpass_matern_tapered", #  act as a low pass filter first before matern with taper .. depth has enough data for this. Otherwise, use:
-  stmv_lowpass_nu = 0.5,
-  stmv_lowpass_phi = 0.1,  # note: p$pres = 0.2
-  stmv_fft_taper_factor = 5,  # in local smoothing convolutions taper to this areal expansion factor 1 ~ distance of one datum -- 5-6 seems optimal
+  stmv_fft_taper_method = "modelled",  # vs "empirical"
+  # stmv_fft_taper_fraction = 0.5,  # if empirical: in local smoothing convolutions taper to this areal expansion factor sqrt( r=0.5 ) ~ 70% of variance in variogram
+  stmv_lowpass_nu = 0.1,
+  stmv_lowpass_phi = stmv::matern_distance2phi( distance=0.1, nu=0.1, cor=0.5 ),
+  stmv_variogram_method = "fft",
+  stmv_autocorrelation_fft_taper = 0.5,  # benchmark from which to taper
+  stmv_autocorrelation_localrange = 0.1,
+  stmv_autocorrelation_interpolation = c(0.25, 0.1, 0.05, 0.01),
   stmv_variogram_method = "fft",
   stmv_variogram_nbreaks = 50,
-  stmv_discretized_n = 100,
-  stmv_range_correlation=0.1,
-  stmv_range_correlation_boostdata = c(0.01, 0.001, 0.0001),
   depth.filter = FALSE,  # need data above sea level to get coastline
   stmv_Y_transform =list(
     transf = function(x) {log10(x + 2500)} ,
@@ -52,10 +54,22 @@ p = aegis.bathymetry::bathymetry_parameters(
   stmv_rsquared_threshold = 0.01, # lower threshold  .. ignore
   stmv_distance_statsgrid = 5, # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
   stmv_distance_scale = c(5, 10, 20, 30, 40, 50, 60), # km ... approx guesses of 95% AC range
-  stmv_distance_prediction_fraction = 4/5, # i.e. 4/5 * 5 = 4 km .. relative to stats grid
+  stmv_distance_prediction_fraction = 0.95, # i.e. 4/5 * 5 = 4 km .. relative to stats grid
   stmv_nmin = 200,  # min number of data points req before attempting to model in a localized space
-  stmv_nmax = 800, # no real upper bound.. just speed /RAM
-  stmv_clusters = list( scale=rep("localhost", scale_ncpus), interpolate=rep("localhost", interpolate_ncpus) )  # ncpus for each runmode
+  stmv_nmax = 500, # no real upper bound.. just speed /RAM
+  stmv_runmode = list(
+    scale = rep("localhost", scale_ncpus),
+    interpolate = list(
+        cor_0.5 = rep("localhost", interpolate_ncpus),
+        cor_0.1 = rep("localhost", interpolate_ncpus),
+        cor_0.05 = rep("localhost", max(1, interpolate_ncpus-1)),
+        cor_0.01 = rep("localhost", max(1, interpolate_ncpus-2))
+      ),  # ncpus for each runmode
+    interpolate_force_complete = rep("localhost", max(1, interpolate_ncpus-2)),
+    globalmodel = TRUE,
+    save_intermediate_results = TRUE,
+    save_completed_data = TRUE # just a dummy variable with the correct name
+  )  # ncpus for each runmode
 )
 
 
@@ -64,10 +78,7 @@ if (0) {  # model testing
   bathymetry.db( p=p, DS="stmv.inputs.redo" )  # recreate fields for .. requires 60GB+
 }
 
-# runmode=c( "globalmodel", "scale", "interpolate", "interpolate_boost", "interpolate_force_complete", "save_completed_data")
-# runmode=c( "interpolate", "interpolate_boost", "save_completed_data")
-stmv( p=p, runmode=runmode )  # This will take from 40-70 hrs, depending upon system
-p0 = p  # store in case needed in a debug
+stmv( p=p )  # This will take from 40-70 hrs, depending upon system
 
 
 # bring together stats and predictions and any other required computations: slope and curvature
