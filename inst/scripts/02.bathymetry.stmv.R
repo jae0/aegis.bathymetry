@@ -40,9 +40,8 @@ p = aegis.bathymetry::bathymetry_parameters(
   # stmv_fft_taper_fraction = 0.5,  # if empirical: in local smoothing convolutions taper to this areal expansion factor sqrt( r=0.5 ) ~ 70% of variance in variogram
   stmv_lowpass_nu = 0.1,
   stmv_lowpass_phi = stmv::matern_distance2phi( distance=0.1, nu=0.1, cor=0.5 ),
-  stmv_variogram_method = "fft",
   stmv_autocorrelation_fft_taper = 0.5,  # benchmark from which to taper
-  stmv_autocorrelation_localrange = 0.1,
+  stmv_autocorrelation_localrange = 0.1,  # for output to stats
   stmv_autocorrelation_interpolation = c(0.25, 0.1, 0.05, 0.01),
   stmv_variogram_method = "fft",
   stmv_variogram_nbreaks = 50,
@@ -58,6 +57,7 @@ p = aegis.bathymetry::bathymetry_parameters(
   stmv_nmin = 200,  # min number of data points req before attempting to model in a localized space
   stmv_nmax = 500, # no real upper bound.. just speed /RAM
   stmv_runmode = list(
+    globalmodel = TRUE,
     scale = rep("localhost", scale_ncpus),
     interpolate = list(
         cor_0.5 = rep("localhost", interpolate_ncpus),
@@ -66,7 +66,6 @@ p = aegis.bathymetry::bathymetry_parameters(
         cor_0.01 = rep("localhost", max(1, interpolate_ncpus-2))
       ),  # ncpus for each runmode
     interpolate_force_complete = rep("localhost", max(1, interpolate_ncpus-2)),
-    globalmodel = TRUE,
     save_intermediate_results = TRUE,
     save_completed_data = TRUE # just a dummy variable with the correct name
   )  # ncpus for each runmode
@@ -81,6 +80,24 @@ if (0) {  # model testing
 stmv( p=p )  # This will take from 40-70 hrs, depending upon system
 
 
+# quick view
+  predictions = stmv_db( p=p, DS="stmv.prediction", ret="mean" )
+  statistics  = stmv_db( p=p, DS="stmv.stats" )
+  locations   = spatial_grid( p )
+
+  # comparisons
+  dev.new(); surface( as.image( Z=rowMeans(predictions), x=locations, nx=p$nplons, ny=p$nplats, na.rm=TRUE) )
+
+  # stats
+  (p$statsvars)
+  dev.new(); levelplot( predictions[,1] ~ locations[,1] + locations[,2], aspect="iso" )
+  dev.new(); levelplot( statistics[,match("nu", p$statsvars)]  ~ locations[,1] + locations[,2], aspect="iso" ) # nu
+  dev.new(); levelplot( statistics[,match("sdTot", p$statsvars)]  ~ locations[,1] + locations[,2], aspect="iso" ) #sd total
+  dev.new(); levelplot( statistics[,match("localrange", p$statsvars)]  ~ locations[,1] + locations[,2], aspect="iso" ) #localrange
+
+
+
+
 # bring together stats and predictions and any other required computations: slope and curvature
 # and then regrid/warp as the interpolation process is so expensive, regrid/upscale/downscale based off the above run
 # .. still uses about 30-40 GB as the base layer is "superhighres" ..
@@ -91,16 +108,16 @@ bathymetry.db( p=p, DS="baseline.redo" )  # coords of areas of interest ..filter
 
 # a few plots :
 pb = aegis.bathymetry::bathymetry_parameters( project.mode="stmv", spatial.domain="canada.east.highres" )
-bathymetry.figures( p=pb, varnames=c("z", "dZ", "ddZ", "b.ndata", "b.range"), logyvar=TRUE, savetofile="png" )
+bathymetry.figures( p=pb, varnames=c("z", "dZ", "ddZ", "b.ndata", "b.localrange"), logyvar=TRUE, savetofile="png" )
 bathymetry.figures( p=pb, varnames=c("b.sdTotal", "b.sdSpatial", "b.sdObs"), logyvar=FALSE, savetofile="png" )
 
 pb = aegis.bathymetry::bathymetry_parameters( project.mode="stmv", spatial.domain="canada.east.superhighres" )
-bathymetry.figures( p=pb, varnames=c("z", "dZ", "ddZ", "b.ndata", "b.range"), logyvar=TRUE, savetofile="png" )
+bathymetry.figures( p=pb, varnames=c("z", "dZ", "ddZ", "b.ndata", "b.localrange"), logyvar=TRUE, savetofile="png" )
 bathymetry.figures( p=pb, varnames=c("b.sdTotal", "b.sdSpatial", "b.sdObs"), logyvar=FALSE, savetofile="png" )
 
 
 pb = aegis.bathymetry::bathymetry_parameters( project.mode="stmv", spatial.domain="snowcrab" )
-bathymetry.figures( p=pb, varnames=c("z", "dZ", "ddZ", "b.ndata", "b.range"), logyvar=TRUE, savetofile="png" )
+bathymetry.figures( p=pb, varnames=c("z", "dZ", "ddZ", "b.ndata", "b.localrange"), logyvar=TRUE, savetofile="png" )
 bathymetry.figures( p=pb, varnames=c("b.sdTotal", "b.sdSpatial", "b.sdObs"), logyvar=FALSE, savetofile="png" )
 
 
