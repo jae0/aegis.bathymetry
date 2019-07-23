@@ -60,10 +60,10 @@ p = aegis.bathymetry::bathymetry_parameters(
     globalmodel = TRUE,
     scale = rep("localhost", scale_ncpus),
     interpolate = list(
-        cor_0.5 = rep("localhost", interpolate_ncpus),
-        cor_0.1 = rep("localhost", interpolate_ncpus),
-        cor_0.05 = rep("localhost", max(1, interpolate_ncpus-1)),
-        cor_0.01 = rep("localhost", max(1, interpolate_ncpus-2))
+        cor_0.5 = rep("localhost", interpolate_ncpus),  # ~ 10 GB / process; 60 hrs
+        cor_0.1 = rep("localhost", max(1, interpolate_ncpus-1)), # ~ 15 GB / process; 40 hrs
+        cor_0.05 = rep("localhost", 1),
+        cor_0.01 = rep("localhost", 1)
       ),  # ncpus for each runmode
     interpolate_force_complete = rep("localhost", max(1, interpolate_ncpus-2)),
     save_intermediate_results = TRUE,
@@ -89,10 +89,17 @@ stmv( p=p )  # This will take from 40-70 hrs, depending upon system
   dev.new(); surface( as.image( Z=rowMeans(predictions), x=locations, nx=p$nplons, ny=p$nplats, na.rm=TRUE) )
 
   # stats
-  (p$statsvars)
+  # p$statsvars = c( "sdTotal", "rsquared", "ndata", "sdSpatial", "sdObs", "phi", "nu", "localrange" )
   dev.new(); levelplot( predictions[,1] ~ locations[,1] + locations[,2], aspect="iso" )
+
+  sbox = list(
+    plats = seq( p$corners$plat[1], p$corners$plat[2], by=p$stmv_distance_statsgrid ),
+    plons = seq( p$corners$plon[1], p$corners$plon[2], by=p$stmv_distance_statsgrid ) )
+  # statistics coordinates
+  locations = as.matrix( expand_grid_fast( sbox$plons, sbox$plats ))
+
   dev.new(); levelplot( statistics[,match("nu", p$statsvars)]  ~ locations[,1] + locations[,2], aspect="iso" ) # nu
-  dev.new(); levelplot( statistics[,match("sdTot", p$statsvars)]  ~ locations[,1] + locations[,2], aspect="iso" ) #sd total
+  dev.new(); levelplot( statistics[,match("sdSpatial", p$statsvars)]  ~ locations[,1] + locations[,2], aspect="iso" ) #sd total
   dev.new(); levelplot( statistics[,match("localrange", p$statsvars)]  ~ locations[,1] + locations[,2], aspect="iso" ) #localrange
 
 

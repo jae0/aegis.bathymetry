@@ -319,11 +319,11 @@
       gc()
 
       # thin data a bit ... remove potential duplicates and robustify
-      B$plon = floor(B$plon / p$pres_discretization_bathymetry) * p$pres_discretization_bathymetry
-      B$plat = floor(B$plat / p$pres_discretization_bathymetry) * p$pres_discretization_bathymetry
+      B$plon = floor(B$plon / p$pres_discretization_bathymetry + 1 ) * p$pres_discretization_bathymetry
+      B$plat = floor(B$plat / p$pres_discretization_bathymetry + 1 ) * p$pres_discretization_bathymetry
       zrez = 1  # meter
       bid = paste( B$plon, B$plat  )
-      B = B[!duplicated(paste( bid, floor(B$z / zrez) * zrez )),]
+      B = B[!duplicated(paste( bid, floor(B$z / zrez + 1 ) * zrez )),]
       gc()
       B = B[ order(bid),]
       rm(bid); gc()
