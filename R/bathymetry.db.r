@@ -440,7 +440,7 @@
       Bmean = stmv_db( p=p, DS="stmv.prediction", ret="mean" )
       Blb = stmv_db( p=p, DS="stmv.prediction", ret="lb" )
       Bub = stmv_db( p=p, DS="stmv.prediction", ret="ub" )
-      Z = cbind(B, Bmean, Blb, Bub)
+      Z = data.frame( cbind(B, Bmean, Blb, Bub) )
       names(Z) = c( "plon", "plat", "z", "z.lb", "z.ub") # really Z.mean but for historical compatibility "z"
       B = Bmean = Blb = Bub = NULL
 
@@ -497,13 +497,14 @@
       for (gr in grids ) {
         print(gr)
         p1 = spatial_parameters( spatial.domain=gr ) #target projection
-          L1 = spatial_grid( p1 )
+          L1 = spatial_grid( p=p1 )
           L1i = array_map( "xy->2", L1[, c("plon", "plat")], gridparams=p1$gridparams )
           L1 = planar2lonlat( L1, proj.type=p1$internal.crs )
           Z = L1
           L1$plon_1 = L1$plon # store original coords
           L1$plat_1 = L1$plat
           L1 = lonlat2planar( L1, proj.type=p0$internal.crs )
+
           p1$wght = fields::setup.image.smooth(
             nrow=p1$nplons, ncol=p1$nplats, dx=p1$pres, dy=p1$pres,
             theta=p1$pres, xwidth=4*p1$pres, ywidth=4*p1$pres )
@@ -518,13 +519,13 @@
       return(fn)
 
       if (0) {
-        aoi = which( B$z > 10 & B$z < 500 )
-        datarange = log( quantile( B[aoi,"z"], probs=c(0.001, 0.999), na.rm=TRUE ))
+        aoi = which( Z$z > 10 & Z$z < 500 )
+        datarange = log( quantile( Z[aoi,"z"], probs=c(0.001, 0.999), na.rm=TRUE ))
         dr = seq( datarange[1], datarange[2], length.out=100)
 
-        levelplot( log(z) ~ plon + plat, B[ aoi,], aspect="iso", labels=FALSE, pretty=TRUE, xlab=NULL,ylab=NULL,scales=list(draw=FALSE), at=dr, col.regions=rev(color.code( "seis", dr)) )
-        levelplot( log(phi) ~ plon + plat, B[ aoi,], aspect="iso", labels=FALSE, pretty=TRUE, xlab=NULL,ylab=NULL,scales=list(draw=FALSE) )
-        levelplot( log(range) ~ plon + plat, B[aoi,], aspect="iso", labels=FALSE, pretty=TRUE, xlab=NULL,ylab=NULL,scales=list(draw=FALSE) )
+        levelplot( log(z) ~ plon + plat, Z[ aoi,], aspect="iso", labels=FALSE, pretty=TRUE, xlab=NULL,ylab=NULL,scales=list(draw=FALSE), at=dr, col.regions=rev(color.code( "seis", dr)) )
+        levelplot( log(phi) ~ plon + plat, Z[ aoi,], aspect="iso", labels=FALSE, pretty=TRUE, xlab=NULL,ylab=NULL,scales=list(draw=FALSE) )
+        levelplot( log(range) ~ plon + plat, Z[aoi,], aspect="iso", labels=FALSE, pretty=TRUE, xlab=NULL,ylab=NULL,scales=list(draw=FALSE) )
 
       }
     }

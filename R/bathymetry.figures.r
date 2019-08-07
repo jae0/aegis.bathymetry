@@ -1,5 +1,5 @@
 
-bathymetry.figures = function( p=NULL, varnames="z", datarange=NULL, logyvar=FALSE, isodepths = c( 100, 300, 500 ), savetofile="", width=1365, height=1024, pointsize=12, res=96, quality=80 ) {
+bathymetry.figures = function( p=NULL, varnames="z", logyvar=FALSE, isodepths = c( 100, 300, 500 ), savetofile="", width=1365, height=1024, pointsize=12, res=96, quality=80 ) {
 
   b = bathymetry.db( p=p, DS="complete" )
   b = b[b$z > 0 , ]
@@ -17,7 +17,7 @@ bathymetry.figures = function( p=NULL, varnames="z", datarange=NULL, logyvar=FAL
     #   b = b[oc,]
     # }
 
-    if (is.null( datarange)) datarange = quantile( b[,vn], probs=c(0.05, 0.95), na.rm=TRUE )
+    datarange = quantile( b[,vn], probs=c(0.05, 0.95), na.rm=TRUE )
     dr = seq( datarange[1], datarange[2], length.out=100)
 
     levplt = levelplot( b[,vn] ~ plon + plat, data=b[,], aspect="iso", main=NULL,

@@ -41,8 +41,8 @@ p = aegis.bathymetry::bathymetry_parameters(
   stmv_lowpass_nu = 0.1,
   stmv_lowpass_phi = stmv::matern_distance2phi( distance=0.1, nu=0.1, cor=0.5 ),
   stmv_autocorrelation_fft_taper = 0.5,  # benchmark from which to taper
-  stmv_autocorrelation_localrange = 0.1,  # definition of localrange for output to stats
-  stmv_autocorrelation_interpolation = c(0.25, 0.1, 0.01, 0.001),
+  stmv_autocorrelation_localrange = 0.1,  # for output to stats
+  stmv_autocorrelation_interpolation = c(0.25, 0.1, 0.05, 0.01),
   stmv_variogram_method = "fft",
   stmv_variogram_nbreaks = 50,
   depth.filter = FALSE,  # need data above sea level to get coastline
@@ -53,17 +53,17 @@ p = aegis.bathymetry::bathymetry_parameters(
   stmv_rsquared_threshold = 0.01, # lower threshold  .. ignore
   stmv_distance_statsgrid = 5, # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
   stmv_distance_scale = c(5, 10, 20, 30, 40, 50, 60), # km ... approx guesses of 95% AC range
-  stmv_distance_prediction_fraction = 0.99, # i.e. 4/5 * 5 = 4 km .. relative to stats grid
+  stmv_distance_prediction_fraction = 0.95, # i.e. 4/5 * 5 = 4 km .. relative to stats grid
   stmv_nmin = 200,  # min number of data points req before attempting to model in a localized space
   stmv_nmax = 500, # no real upper bound.. just speed /RAM
   stmv_runmode = list(
     globalmodel = TRUE,
     scale = rep("localhost", scale_ncpus),
     interpolate = list(
-        cor_0.25 = rep("localhost", interpolate_ncpus),  # ~ 10 GB / process; 60 hrs
+        cor_0.5 = rep("localhost", interpolate_ncpus),  # ~ 10 GB / process; 60 hrs
         cor_0.1 = rep("localhost", max(1, interpolate_ncpus-1)), # ~ 15 GB / process; 40 hrs
-        cor_0.01 = rep("localhost", 1),
-        cor_0.001 = rep("localhost", 1)
+        cor_0.05 = rep("localhost", 1),
+        cor_0.01 = rep("localhost", 1)
       ),  # ncpus for each runmode
     interpolate_force_complete = rep("localhost", max(1, interpolate_ncpus-2)),
     save_intermediate_results = TRUE,
@@ -86,17 +86,11 @@ stmv( p=p )  # This will take from 40-70 hrs, depending upon system
   locations   = spatial_grid( p )
 
   # comparisons
-  dev.new(); surface( as.image( Z=predictions, x=locations, nx=p$nplons, ny=p$nplats, na.rm=TRUE) )
+  dev.new(); surface( as.image( Z=rowMeans(predictions), x=locations, nx=p$nplons, ny=p$nplats, na.rm=TRUE) )
 
   # stats
   # p$statsvars = c( "sdTotal", "rsquared", "ndata", "sdSpatial", "sdObs", "phi", "nu", "localrange" )
   dev.new(); levelplot( predictions[,1] ~ locations[,1] + locations[,2], aspect="iso" )
-
-  sbox = list(
-    plats = seq( p$corners$plat[1], p$corners$plat[2], by=p$stmv_distance_statsgrid ),
-    plons = seq( p$corners$plon[1], p$corners$plon[2], by=p$stmv_distance_statsgrid ) )
-  # statistics coordinates
-  locations = as.matrix( expand_grid_fast( sbox$plons, sbox$plats ))
 
   dev.new(); levelplot( statistics[,match("nu", p$statsvars)]  ~ locations[,1] + locations[,2], aspect="iso" ) # nu
   dev.new(); levelplot( statistics[,match("sdSpatial", p$statsvars)]  ~ locations[,1] + locations[,2], aspect="iso" ) #sd total
