@@ -42,9 +42,8 @@ p = aegis.bathymetry::bathymetry_parameters(
   # stmv_lowpass_phi = stmv::matern_distance2phi( distance=0.1, nu=0.1, cor=0.5 ),
   stmv_autocorrelation_fft_taper = 0.5,  # benchmark from which to taper
   stmv_autocorrelation_localrange = 0.1,  # for output to stats
-  stmv_autocorrelation_interpolation = c(0.25, 0.1, 0.05, 0.01),
+  stmv_autocorrelation_interpolation = c(0.25, 0.1, 0.01, 0.001),
   stmv_variogram_method = "fft",
-  stmv_variogram_nbreaks = 49,
   depth.filter = FALSE,  # need data above sea level to get coastline
   stmv_Y_transform =list(
     transf = function(x) {log10(x + 2500)} ,
@@ -60,10 +59,10 @@ p = aegis.bathymetry::bathymetry_parameters(
     globalmodel = TRUE,
     scale = rep("localhost", scale_ncpus),
     interpolate = list(
-        cor_0.5 = rep("localhost", interpolate_ncpus),  # ~ 10 GB / process; 60 hrs
+        cor_0.25 = rep("localhost", interpolate_ncpus),  # ~ 10 GB / process; 60 hrs
         cor_0.1 = rep("localhost", max(1, interpolate_ncpus-1)), # ~ 15 GB / process; 40 hrs
-        cor_0.05 = rep("localhost", 1),
-        cor_0.01 = rep("localhost", 1)
+        cor_0.01 = rep("localhost", 1),
+        cor_0.001 = rep("localhost", 1)
       ),  # ncpus for each runmode
     interpolate_force_complete = rep("localhost", max(1, interpolate_ncpus-2)),
     save_intermediate_results = TRUE,
