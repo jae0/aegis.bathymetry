@@ -38,8 +38,8 @@ bathymetry_parameters = function( p=NULL, project.name=NULL, project.mode="defau
     p$libs = c( p$libs, project.library ( "stmv" ) )
 
     if ( !exists("DATA", p) ) p$DATA = 'bathymetry.db( p=p, DS="stmv.inputs" )'
-    if (!exists("variables", p)) p$variables = list()
-    if (!exists("LOCS", p$variables)) p$variables$LOCS=c("plon", "plat")
+    if ( !exists("variables", p)) p$variables = list()
+    if ( !exists("LOCS", p$variables)) p$variables$LOCS = c("plon", "plat")
     if ( !exists("pres_discretization_bathymetry", p) ) p$pres_discretization_bathymetry = p$pres / 100 # controls resolution of data prior to modelling (km .. ie 100 linear units smaller than the final discretization pres)
 
     # if (!exists("stmv_global_modelengine", p)) stmv_global_modelengine = "glm"
@@ -131,6 +131,9 @@ bathymetry_parameters = function( p=NULL, project.name=NULL, project.mode="defau
 
   if (project.mode=="carstm") {
     p$libs = c( p$libs, project.library ( "carstm" ) )
+    if (!exists("variables", p)) p$variables = list()
+    if (!exists("LOCS", p$variables)) p$variables$LOCS = c("plon", "plat")
+    if (!exists("Y", p$variables)) p$variables$Y = "z" # name to give variable in extraction and model
 
     return(p)
   }

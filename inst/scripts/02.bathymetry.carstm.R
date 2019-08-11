@@ -15,19 +15,16 @@ p = aegis.bathymetry::bathymetry_parameters(
   id = "bathymetry",
   resolution = 100, # km
   internal.crs = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs",
-  internal.crs_planar = "+proj=omerc +lat_0=44.0 +lonc=-63.0 +gamma=0.0 +k=1 +alpha=325 +x_0=0 +y_0=0 +ellps=WGS84 +units=km",  # oblique mercator, centred on Scotian Shelf rotated by 325 degrees
+  proj4string_planar_km = "+proj=omerc +lat_0=44.0 +lonc=-63.0 +gamma=0.0 +k=1 +alpha=325 +x_0=0 +y_0=0 +ellps=WGS84 +units=km",  # oblique mercator, centred on Scotian Shelf rotated by 325 degrees
+  # proj4string_planar_km = "+proj=utm +ellps=WGS84 +zone=20 +units=km",
   boundingbox = list( xlim = c(-70.5, -56.5), ylim=c(39.5, 47.5)), # bounding box for plots using spplot
+  mypalette = RColorBrewer::brewer.pal(9, "YlOrRd"),
   libs = RLibrary ( "sp", "spdep", "rgeos", "INLA", "raster", "aegis",  "aegis.polygons", "aegis.bathymetry" )
 )
 
 
-p$variables$Y = "z"  # name to give variable in extraction and model
-
-
-
 # set up default map projection
 p = c(p, aegis.coastline::coastline_layout( p=p, redo=reset_input_data ) )
-p$mypalette = RColorBrewer::brewer.pal(9, "YlOrRd")
 
 
 # --------------------------------
@@ -37,17 +34,15 @@ sppoly = areal_units(
   strata_type="lattice",
   resolution=p$resolution,
   spatial.domain=p$spatial.domain,
-  proj4string_planar_km="+proj=utm +ellps=WGS84 +zone=20 +units=km",
+  proj4string_planar_km=p$proj4string_planar_km,
   overlay="none",
   redo=TRUE
 )
 
 
-
-
 sppoly = areal_units(
   strata_type="lattice",
- C  proj4string_planar_km="+proj=utm +ellps=WGS84 +zone=20 +units=km",
+  proj4string_planar_km=p$proj4string_planar_km,
   constraint=set[, c("lon", "lat")],
   redo=TRUE
 )

@@ -28,7 +28,7 @@ p = aegis.bathymetry::bathymetry_parameters(
   DATA = 'bathymetry.db( p=p, DS="stmv.inputs" )',
   spatial.domain = "canada.east.superhighres",
   spatial.domain.subareas = c( "canada.east.highres", "canada.east",  "SSE", "SSE.mpa" , "snowcrab"),
-  pres_discretization_bathymetry = 0.2 / 2,  # 0.2==p$pres; controls resolution of data prior to modelling (km .. ie 20 linear units smaller than the final discretization pres)
+  pres_discretization_bathymetry = 0.05,  # 0.2==p$pres; controls resolution of data prior to modelling (km .. ie 20 linear units smaller than the final discretization pres)
   stmv_dimensionality="space",
   variables = list(Y="z"),  # required as fft has no formulae
   stmv_global_modelengine = "none",  # too much data to use glm as an entry into link space ... use a direct transformation
@@ -42,7 +42,7 @@ p = aegis.bathymetry::bathymetry_parameters(
   # stmv_lowpass_phi = stmv::matern_distance2phi( distance=0.1, nu=0.1, cor=0.5 ),
   stmv_autocorrelation_fft_taper = 0.5,  # benchmark from which to taper
   stmv_autocorrelation_localrange = 0.1,  # for output to stats
-  stmv_autocorrelation_interpolation = c(0.25, 0.1, 0.01, 0.001),
+  stmv_autocorrelation_interpolation = c(0.25, 0.1, 0.01),
   stmv_variogram_method = "fft",
   depth.filter = FALSE,  # need data above sea level to get coastline
   stmv_Y_transform =list(
@@ -51,9 +51,9 @@ p = aegis.bathymetry::bathymetry_parameters(
   ), # data range is from -1667 to 5467 m: make all positive valued
   stmv_rsquared_threshold = 0.01, # lower threshold  .. ignore
   stmv_distance_statsgrid = 5, # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
-  stmv_distance_scale = c(5, 10, 20, 30, 40, 50, 60, 75), # km ... approx guesses of 95% AC range
+  stmv_distance_scale = c(5, 10, 20, 25, 50, 75), # km ... approx guesses of 95% AC range
   stmv_distance_prediction_fraction = 0.99, # i.e. 4/5 * 5 = 4 km .. relative to stats grid
-  stmv_nmin = 100,  # min number of data points req before attempting to model in a localized space
+  stmv_nmin = 200,  # min number of data points req before attempting to model in a localized space
   stmv_nmax = 500, # no real upper bound.. just speed /RAM
   stmv_runmode = list(
     globalmodel = TRUE,
@@ -61,13 +61,12 @@ p = aegis.bathymetry::bathymetry_parameters(
     interpolate = list(
         cor_0.25 = rep("localhost", interpolate_ncpus),  # ~ 10 GB / process; 60 hrs
         cor_0.1 = rep("localhost", max(1, interpolate_ncpus-1)), # ~ 15 GB / process; 40 hrs
-        cor_0.01 = rep("localhost", 1),
-        cor_0.001 = rep("localhost", 1)
-      ),  # ncpus for each runmode
+        cor_0.01 = rep("localhost", 1)
+      ),
     interpolate_force_complete = rep("localhost", max(1, interpolate_ncpus-2)),
     save_intermediate_results = TRUE,
     save_completed_data = TRUE # just a dummy variable with the correct name
-  )  # ncpus for each runmode
+  )
 )
 
 

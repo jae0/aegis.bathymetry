@@ -321,81 +321,19 @@
       # thin data a bit ... remove potential duplicates and robustify
       B$plon = round(B$plon / p$pres_discretization_bathymetry + 1 ) * p$pres_discretization_bathymetry
       B$plat = round(B$plat / p$pres_discretization_bathymetry + 1 ) * p$pres_discretization_bathymetry
-      zrez = 1  # meter
-      bid = paste( B$plon, B$plat )
-      B = B[!duplicated(paste( bid, round(B$z / zrez + 1 ) * zrez )),]
-      gc()
-      B = B[ order(bid),]
-      rm(bid); gc()
-
-      # reduce size of B in steps ... this is too large to run in one go
-
-      nr = nrow(B)
-      ns = 20 # number of segments
-      nl = floor( nr / ns )
-
-      pos = 0 # index start position
-      tmpfn = list()
-
-      for ( nn in 1:ns ) {
-        print( nn)
-        ii = pos + (1:nl)
-        out = B[ii,]
-        tmpfn[[nn]] =  file.path( p$data_root, paste("tmp", nn, "rdata", sep=".") )
-        save(out, file=tmpfn[[nn]])
-        out = NULL; gc()
-        pos = ii[nl] # update last index
-      }
-
-      if (pos < nr) {
-        # get stragglers
-        ii = (pos + 1) : nr
-        out = B[ii,]
-        tmpfn[[ns+1]] =  file.path( p$data_root, paste("tmp", (ns+1), "rdata", sep=".") )
-        save(out, file=tmpfn[[ns+1]])
-        out = NULL; gc()
-      }
-      B = NULL;
+      keep = which( !duplicated(paste( B$plon, B$plat )) )
+      B = B[ keep , ]
+      keep = NULL
       gc()
 
-      for ( nn in 1:ns ) {
-        print(nn)
-        load( tmpfn[[nn]] )
-        bb = tapply( X=out$z, INDEX=list(paste( out$plon, out$plat) ), FUN = function(w) {median(w, na.rm=TRUE)}, simplify=TRUE )
-        locs = sapply( strsplit(rownames(bb), " ", fixed=TRUE ), unlist)
-        rownames(bb) = NULL
-        B = rbind( B, cbind(bb, as.numeric(locs[1,]), as.numeric(locs[2,]) ) )
-        bb = NULL
-        locs = NULL
-        out = NULL
-        gc()
-      }
-      if (pos < nr) {
-        # get stragglers
-        load( tmpfn[[ns+1]] )
-        bb = tapply( X=out$z, INDEX=as.list(out[, c("plon", "plat")]), FUN = function(w) {median(w, na.rm=TRUE)}, simplify=TRUE )
-        locs = sapply( strsplit(rownames(bb), " ", fixed=TRUE ), unlist)
-        rownames(bb) = NULL
-        B = rbind( B, cbind(bb, as.numeric(locs[1,]), as.numeric(locs[2,]) ) )
-        bb = NULL
-        locs = NULL
-        out = NULL
-        gc()
-      }
-      bb = NULL
-      gc()
-      B = as.data.frame( B )
-      names(B) = c("z", "plon", "plat")
       B = B[ which( is.finite( B$z )) ,]
 
       hm = list( input=B, output=list( LOCS = spatial_grid(p) ) )
       B = NULL; gc()
-      save( hm, file=fn, compress=TRUE)
-
-      for ( fnt in tmpfn ) {
-        if (file.exists (fnt)) file.remove(fnt)
-      }
-
+      save( hm, file=fn, compress=FALSE)
+      hm = NULL
+      gc()
+      return(fn)
 
     }
 
