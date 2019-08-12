@@ -17,8 +17,13 @@ bathymetry.figures = function( p=NULL, varnames="z", logyvar=FALSE, isodepths = 
     #   b = b[oc,]
     # }
 
+    b[,vn] = zapsmall( b[,vn] )
     datarange = quantile( b[,vn], probs=c(0.05, 0.95), na.rm=TRUE )
     dr = seq( datarange[1], datarange[2], length.out=100)
+    ll = which( b[,vn] < datarange[1] )
+    if (length(ll>0)) b[ll,vn] =  datarange[1]
+    ul = which( b[,vn] > datarange[2] )
+    if (length(ul>0)) b[ul,vn] =  datarange[2]
 
     levplt = levelplot( b[,vn] ~ plon + plat, data=b[,], aspect="iso", main=NULL,
       at=dr, col.regions=rev(color.code( "seis", dr)) ,

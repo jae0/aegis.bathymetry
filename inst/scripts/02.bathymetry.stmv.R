@@ -107,16 +107,16 @@ bathymetry.db( p=p, DS="baseline.redo" )  # coords of areas of interest ..filter
 
 # a few plots :
 pb = aegis.bathymetry::bathymetry_parameters( project.mode="stmv", spatial.domain="canada.east.highres" )
-bathymetry.figures( p=pb, varnames=c("z", "dZ", "ddZ", "b.ndata", "b.localrange"), logyvar=TRUE, savetofile="png" )
+bathymetry.figures( p=pb, varnames=c("z", "dZ", "ddZ", "b.localrange"), logyvar=TRUE, savetofile="png" )
 bathymetry.figures( p=pb, varnames=c("b.sdTotal", "b.sdSpatial", "b.sdObs"), logyvar=FALSE, savetofile="png" )
 
 pb = aegis.bathymetry::bathymetry_parameters( project.mode="stmv", spatial.domain="canada.east.superhighres" )
-bathymetry.figures( p=pb, varnames=c("z", "dZ", "ddZ", "b.ndata", "b.localrange"), logyvar=TRUE, savetofile="png" )
+bathymetry.figures( p=pb, varnames=c("z", "dZ", "ddZ", "b.localrange"), logyvar=TRUE, savetofile="png" )
 bathymetry.figures( p=pb, varnames=c("b.sdTotal", "b.sdSpatial", "b.sdObs"), logyvar=FALSE, savetofile="png" )
 
 
 pb = aegis.bathymetry::bathymetry_parameters( project.mode="stmv", spatial.domain="snowcrab" )
-bathymetry.figures( p=pb, varnames=c("z", "dZ", "ddZ", "b.ndata", "b.localrange"), logyvar=TRUE, savetofile="png" )
+bathymetry.figures( p=pb, varnames=c("z", "dZ", "ddZ", "b.localrange"), logyvar=TRUE, savetofile="png" )
 bathymetry.figures( p=pb, varnames=c("b.sdTotal", "b.sdSpatial", "b.sdObs"), logyvar=FALSE, savetofile="png" )
 
 
@@ -124,6 +124,7 @@ bathymetry.figures( p=pb, varnames=c("b.sdTotal", "b.sdSpatial", "b.sdObs"), log
 ### -----------------------------------------------------------------
 # to recreate new polygons, run the following:
 bathyclines.redo = FALSE
+# bathyclines.redo = TRUE
 depthsall = c( 0, 10, 20, 50, 75, 100, 200, 250, 300, 350, 400, 450, 500, 550, 600, 700, 750, 800, 900,
              1000, 1200, 1250, 1400, 1500, 1750, 2000, 2500, 3000, 4000, 5000 )
 if( bathyclines.redo ) {
