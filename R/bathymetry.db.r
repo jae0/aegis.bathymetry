@@ -435,6 +435,7 @@
       for (gr in grids ) {
         print(gr)
         p1 = spatial_parameters( spatial.domain=gr ) #target projection
+        # warping
           L1 = spatial_grid( p=p1 )
           L1i = array_map( "xy->2", L1[, c("plon", "plat")], gridparams=p1$gridparams )
           L1 = planar2lonlat( L1, proj.type=p1$internal.crs )
@@ -445,7 +446,9 @@
 
           p1$wght = fields::setup.image.smooth(
             nrow=p1$nplons, ncol=p1$nplats, dx=p1$pres, dy=p1$pres,
-            theta=p1$pres, xwidth=4*p1$pres, ywidth=4*p1$pres )
+            theta=p1$pres/3, xwidth=4*p1$pres, ywidth=4*p1$pres )
+        # theta=p1$pres/3 assume at pres most of variance is accounted ... correct if dense pre-intepolated matrices .. if not can be noisy
+
           for (vn in voi_bathy) {
             Z[,vn] = spatial_warp( Z0[,vn], L0, L1, p0, p1, "fast", L0i, L1i )
           }
@@ -475,7 +478,6 @@
       # form prediction surface in planar coords over the ocean
 
       if ( DS=="baseline" ) {
-
 #        print(p$spatial.domain)
         outfile =  file.path( p$modeldir, paste( "bathymetry", "baseline", p$spatial.domain, "rdata" , sep=".") )
         Z = NULL
