@@ -478,8 +478,11 @@
       # form prediction surface in planar coords over the ocean
 
       if ( DS=="baseline" ) {
-#        print(p$spatial.domain)
-        outfile =  file.path( p$modeldir, paste( "bathymetry", "baseline", p$spatial.domain, "rdata" , sep=".") )
+        #  used to obtain coordinates .. modeldir is "bathymetry/modelled" but in case there is a variation, test for file presence
+        fn = paste( "bathymetry", "baseline", p$spatial.domain, "rdata" , sep=".")
+        defaultdir = project.datadirectory( "aegis", "bathymetry", "modelled" )
+        outfile =  file.path( p$modeldir, fn )
+        if (!file.exists(outfile)) outfile =  file.path( defaultdir, fn )
         Z = NULL
         load( outfile )
         Znames = names(Z)

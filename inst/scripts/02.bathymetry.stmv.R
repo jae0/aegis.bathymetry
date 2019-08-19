@@ -31,9 +31,7 @@ p = aegis.bathymetry::bathymetry_parameters(
   pres_discretization_bathymetry = 0.05,  # 0.2==p$pres; controls resolution of data prior to modelling (km .. ie 20 linear units smaller than the final discretization pres)
   stmv_dimensionality="space",
   variables = list(Y="z"),  # required as fft has no formulae
-  stmv_global_modelengine = "none",  # too much data to use glm as an entry into link space ... use a direct transformation
   stmv_global_modelformula = "none",  # only marginally useful .. consider removing it and use "none",
-  stmv_global_family ="none",
   stmv_local_modelengine="fft",
   stmv_fft_filter = "matern_tapered", #  act as a low pass filter first before matern with taper .. depth has enough data for this. Otherwise, use:
   stmv_fft_taper_method = "modelled",  # vs "empirical"
@@ -52,8 +50,8 @@ p = aegis.bathymetry::bathymetry_parameters(
   stmv_rsquared_threshold = 0.01, # lower threshold  .. ignore
   stmv_distance_statsgrid = 5, # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
   stmv_distance_scale = c(5, 10, 20, 25, 50, 75), # km ... approx guesses of 95% AC range
-  stmv_distance_prediction_fraction = 0.99, # i.e. 4/5 * 5 = 4 km .. relative to stats grid
-  stmv_nmin = 200,  # min number of data points req before attempting to model in a localized space
+  stmv_distance_prediction_fraction = 0.95, # i.e. 4/5 * 5 = 4 km .. relative to stats grid
+  stmv_nmin = 100,  # min number of data points req before attempting to model in a localized space
   stmv_nmax = 500, # no real upper bound.. just speed /RAM
   stmv_runmode = list(
     globalmodel = TRUE,

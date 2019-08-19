@@ -42,18 +42,6 @@ bathymetry_parameters = function( p=NULL, project.name=NULL, project.mode="defau
     if ( !exists("LOCS", p$variables)) p$variables$LOCS = c("plon", "plat")
     if ( !exists("pres_discretization_bathymetry", p) ) p$pres_discretization_bathymetry = p$pres / 100 # controls resolution of data prior to modelling (km .. ie 100 linear units smaller than the final discretization pres)
 
-    # if (!exists("stmv_global_modelengine", p)) stmv_global_modelengine = "glm"
-
-    # if (!exists("stmv_global_modelformula", p)) p$stmv_global_modelformula = formula(z ~ 1)
-
-    # if (!exists("stmv_global_family", p)) {
-    #   if (stmv_global_modelengine=="bayesx") {
-    #     p$stmv_global_family = "lognormal"  ## NOTE:: need to check this ...
-    #   } else {
-    #     p$stmv_global_family = gaussian(link="log")
-    #   }
-    # }
-
     if (!exists("stmv_local_modelengine", p)) p$stmv_local_modelengine="fft"  # fft is the perferred approach for bathymetry
 
     # tweaked override the defaults of aegis_parameters( p=p, DS="stmv_spatial_model" :
