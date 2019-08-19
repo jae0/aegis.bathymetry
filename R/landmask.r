@@ -12,7 +12,13 @@
     require(rgdal)
     require(sp)
 
-    fn = file.path( data_root, "landmask", paste( tag, db, paste0(regions, collapse=""), paste0(internal.crs, collapse=""), "rdata", sep="."))
+    fno = paste( tag, db, paste0(regions, collapse=""), paste0(internal.crs, collapse=""), "rdata", sep=".")
+
+    defaultdir = project.datadirectory( "aegis", "bathymetry" )
+
+    fn = file.path( data_root, "landmask", fno )
+    if (!file.exists( fn  )) fn  = file.path( defaultdir, "landmask", fno )  # in case there is an alternate project
+
     dir.create( dirname(fn), recursive=TRUE, showWarnings=FALSE  )
 
     if (is.null( lonlat)) {

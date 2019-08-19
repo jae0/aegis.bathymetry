@@ -3,7 +3,10 @@ isobath.db = function( ip=NULL, p=NULL, depths=c(100, 200), DS="isobath", crs="+
   #\\ create or return isobaths and coastlines/coast polygons
   # require(stmv)
   if (DS %in% c( "isobath", "isobath.redo" )) {
-    fn.iso = file.path( p$data_root, "isobaths", paste("isobaths", p$spatial.domain, "rdata", sep=".") )
+    fn = paste("isobaths", p$spatial.domain, "rdata", sep=".")
+    defaultdir = project.datadirectory( "aegis", "bathymetry" )
+    fn.iso = file.path( p$data_root, "isobaths", fn )
+    if (!file.exists( fn.iso )) fn.iso = file.path( defaultdir, "isobaths", fn )  # in case there is an alternate project
     isobaths = NULL
     notfound = NULL
 
