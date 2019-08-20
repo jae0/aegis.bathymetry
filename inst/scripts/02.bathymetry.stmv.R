@@ -31,7 +31,7 @@ p = aegis.bathymetry::bathymetry_parameters(
   pres_discretization_bathymetry = 0.05,  # 0.2==p$pres; controls resolution of data prior to modelling (km .. ie 20 linear units smaller than the final discretization pres)
   stmv_dimensionality="space",
   variables = list(Y="z"),  # required as fft has no formulae
-  stmv_global_modelformula = "none",  # only marginally useful .. consider removing it and use "none",
+  stmv_global_modelengine = "none",  # only marginally useful .. consider removing it and use "none",
   stmv_local_modelengine="fft",
   stmv_fft_filter = "matern_tapered", #  act as a low pass filter first before matern with taper .. depth has enough data for this. Otherwise, use:
   stmv_fft_taper_method = "modelled",  # vs "empirical"
