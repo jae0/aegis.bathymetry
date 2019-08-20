@@ -57,11 +57,12 @@ p = aegis.bathymetry::bathymetry_parameters(
     globalmodel = TRUE,
     scale = rep("localhost", scale_ncpus),
     interpolate = list(
-        cor_0.25 = rep("localhost", interpolate_ncpus),  # ~ 10 GB / process; 60 hrs
-        cor_0.1 = rep("localhost", max(1, interpolate_ncpus-1)), # ~ 15 GB / process; 40 hrs
-        cor_0.01 = rep("localhost", 1)
-      ),
+      cor_0.25 = rep("localhost", interpolate_ncpus),  # ~ 10 GB / process; 60 hrs
+      cor_0.1 = rep("localhost", max(1, interpolate_ncpus-1)), # ~ 15 GB / process; 40 hrs
+      cor_0.01 = rep("localhost", 1)
+    ),
     interpolate_force_complete = rep("localhost", max(1, interpolate_ncpus-2)),
+    restart_load = TRUE,
     save_intermediate_results = TRUE,
     save_completed_data = TRUE # just a dummy variable with the correct name
   )
