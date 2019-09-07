@@ -67,7 +67,7 @@ bathymetry_parameters = function( p=NULL, project.name=NULL, project.mode="defau
       # ~ 5.5 hr on hyperion
       # definitely a cleaner (not overly smoothed) image than a GAM
       # NOTE that  p$stmv_lowpass_phi and  p$stmv_lowpass_nu are very critical choices
-      if (!exists("stmv_fft_filter", p))  p$stmv_fft_filter = "lowpass" # only act as a low pass filter .. depth has enough data for this. Otherwise, use:
+      if (!exists("stmv_fft_filter", p))  p$stmv_fft_filter = "matern_tapered_modelled" # only act as a low pass filter .. depth has enough data for this. Otherwise, use:
       # p$stmv_fft_filter = "matern" to ~ krige
       if (!exists("stmv_lowpass_phi", p))  p$stmv_lowpass_phi = 0.5 # low pass FFT filter range .. 0.5 seems to be optimal (by visual inspection)
       if (!exists("stmv_lowpass_nu", p))  p$stmv_lowpass_nu = 0.5 # this is exponential covar

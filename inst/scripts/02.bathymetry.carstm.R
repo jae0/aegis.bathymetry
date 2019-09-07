@@ -29,7 +29,6 @@ p = c(p, aegis.coastline::coastline_layout( p=p, redo=reset_input_data ) )
 
 # --------------------------------
 # Get the data
-
 sppoly = areal_units(
   strata_type="lattice",
   resolution=p$resolution,
@@ -80,7 +79,7 @@ if (DS=="carstm.inputs") {
     is.finite(B$data_offset) &
     is.finite(set$StrataID)
   )
-
+  B = NULL
 }
 
 
