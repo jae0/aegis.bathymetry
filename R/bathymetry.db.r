@@ -524,53 +524,7 @@
       return( "completed" )
     }
 
-
-
-
-    if (DS=="areal_units") {
-      fn = file.path( p$datadir, paste( "areal_units", p$spatial.domain, p$resolution, "rdata", sep=".") )
-      sppoly = NULL
-      if (!redo) {
-        if (file.exists(fn)) load(fn)
-        return(sppoly)
-      }
-
-      sppoly = areal_units(
-        strata_type="aegis_lattice",
-        resolution=p$resolution,
-        spatial.domain=p$spatial.domain,
-        proj4string_planar_km="+proj=utm +ellps=WGS84 +zone=20 +units=km",
-        overlay="none",
-        redo=TRUE
-      )
-
-      W.nb = poly2nb(sppoly, row.names=sppoly$StrataID, queen=TRUE)  # slow .. ~1hr?
-      W.remove = which(card(W.nb) == 0)
-
-      if ( length(W.remove) > 0 ) {
-        # remove isolated locations and recreate sppoly .. alternatively add links to W.nb
-        W.keep = which(card(W.nb) > 0)
-        W.nb = nb_remove( W.nb, W.remove )
-        sppoly = sppoly[W.keep,]
-        row.names(sppoly) = as.character(sppoly$StrataID)
-        sppoly = sp::spChFIDs( sppoly, row.names(sppoly) )  #fix id's
-        sppoly$StrataID = factor( as.character(sppoly$StrataID) )
-        sppoly$strata = as.numeric( sppoly$StrataID )
-        sppoly = sppoly[order(sppoly$strata),]
-      }
-
-      attr(sppoly, "nb") = W.nb
-      save(sppoly, file=fn, compress=TRUE)
-      return( sppoly )
-    }
-
-
-
-
-
-    if (DS=="carstm.inputs") {
-
-    }
+    # ------------
 
 
   }  # end bathymetry.db

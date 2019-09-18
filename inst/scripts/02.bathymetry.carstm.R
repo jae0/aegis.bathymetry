@@ -6,47 +6,32 @@
 reset_input_data = FALSE
 if (0) reset_input_data = TRUE # choose this if we are redoing input data "views"
 
+subproject = "snowcrab"  # snowcrab, groundfish are current options
+# subproject = "groundfish"  # snowcrab, groundfish are current options
 
 # --------------------------------
 # construct basic parameter list defining the main characteristics of the study
 # and some plotting parameters (bounding box, projection, bathymetry layout, coastline)
 p = aegis.bathymetry::bathymetry_parameters(
   project.mode="carstm",
-  id = "bathymetry",
-  resolution = 100, # km
+  id = paste("bathymetry", subproject, sep="_"),
+  resolution = 100, # km dim of lattice
   internal.crs = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs",
-  proj4string_planar_km = "+proj=omerc +lat_0=44.0 +lonc=-63.0 +gamma=0.0 +k=1 +alpha=325 +x_0=0 +y_0=0 +ellps=WGS84 +units=km",  # oblique mercator, centred on Scotian Shelf rotated by 325 degrees
-  # proj4string_planar_km = "+proj=utm +ellps=WGS84 +zone=20 +units=km",
-  boundingbox = list( xlim = c(-70.5, -56.5), ylim=c(39.5, 47.5)), # bounding box for plots using spplot
-  mypalette = RColorBrewer::brewer.pal(9, "YlOrRd"),
-  libs = RLibrary ( "sp", "spdep", "rgeos", "INLA", "raster", "aegis",  "aegis.polygons", "aegis.bathymetry" )
+  # proj4string_planar_km = "+proj=omerc +lat_0=44.0 +lonc=-63.0 +gamma=0.0 +k=1 +alpha=325 +x_0=0 +y_0=0 +ellps=WGS84 +units=km",  # oblique mercator, centred on Scotian Shelf rotated by 325 degrees
+  proj4string_planar_km = "+proj=utm +ellps=WGS84 +zone=20 +units=km",
+  # boundingbox = list( xlim = c(-70.5, -56.5), ylim=c(39.5, 47.5)), # bounding box for plots using spplot
+  strata_type="lattice", # "aegis_lattice"
+  spatial.domain = subproject,
+  overlay=subproject, # "snowcrab" or "groundfish"  # for now ..
+  constraint="none", # set[, c("lon", "lat")],  # to limit to some complex geometry, if any
+  libs = RLibrary ( "sp", "spdep", "rgeos", "INLA", "raster", "aegis",  "aegis.polygons", "aegis.bathymetry", "carstm" )
 )
 
+p$boundingbox = list( xlim=p$corners$lon, ylim=p$corners$lat) # bounding box for plots using spplot
+p$mypalette = RColorBrewer::brewer.pal(9, "YlOrRd")
+p = c(p, aegis.coastline::coastline_layout( p=p, redo=reset_input_data ) )  # set up default map projection
 
-# set up default map projection
-p = c(p, aegis.coastline::coastline_layout( p=p, redo=reset_input_data ) )
-
-
-# --------------------------------
-# Get the data
-sppoly = areal_units(
-  strata_type="lattice",
-  resolution=p$resolution,
-  spatial.domain=p$spatial.domain,
-  proj4string_planar_km=p$proj4string_planar_km,
-  overlay="none",
-  redo=TRUE
-)
-
-
-sppoly = areal_units(
-  strata_type="lattice",
-  proj4string_planar_km=p$proj4string_planar_km,
-  constraint=set[, c("lon", "lat")],
-  redo=TRUE
-)
-
-sppoly =  neighbourhood_structure( sppoly=sppoly ) # add neighbourhood structure
+sppoly = bathymetry_carstm( p=p, DS="areal_units" )
 
 
 # --------------------------------
@@ -54,137 +39,49 @@ sppoly =  neighbourhood_structure( sppoly=sppoly ) # add neighbourhood structure
 # for (au in c("cfanorth", "cfasouth", "cfa4x", "cfaall" )) plot(polygons_managementarea( species="snowcrab", au))
 
 # data for modelling
-if (DS=="carstm.inputs") {
+M = bathymetry_carstm( p=p, sppoly=sppoly, DS="carstm_inputs", redo=FALSE )
+M$tag = "observations"
+M$Y = M$z
 
-  # StrataID reset to be consistent in both data and prediction areal units
+# prediction surface
+varstokeep =  c( "Y", "StrataID", "tag" )
 
-  B = bathymetry.db ( p=p, DS="z.lonlat.rawdata" )  # 16 GB in RAM just to store!
-  # B = B[ which(B$z > -100),]  # take part of the land to define coastline
-  B = lonlat2planar( B, proj.type=p$internal.crs )
-  B$lon = NULL
-  B$lat = NULL
-  gc()
+APS = sppoly@data
+APS$tag = "predictions"
+APS$Y = NA
 
-  o = over( SpatialPoints( B[,c("plon", "plat")], sp::CRS(p$internal.crs) ), spTransform(sppoly, sp::CRS(p$internal.crs) ) ) # match each datum to an area
-  B$StrataID = o$StrataID
+M = rbind( M[, varstokeep], APS[,varstokeep] )
 
-  o = over( SpatialPoints( APS[,c("plon", "plat")], sp::CRS(p$internal.crs) ), spTransform(sppoly, sp::CRS(p$internal.crs) ) ) # match each datum to an area
-  APS$StrataID = o$StrataID
+M = M[ which(is.finite(M$StrataID)) , ]
 
-  o = NULL
-
-  #  good data
-  ok = which(
-    is.finite(B[,p$variables$Y]) &   # INLA can impute Y-data
-    is.finite(B$data_offset) &
-    is.finite(set$StrataID)
-  )
-  B = NULL
-}
-
-
-varstokeep = unique( c( "Y", "StrataID", "yr", "data_offset", "tag", p$lookupvars) )
-
-M = rbind( set[ok, varstokeep], APS[,varstokeep] )
-
-M = M[ which(
-      is.finite(M$data_offset) &
-      is.finite(M$StrataID)
-    ) , ]
-
-M$yr_factor = factor( as.character(M$yr) )
 M$StrataID  = factor( as.character(M$StrataID), levels=levels( sppoly$StrataID ) )
 M$strata  = as.numeric( M$StrataID)
-M$year  = as.numeric( M$yr_factor)
 M$iid_error = 1:nrow(M) # for inla indexing for set level variation
 
-
-totest = setdiff(1:ncol(M), which(names(M) %in% c("Y", "StrataID", "tag", "yr_factor") ))
+totest = setdiff(1:ncol(M), which(names(M) %in% varstokeep ))
 ii = which(is.finite(rowSums(M[,totest])))
 
 M = M[ii,]
 
+M$Y = M$Y + 3000  # to make all positive valued
+
 # ---------------------
 # generic PC priors
-m = log( {set$Y / set$data_offset}[ok] )
+m = log( M$Y [ which(M$tag=="observations")] )
 m[!is.finite(m)] = min(m[is.finite(m)])
-
-
-carstm_hyperparameters = function( reference_sd, alpha=0.5, reference_mean=0 ) {
-  # some generic PC priors, scaled by sd of data
-  # pc.prior to median .. minimally info. scale
-
-  hyper = list(
-
-    iid = list(
-      prec = list(
-        prior = "pc.prec",  # exponential decay
-        param = c(reference_sd, alpha)
-      )
-    ),
-
-    # means informative, sd marginally diffuse
-    # see: inla.set.control.fixed.default() for defaults
-    fixed = list(
-        mean.intercept = reference_mean,
-        prec.intercept = 1e-3,
-        mean=0,
-        prec=1e-2
-    ),
-
-
-    # param=c(u, alpha); u=sigma; alpha=prob;
-    # see inla.doc("pc.rw2") inla.doc("pc.prec")  ..prior sd attributable to rw2
-    rw2 = list(
-      prec = list(
-        prior = "pc.prec",  # exponential decay
-        param = c(reference_sd, alpha)
-      )
-    ),
-
-    # see inla.doc("ar1") ; theta0, theta1 are expected
-    # param=c(u, alpha); u=sigma; alpha=prob;
-    # see inla.doc("pc.prec")  ..prior sd attributable to autocor rho
-    # param=c(u, alpha); rho = 0.5; u=sqrt(1-rho); alpha=prob; see inla.doc("pc.cor1")
-    ar1 = list(
-      prec = list(
-        prior = "pc.prec",  # exponential decay
-        param = c(reference_sd, alpha)
-      ),
-      rho = list(
-        prior = "pc.cor0", # inla.doc("pc.cor0") ..base model: rho = 0  --- expoential; will tend to 0 unless there is info
-        param = c(sqrt(1-0.5), 0.1)  # rho=0.5; u=sqrt(1-rho)  ... 100-10% of probablity weight to rho 0.5 or less .. forces smooth and only goes high if really high
-      )
-    ),
-
-    # param=c(u, alpha); u=phi (proportion spatial); alpha=prob
-    bym2 = list(
-      prec = list(
-        prior = "pc.prec",
-        param = c(reference_sd, alpha)
-      ),
-      phi = list(
-        prior="pc",  # see bottom of inla.doc("bym2")
-        param=c(0.5, 0.5) # c(phi=0.5, alpha=0.5)
-      )
-    )
-  )
-
-  return(hyper)
-}
 
 
 H = carstm_hyperparameters( sd(m), alpha=0.5, median(m) )
 # H$prec$prec.intercept = 1e-9
 
-
+m = NULL
 
 
 # -------------------------------------
 # simple glm
 fit = glm(
-  formula = Y ~ 1 + offset( log( data_offset) ) + StrataID + yr_factor,
-  family = "poisson", # "zeroinflatedpoisson0",
+  formula = Y ~ 1 + StrataID,
+  family = gaussian(link="log"), # "zeroinflatedpoisson0",
   data= M[ which(M$tag=="observations"), ]
 )
 
@@ -195,7 +92,6 @@ AIC(fit)  # 77326
 ii = which(
   M$tag=="predictions" &
   M$StrataID %in% M[ which(M$tag=="observations"), "StrataID"] &
-  M$yr_factor %in% M[ which(M$tag=="observations"), "yr_factor"]
 )
 
 preds = predict( fit, newdata=M[ii,], type="response", na.action=na.omit, se.fit=TRUE )  # no/km2
@@ -207,10 +103,10 @@ out = reformat_to_matrix(
 )
 # out[ out>1e10] = NA
 # convert numbers/km to biomass/strata (kg)..
-RES$poisson_glm = colSums( {out * weight_year * sppoly$sa_strata_km2}, na.rm=TRUE ) / 10^6  # 10^6 kg -> kt # kg/km * km
-RES$poisson_glm_cfanorth = colSums( {out * weight_year * sppoly$cfanorth_surfacearea}, na.rm=TRUE ) / 10^6  # 10^6 kg -> kt # kg/km * km
-RES$poisson_glm_cfasouth = colSums( {out * weight_year * sppoly$cfasouth_surfacearea}, na.rm=TRUE ) / 10^6  # 10^6 kg -> kt # kg/km * km
-RES$poisson_glm_cfa4x = colSums( {out * weight_year * sppoly$cfa4x_surfacearea}, na.rm=TRUE ) / 10^6  # 10^6 kg -> kt # kg/km * km
+RES$poisson_glm = colSums( {out * sppoly$sa_strata_km2}, na.rm=TRUE ) / 10^6  # 10^6 kg -> kt # kg/km * km
+RES$poisson_glm_cfanorth = colSums( {out * sppoly$cfanorth_surfacearea}, na.rm=TRUE ) / 10^6  # 10^6 kg -> kt # kg/km * km
+RES$poisson_glm_cfasouth = colSums( {out * sppoly$cfasouth_surfacearea}, na.rm=TRUE ) / 10^6  # 10^6 kg -> kt # kg/km * km
+RES$poisson_glm_cfa4x = colSums( {out * sppoly$cfa4x_surfacearea}, na.rm=TRUE ) / 10^6  # 10^6 kg -> kt # kg/km * km
 
 plot( poisson_glm ~ yr, data=RES, lty=1, lwd=2.5, col="blue", type="b")
 plot( poisson_glm_cfanorth ~ yr, data=RES, lty=1, lwd=2.5, col="green", type="b")
@@ -219,55 +115,7 @@ plot( poisson_glm_cfa4x ~ yr, data=RES, lty=1, lwd=2.5, col="green", type="b")
 
 # map it
 vn = "pred"
-yr = "2018"
-sppoly@data[,vn] = out[,yr] * weight_year[,yr]  # biomass density
-brks = interval_break(X= sppoly[[vn]], n=length(p$mypalette), style="quantile")
-spplot( sppoly, vn, col.regions=p$mypalette, main=vn, at=brks, sp.layout=p$coastLayout, col="transparent" )
-
-
-
-# -------------------------------------
-# simple gam
-require(mgcv)
-fit = gam(
-  formula = Y ~ 1 + offset( log( data_offset) ) + StrataID + yr_factor + s(strata, year, bs="ts"),
-  family = "poisson", # "zeroinflatedpoisson0",
-  data= M[ which(M$tag=="observations"), ]
-)
-
-s = summary(fit)
-AIC(fit)  # 76752
-
-# reformat predictions into matrix form
-ii = which(
-  M$tag=="predictions" &
-  M$StrataID %in% M[ which(M$tag=="observations"), "StrataID"] &
-  M$yr_factor %in% M[ which(M$tag=="observations"), "yr_factor"]
-)
-
-preds = predict( fit, newdata=M[ii,], type="response", na.action=na.omit, se.fit=TRUE )  # no/km2
-
-out = reformat_to_matrix(
-  input = preds$fit,
-  matchfrom = list( StrataID=M$StrataID[ii], yr_factor=M$yr_factor[ii]),
-  matchto   = list( StrataID=sppoly$StrataID, yr_factor=factor(p$yrs) )
-)
-# out[ out>1e10] = NA
-# convert numbers/km to biomass/strata (kg)..
-RES$poisson_gam = colSums( {out * weight_year * sppoly$sa_strata_km2}, na.rm=TRUE ) / 10^6  # 10^6 kg -> kt # kg/km * km
-RES$poisson_gam_cfanorth = colSums( {out * weight_year * sppoly$cfanorth_surfacearea}, na.rm=TRUE ) / 10^6  # 10^6 kg -> kt # kg/km * km
-RES$poisson_gam_cfasouth = colSums( {out * weight_year * sppoly$cfasouth_surfacearea}, na.rm=TRUE ) / 10^6  # 10^6 kg -> kt # kg/km * km
-RES$poisson_gam_cfa4x = colSums( {out * weight_year * sppoly$cfa4x_surfacearea}, na.rm=TRUE ) / 10^6  # 10^6 kg -> kt # kg/km * km
-
-plot( poisson_gam ~ yr, data=RES, lty=1, lwd=2.5, col="blue", type="b")
-plot( poisson_gam_cfanorth ~ yr, data=RES, lty=1, lwd=2.5, col="green", type="b")
-plot( poisson_gam_cfasouth ~ yr, data=RES, lty=1, lwd=2.5, col="green", type="b")
-plot( poisson_gam_cfa4x ~ yr, data=RES, lty=1, lwd=2.5, col="green", type="b")
-
-# map it
-vn = "pred"
-yr = "2018"
-sppoly@data[,vn] = out[,yr] * weight_year[,yr]  # biomass density
+sppoly@data[,vn] = out[,]   # biomass density
 brks = interval_break(X= sppoly[[vn]], n=length(p$mypalette), style="quantile")
 spplot( sppoly, vn, col.regions=p$mypalette, main=vn, at=brks, sp.layout=p$coastLayout, col="transparent" )
 
