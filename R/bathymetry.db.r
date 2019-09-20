@@ -319,8 +319,8 @@
       gc()
 
       # thin data a bit ... remove potential duplicates and robustify
-      B$plon = round(B$plon / p$pres_discretization_bathymetry + 1 ) * p$pres_discretization_bathymetry
-      B$plat = round(B$plat / p$pres_discretization_bathymetry + 1 ) * p$pres_discretization_bathymetry
+      B$plon = round(B$plon / p$inputdata_spatial_discretization_planar_km + 1 ) * p$inputdata_spatial_discretization_planar_km
+      B$plat = round(B$plat / p$inputdata_spatial_discretization_planar_km + 1 ) * p$inputdata_spatial_discretization_planar_km
       keep = which( !duplicated(paste( B$plon, B$plat )) )
       B = B[ keep , ]
       keep = NULL

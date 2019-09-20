@@ -26,11 +26,11 @@ p = aegis.bathymetry::bathymetry_parameters(
   project.mode="stmv",
   data_root = project.datadirectory( "aegis", "bathymetry" ),
   DATA = 'bathymetry.db( p=p, DS="stmv.inputs" )',
+  variables = list(Y="z"),  # required as fft has no formulae
+  inputdata_spatial_discretization_planar_km = 0.05,  # 0.2==p$pres; controls resolution of data prior to modelling (km .. ie 20 linear units smaller than the final discretization pres)
   spatial.domain = "canada.east.superhighres",
   spatial.domain.subareas = c( "canada.east.highres", "canada.east",  "SSE", "SSE.mpa" , "snowcrab"),
-  pres_discretization_bathymetry = 0.05,  # 0.2==p$pres; controls resolution of data prior to modelling (km .. ie 20 linear units smaller than the final discretization pres)
   stmv_dimensionality="space",
-  variables = list(Y="z"),  # required as fft has no formulae
   stmv_global_modelengine = "none",  # only marginally useful .. consider removing it and use "none",
   stmv_local_modelengine="fft",
   stmv_fft_filter = "matern_tapered_modelled", #  act as a low pass filter first before matern with taper .. depth has enough data for this. Otherwise, use:
@@ -40,7 +40,7 @@ p = aegis.bathymetry::bathymetry_parameters(
   stmv_autocorrelation_localrange = 0.1,  # for output to stats
   stmv_autocorrelation_interpolation = c(0.5, 0.25, 0.1, 0.01),
   stmv_variogram_method = "fft",
-  depth.filter = FALSE,  # need data above sea level to get coastline
+  stmv_filter_depth_m = FALSE,  # need data above sea level to get coastline
   stmv_Y_transform =list(
     transf = function(x) {log10(x + 2500)} ,
     invers = function(x) {10^(x) - 2500}

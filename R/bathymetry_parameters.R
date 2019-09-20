@@ -40,7 +40,7 @@ bathymetry_parameters = function( p=NULL, project.name=NULL, project.mode="defau
     if ( !exists("DATA", p) ) p$DATA = 'bathymetry.db( p=p, DS="stmv.inputs" )'
     if ( !exists("variables", p)) p$variables = list()
     if ( !exists("LOCS", p$variables)) p$variables$LOCS = c("plon", "plat")
-    if ( !exists("pres_discretization_bathymetry", p) ) p$pres_discretization_bathymetry = p$pres / 100 # controls resolution of data prior to modelling (km .. ie 100 linear units smaller than the final discretization pres)
+    if ( !exists("inputdata_spatial_discretization_planar_km", p) ) p$inputdata_spatial_discretization_planar_km = p$pres / 100 # controls resolution of data prior to modelling (km .. ie 100 linear units smaller than the final discretization pres)
 
     if (!exists("stmv_local_modelengine", p)) p$stmv_local_modelengine="fft"  # fft is the perferred approach for bathymetry
 
