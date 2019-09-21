@@ -209,6 +209,7 @@ bathymetry_carstm = function(p=NULL, DS=NULL, sppoly=NULL, id=NULL, redo=FALSE, 
     sppoly = bathymetry_carstm( p=p, DS="areal_units" )  # will redo if not found
 #    sppoly = sppoly["StrataID"]
 
+    M = bathymetry_carstm( p=p, DS="carstm_inputs" )  # will redo if not found
 
     if (p$carstm_modelengine %in% c( "glm", "gam" ) ) {
 
