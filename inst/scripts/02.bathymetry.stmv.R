@@ -22,6 +22,7 @@ interpolate_ram_required_main_process = 30 # GB twostep / fft
 interpolate_ram_required_per_process  = 10 # twostep / fft /fields vario ..
 interpolate_ncpus = min( parallel::detectCores(), floor( (ram_local()- interpolate_ram_required_main_process) / interpolate_ram_required_per_process ) )
 
+
 p = aegis.bathymetry::bathymetry_parameters(
   project.mode="stmv",
   data_root = project.datadirectory( "aegis", "bathymetry" ),
@@ -33,12 +34,12 @@ p = aegis.bathymetry::bathymetry_parameters(
   stmv_dimensionality="space",
   stmv_global_modelengine = "none",  # only marginally useful .. consider removing it and use "none",
   stmv_local_modelengine="fft",
-  stmv_fft_filter = "matern_tapered_modelled", #  act as a low pass filter first before matern with taper .. depth has enough data for this. Otherwise, use:
-  # stmv_lowpass_nu = 0.1,
-  # stmv_lowpass_phi = stmv::matern_distance2phi( distance=0.1, nu=0.1, cor=0.5 ),
-  stmv_autocorrelation_fft_taper = 0.5,  # benchmark from which to taper
+  stmv_fft_filter = "matern tapered lowpass modelled fast_predictions", #  act as a low pass filter first before matern with taper .. depth has enough data for this. Otherwise, use:
+  stmv_lowpass_nu = 0.5, # exp
+  stmv_lowpass_phi = stmv::matern_distance2phi( distance=0.2, nu=0.5, cor=0.1 ),  # note: p$pres = 0.2
+  stmv_autocorrelation_fft_taper = 0.8,  # benchmark from which to taper
   stmv_autocorrelation_localrange = 0.1,  # for output to stats
-  stmv_autocorrelation_interpolation = c(0.5, 0.25, 0.1, 0.01),
+  stmv_autocorrelation_interpolation = c(0.5, 0.25, 0.1, 0.01, 0.001),
   stmv_variogram_method = "fft",
   stmv_filter_depth_m = FALSE,  # need data above sea level to get coastline
   stmv_Y_transform =list(
@@ -47,26 +48,39 @@ p = aegis.bathymetry::bathymetry_parameters(
   ), # data range is from -1667 to 5467 m: make all positive valued
   stmv_rsquared_threshold = 0.01, # lower threshold  .. ignore
   stmv_distance_statsgrid = 5, # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
-  stmv_distance_scale = c(5, 10, 20, 25, 40, 50), # km ... approx guesses of 95% AC range
+  stmv_distance_prediction_limits =c( 2.5, 10 ), # range of permissible predictions km (i.e 1/2 stats grid to upper limit based upon data density)
+  stmv_distance_scale = c(2.5, 5, 10, 20, 25, 40, 80), # km ... approx guesses of 95% AC range
+  stmv_distance_basis_interpolation = c( 5, 10, 15, 20, 40, 80  ) , # range of permissible predictions km (i.e 1/2 stats grid to upper limit) .. in this case 5, 10, 20
   stmv_distance_prediction_fraction = 0.95 , # upper limit in distnace to predict upon (just over the grid size of statsgrid) .. in timeseries can become very slow so try to be small
-  stmv_nmin = 200, # min number of data points req before attempting to model in a localized space
-  stmv_nmax = 400, # no real upper bound.. just speed /RAM
+  stmv_nmin = 100, # min number of data points req before attempting to model in a localized space
+  stmv_nmax = 1000, # no real upper bound.. just speed /RAM
   stmv_force_complete_method = "linear",
   stmv_runmode = list(
-    globalmodel = TRUE,
     scale = rep("localhost", scale_ncpus),
     interpolate = list(
-      cor_0.5 = rep("localhost", interpolate_ncpus),  # ~ 10 GB / process; 60 hrs
-      cor_0.25 = rep("localhost", interpolate_ncpus),  # ~ 10 GB / process; 60 hrs
-      cor_0.1 = rep("localhost", max(1, interpolate_ncpus-1)), # ~ 15 GB / process; 40 hrs
-      cor_0.01 = rep("localhost", 1)
+      c1 = rep("localhost", interpolate_ncpus),  # ncpus for each runmode
+      c2 = rep("localhost", interpolate_ncpus),  # ncpus for each runmode
+      c3 = rep("localhost", max(1, interpolate_ncpus-1)),
+      c4 = rep("localhost", max(1, interpolate_ncpus-2)),
+      c5 = rep("localhost", max(1, interpolate_ncpus-2))
     ),
+    # if a good idea of autocorrelation is missing, forcing via explicit distance limits is an option
+    # interpolate_distance_basis = list(
+    #   d1 = rep("localhost", interpolate_ncpus),
+    #   d2 = rep("localhost", interpolate_ncpus),
+    #   d3 = rep("localhost", max(1, interpolate_ncpus-1)),
+    #   d4 = rep("localhost", max(1, interpolate_ncpus-1)),
+    #   d5 = rep("localhost", max(1, interpolate_ncpus-2)),
+    #   d6 = rep("localhost", max(1, interpolate_ncpus-2))
+    # ),
     interpolate_force_complete = rep("localhost", max(1, interpolate_ncpus-2)),
-    restart_load = TRUE,
+    globalmodel = FALSE,
+    restart_load = FALSE,
     save_intermediate_results = TRUE,
     save_completed_data = TRUE # just a dummy variable with the correct name
-  )
+  )  # ncpus for each runmode
 )
+
 
 
 if (0) {  # model testing

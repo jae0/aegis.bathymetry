@@ -1,5 +1,5 @@
 
-bathymetry_carstm = function(p=NULL, DS=NULL, sppoly=NULL, redo=FALSE, map=FALSE, ...) {
+bathymetry_carstm = function(p=NULL, DS=NULL, sppoly=NULL, id=NULL, redo=FALSE, map=FALSE, ...) {
 
   #\\ Note inverted convention: depths are positive valued
   #\\ i.e., negative valued for above sea level and positive valued for below sea level
@@ -27,7 +27,7 @@ bathymetry_carstm = function(p=NULL, DS=NULL, sppoly=NULL, redo=FALSE, map=FALSE
 
     sppoly = areal_units(
       spatial.domain=p$spatial.domain,
-      proj4string_planar_km=p$proj4string_planar_km,
+      areal_units_proj4string_planar_km=p$areal_units_proj4string_planar_km,
       areal_units_strata_type=p$areal_units_strata_type,
       areal_units_resolution_km=p$areal_units_resolution_km,
       areal_units_overlay= ifelse(!exists("areal_units_overlay", p) || !is.finite(p$areal_units_overlay) || !p$areal_units_overlay, "none", p$areal_units_overlay),
@@ -88,10 +88,6 @@ bathymetry_carstm = function(p=NULL, DS=NULL, sppoly=NULL, redo=FALSE, map=FALSE
       B = B[ which( is.finite( B$z )) ,]
     }
 
-    sppoly = bathymetry_carstm( p=p, DS="areal_units" )  # will redo if not found
-    sppoly = sppoly["StrataID"]
-    B$StrataID = over( SpatialPoints( B[, c("lon", "lat")], crs_lonlat ), spTransform(sppoly, crs_lonlat ) )$StrataID # match each datum to an area
-    B = B[ which(is.finite(B$StrataID)),]
     save( B, file=fn, compress=TRUE )
     return( B )
   }
@@ -118,7 +114,8 @@ bathymetry_carstm = function(p=NULL, DS=NULL, sppoly=NULL, redo=FALSE, map=FALSE
 
     sppoly = bathymetry_carstm( p=p, DS="areal_units"  )  # will redo if not found
     sppoly = sppoly["StrataID"]
-    B$StrataID = over( SpatialPoints( B[, c("lon", "lat")], crs_lonlat ), spTransform(sppoly, crs_lonlat ) )$StrataID # match each datum to an area
+
+    # B$StrataID = over( SpatialPoints( B[, c("lon", "lat")], crs_lonlat ), spTransform(sppoly, crs_lonlat ) )$StrataID # match each datum to an area
 
     B$lon = NULL
     B$lat = NULL
@@ -178,20 +175,18 @@ bathymetry_carstm = function(p=NULL, DS=NULL, sppoly=NULL, redo=FALSE, map=FALSE
     print( "Warning: carstm_modelled is being recreated ... " )
     print( "Warning: this needs a lot of RAM .. ~XX GB depending upon resolution of discretization .. a few hours " )
 
-    M = bathymetry_carstm( p=p, DS="carstm_inputs" )
-    M$StrataID  = as.character(M$StrataID)
-    M$tag = "observations"
-    M$Y = M$z
-
     # prediction surface
     sppoly = bathymetry_carstm( p=p, DS="areal_units" )  # will redo if not found
     sppoly = sppoly["StrataID"]
 
     # do this immediately to reduce storage for sppoly (before adding other variables)
-    M$StrataID = as.character( over( SpatialPoints( M[, c("lon", "lat")], crs_lonlat ), spTransform(sppoly, crs_lonlat ) )$StrataID) # match each datum to an area
+    M = bathymetry_carstm( p=p, DS="carstm_inputs" )
+    M$StrataID = over( SpatialPoints( M[, c("lon", "lat")], crs_lonlat ), spTransform(sppoly, crs_lonlat ) )$StrataID # match each datum to an area
+    M = M[ which(is.finite(B$StrataID)),]
+    M$StrataID = as.character( M$StrataID )  # match each datum to an area
+    M$tag = "observations"
     M$lon = NULL
     M$lat = NULL
-
 
     M$z = M$z + p$constant_offset # make all positive
     M$tag = "observations"
