@@ -65,31 +65,59 @@ bathymetry_carstm = function(p=NULL, DS=NULL, sppoly=NULL, id=NULL, redo=FALSE, 
     if (!redo)  {
       if (file.exists(fn)) {
         load( fn)
-        return( B )
+        return( M )
       }
     }
-    crs_lonlat = sp::CRS("+proj=longlat +datum=WGS84")
-    B = bathymetry.db ( p=p, DS="z.lonlat.rawdata" )  # 16 GB in RAM just to store!
+    M = bathymetry.db ( p=p, DS="z.lonlat.rawdata" )  # 16 GB in RAM just to store!
 
     # reduce size
-    B = B[ which( B$lon > p$corners$lon[1] & B$lon < p$corners$lon[2]  & B$lat > p$corners$lat[1] & B$lat < p$corners$lat[2] ), ]
+    M = M[ which( M$lon > p$corners$lon[1] & M$lon < p$corners$lon[2]  & M$lat > p$corners$lat[1] & M$lat < p$corners$lat[2] ), ]
 
     if (exists("inputdata_spatial_discretization_planar_km", p)) {
       # thin data a bit ... remove potential duplicates and robustify
-      B = lonlat2planar( B, proj.type=p$internal.crs )
-      B$plon = round(B$plon / p$inputdata_spatial_discretization_planar_km + 1 ) * p$inputdata_spatial_discretization_planar_km
-      B$plat = round(B$plat / p$inputdata_spatial_discretization_planar_km + 1 ) * p$inputdata_spatial_discretization_planar_km
-      keep = which( !duplicated(paste( B$plon, B$plat )) )
-      B = B[ keep , ]
+      M = lonlat2planar( M, proj.type=p$internal.crs )
+      M$plon = round(M$plon / p$inputdata_spatial_discretization_planar_km + 1 ) * p$inputdata_spatial_discretization_planar_km
+      M$plat = round(M$plat / p$inputdata_spatial_discretization_planar_km + 1 ) * p$inputdata_spatial_discretization_planar_km
+      keep = which( !duplicated(paste( M$plon, M$plat )) )
+      M = M[ keep , ]
       keep = NULL
       gc()
-      B$plon = NULL
-      B$plat = NULL
-      B = B[ which( is.finite( B$z )) ,]
+      M$plon = NULL
+      M$plat = NULL
+      M = M[ which( is.finite( M$z )) ,]
     }
 
-    save( B, file=fn, compress=TRUE )
-    return( B )
+    # prediction surface
+    sppoly = bathymetry_carstm( p=p, DS="areal_units" )  # will redo if not found
+    sppoly = sppoly["StrataID"]
+
+    crs_lonlat = sp::CRS("+proj=longlat +datum=WGS84")
+
+    # do this immediately to reduce storage for sppoly (before adding other variables)
+    M = bathymetry_carstm( p=p, DS="carstm_inputs" )
+    M$StrataID = over( SpatialPoints( M[, c("lon", "lat")], crs_lonlat ), spTransform(sppoly, crs_lonlat ) )$StrataID # match each datum to an area
+    M$lon = NULL
+    M$lat = NULL
+    M = M[ which(is.finite(M$StrataID)),]
+    M$StrataID = as.character( M$StrataID )  # match each datum to an area
+    M$z = M$z + p$constant_offset # make all positive
+    M$tag = "observations"
+
+    sppoly_df = as.data.frame(sppoly)
+    sppoly_df$z = NA
+    sppoly_df$StrataID = as.character( sppoly_df$StrataID )
+    sppoly_df$tag ="predictions"
+
+    M = rbind( M, sppoly_df[, names(M)] )
+    sppoly_df = NULL
+    sppoly = NULL
+
+    M$StrataID  = factor( as.character(M$StrataID), levels=levels( sppoly$StrataID ) ) # revert to factors
+    M$strata  = as.numeric( M$StrataID)
+    M$iid_error = 1:nrow(M) # for inla indexing for set level variation
+
+    save( M, file=fn, compress=TRUE )
+    return( M )
   }
 
   # -----------------------
@@ -175,34 +203,12 @@ bathymetry_carstm = function(p=NULL, DS=NULL, sppoly=NULL, id=NULL, redo=FALSE, 
     print( "Warning: carstm_modelled is being recreated ... " )
     print( "Warning: this needs a lot of RAM .. ~XX GB depending upon resolution of discretization .. a few hours " )
 
+    gc()
+
     # prediction surface
     sppoly = bathymetry_carstm( p=p, DS="areal_units" )  # will redo if not found
-    sppoly = sppoly["StrataID"]
+#    sppoly = sppoly["StrataID"]
 
-    # do this immediately to reduce storage for sppoly (before adding other variables)
-    M = bathymetry_carstm( p=p, DS="carstm_inputs" )
-    M$StrataID = over( SpatialPoints( M[, c("lon", "lat")], crs_lonlat ), spTransform(sppoly, crs_lonlat ) )$StrataID # match each datum to an area
-    M = M[ which(is.finite(B$StrataID)),]
-    M$StrataID = as.character( M$StrataID )  # match each datum to an area
-    M$tag = "observations"
-    M$lon = NULL
-    M$lat = NULL
-
-    M$z = M$z + p$constant_offset # make all positive
-    M$tag = "observations"
-
-    sppoly = as.data.frame(sppoly)
-    sppoly$z = NA
-    sppoly$StrataID = as.character( sppoly$StrataID )
-    sppoly$tag ="predictions"
-
-    M = rbind( M, sppoly[, names(M)] )
-
-    M$StrataID  = factor( as.character(M$StrataID), levels=levels( sppoly$StrataID ) ) # revert to factors
-    M$strata  = as.numeric( M$StrataID)
-    M$iid_error = 1:nrow(M) # for inla indexing for set level variation
-
-    gc()
 
     if (p$carstm_modelengine %in% c( "glm", "gam" ) ) {
 

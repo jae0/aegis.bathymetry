@@ -39,7 +39,7 @@ p = aegis.bathymetry::bathymetry_parameters(
       + f(iid_error, model="iid", hyper=H$iid)'
   )),
   constant_offset = 2500,
-  libs = RLibrary ( "sp", "spdep", "rgeos", "INLA", "raster", "aegis",  "aegis.polygons", "aegis.bathymetry", "carstm" )
+  libs = RLibrary ( "sp", "spdep", "rgeos", "spatialreg", "INLA", "raster", "aegis",  "aegis.polygons", "aegis.bathymetry", "carstm" )
 )
 
 p$boundingbox = list( xlim=p$corners$lon, ylim=p$corners$lat) # bounding box for plots using spplot
@@ -52,12 +52,12 @@ p = c(p, aegis.coastline::coastline_layout( p=p, redo=reset_input_data ) )  # se
 # ensure if polys exist and create if required
 # for (au in c("cfanorth", "cfasouth", "cfa4x", "cfaall" )) plot(polygons_managementarea( species="snowcrab", au))
 
-# data for modelling
 if (0) {
-  sppoly = bathymetry_carstm( p=p, DS="areal_units", redo=FALSE )  # will redo if not found
+  # force creating of input data for modelling
+  sppoly = bathymetry_carstm( p=p, DS="areal_units", redo=TRUE )  # will redo if not found
   plot(sppoly)
 
-  M = bathymetry_carstm( p=p, DS="carstm_inputs", redo=FALSE )  # will redo if not found
+  M = bathymetry_carstm( p=p, DS="carstm_inputs", redo=TRUE )  # will redo if not found
   str(M)
 }
 
