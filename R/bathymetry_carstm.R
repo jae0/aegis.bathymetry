@@ -5,13 +5,13 @@ bathymetry_carstm = function(p=NULL, DS=NULL, sppoly=NULL, id=NULL, redo=FALSE, 
   #\\ i.e., negative valued for above sea level and positive valued for below sea level
   if ( is.null(p)) p = bathymetry_parameters(...)
 
-  if ( !exists("project.name", p)) p$project.name = "bathymetry"
-  if ( !exists("data_root", p) ) p$data_root = project.datadirectory( "aegis", p$project.name )
+  if ( !exists("project_name", p)) p$project_name = "bathymetry"
+  if ( !exists("data_root", p) ) p$data_root = project.datadirectory( "aegis", p$project_name )
   if ( !exists("datadir", p) )   p$datadir  = file.path( p$data_root, "data" )
   if ( !exists("modeldir", p) )  p$modeldir = file.path( p$data_root, "modelled" )
 
 
-  if (is.null(id)) id = paste( p$spatial.domain, p$areal_units_overlay, p$areal_units_resolution_km, p$areal_units_strata_type, sep="_" )
+  if (is.null(id)) id = paste( p$spatial_domain, p$areal_units_overlay, p$areal_units_resolution_km, p$areal_units_strata_type, sep="_" )
 
 
   # -----------------
@@ -26,7 +26,7 @@ bathymetry_carstm = function(p=NULL, DS=NULL, sppoly=NULL, id=NULL, redo=FALSE, 
     }
 
     sppoly = areal_units(
-      spatial.domain=p$spatial.domain,
+      spatial_domain=p$spatial_domain,
       areal_units_proj4string_planar_km=p$areal_units_proj4string_planar_km,
       areal_units_strata_type=p$areal_units_strata_type,
       areal_units_resolution_km=p$areal_units_resolution_km,
@@ -75,7 +75,7 @@ bathymetry_carstm = function(p=NULL, DS=NULL, sppoly=NULL, id=NULL, redo=FALSE, 
 
     if (exists("inputdata_spatial_discretization_planar_km", p)) {
       # thin data a bit ... remove potential duplicates and robustify
-      M = lonlat2planar( M, proj.type=p$internal.crs )
+      M = lonlat2planar( M, proj.type=p$aegis_proj4string_planar_km )
       M$plon = round(M$plon / p$inputdata_spatial_discretization_planar_km + 1 ) * p$inputdata_spatial_discretization_planar_km
       M$plat = round(M$plat / p$inputdata_spatial_discretization_planar_km + 1 ) * p$inputdata_spatial_discretization_planar_km
       keep = which( !duplicated(paste( M$plon, M$plat )) )
@@ -215,13 +215,13 @@ bathymetry_carstm = function(p=NULL, DS=NULL, sppoly=NULL, id=NULL, redo=FALSE, 
 
       # simple glm/gam
       fit = glm(
-        formula = Y ~ 1 + StrataID,
+        formula = z ~ 1 + StrataID,
         family = gaussian(link="log"), # "zeroinflatedpoisson0",
         data= M[ which(M$tag=="observations"), ]
       )
 
       s = summary(fit)
-      AIC(fit)  # 77326
+      AIC(fit)  # 104487274
 
       # reformat predictions into matrix form
       ii = which(

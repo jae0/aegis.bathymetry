@@ -24,13 +24,13 @@ interpolate_ncpus = min( parallel::detectCores(), floor( (ram_local()- interpola
 
 
 p = aegis.bathymetry::bathymetry_parameters(
-  project.mode="stmv",
+  project_class="stmv",
   data_root = project.datadirectory( "aegis", "bathymetry" ),
-  DATA = 'bathymetry.db( p=p, DS="stmv.inputs" )',
+  DATA = 'bathymetry.db( p=p, DS="stmv_inputs" )',
   variables = list(Y="z"),  # required as fft has no formulae
   inputdata_spatial_discretization_planar_km = 0.05,  # 0.2==p$pres; controls resolution of data prior to modelling (km .. ie 20 linear units smaller than the final discretization pres)
-  spatial.domain = "canada.east.superhighres",
-  spatial.domain.subareas = c( "canada.east.highres", "canada.east",  "SSE", "SSE.mpa" , "snowcrab"),
+  spatial_domain = "canada.east.superhighres",
+  spatial_domain_subareas = c( "canada.east.highres", "canada.east",  "SSE", "SSE.mpa" , "snowcrab"),
   stmv_dimensionality="space",
   stmv_global_modelengine = "none",  # only marginally useful .. consider removing it and use "none",
   stmv_local_modelengine="fft",
@@ -39,7 +39,7 @@ p = aegis.bathymetry::bathymetry_parameters(
   stmv_lowpass_phi = stmv::matern_distance2phi( distance=0.2, nu=0.5, cor=0.1 ),  # note: p$pres = 0.2
   stmv_autocorrelation_fft_taper = 0.8,  # benchmark from which to taper
   stmv_autocorrelation_localrange = 0.1,  # for output to stats
-  stmv_autocorrelation_interpolation = c(0.5, 0.25, 0.1, 0.01, 0.001),
+  stmv_autocorrelation_basis_interpolation = c(0.5, 0.25, 0.1, 0.01, 0.001),
   stmv_variogram_method = "fft",
   stmv_filter_depth_m = FALSE,  # need data above sea level to get coastline
   stmv_Y_transform =list(
@@ -51,7 +51,6 @@ p = aegis.bathymetry::bathymetry_parameters(
   stmv_distance_prediction_limits =c( 2.5, 10 ), # range of permissible predictions km (i.e 1/2 stats grid to upper limit based upon data density)
   stmv_distance_scale = c(2.5, 5, 10, 20, 25, 40, 80), # km ... approx guesses of 95% AC range
   stmv_distance_basis_interpolation = c( 5, 10, 15, 20, 40, 80  ) , # range of permissible predictions km (i.e 1/2 stats grid to upper limit) .. in this case 5, 10, 20
-  stmv_distance_prediction_fraction = 0.95 , # upper limit in distnace to predict upon (just over the grid size of statsgrid) .. in timeseries can become very slow so try to be small
   stmv_nmin = 100, # min number of data points req before attempting to model in a localized space
   stmv_nmax = 1000, # no real upper bound.. just speed /RAM
   stmv_force_complete_method = "linear",
@@ -85,7 +84,7 @@ p = aegis.bathymetry::bathymetry_parameters(
 
 if (0) {  # model testing
   # if resetting data for input to stmv run this or if altering discretization resolution
-  bathymetry.db( p=p, DS="stmv.inputs.redo" )  # recreate fields for .. requires 60GB+
+  bathymetry.db( p=p, DS="stmv_inputs_redo" )  # recreate fields for .. requires 60GB+
 }
 
 stmv( p=p )  # This will take from 40-70 hrs, depending upon system
@@ -119,16 +118,16 @@ bathymetry.db( p=p, DS="baseline.redo" )  # coords of areas of interest ..filter
 
 
 # a few plots :
-pb = aegis.bathymetry::bathymetry_parameters( project.mode="stmv", spatial.domain="canada.east.highres" )
+pb = aegis.bathymetry::bathymetry_parameters( project_class="stmv", spatial_domain="canada.east.highres" )
 bathymetry.figures( p=pb, varnames=c("z", "dZ", "ddZ", "b.localrange"), logyvar=TRUE, savetofile="png" )
 bathymetry.figures( p=pb, varnames=c("b.sdTotal", "b.sdSpatial", "b.sdObs"), logyvar=FALSE, savetofile="png" )
 
-pb = aegis.bathymetry::bathymetry_parameters( project.mode="stmv", spatial.domain="canada.east.superhighres" )
+pb = aegis.bathymetry::bathymetry_parameters( project_class="stmv", spatial_domain="canada.east.superhighres" )
 bathymetry.figures( p=pb, varnames=c("z", "dZ", "ddZ", "b.localrange"), logyvar=TRUE, savetofile="png" )
 bathymetry.figures( p=pb, varnames=c("b.sdTotal", "b.sdSpatial", "b.sdObs"), logyvar=FALSE, savetofile="png" )
 
 
-pb = aegis.bathymetry::bathymetry_parameters( project.mode="stmv", spatial.domain="snowcrab" )
+pb = aegis.bathymetry::bathymetry_parameters( project_class="stmv", spatial_domain="snowcrab" )
 bathymetry.figures( p=pb, varnames=c("z", "dZ", "ddZ", "b.localrange"), logyvar=TRUE, savetofile="png" )
 bathymetry.figures( p=pb, varnames=c("b.sdTotal", "b.sdSpatial", "b.sdObs"), logyvar=FALSE, savetofile="png" )
 
@@ -141,13 +140,13 @@ bathyclines.redo = FALSE
 depthsall = c( 0, 10, 20, 50, 75, 100, 200, 250, 300, 350, 400, 450, 500, 550, 600, 700, 750, 800, 900,
              1000, 1200, 1250, 1400, 1500, 1750, 2000, 2500, 3000, 4000, 5000 )
 if( bathyclines.redo ) {
-  # note these polygons are created at the resolution specified in p$spatial.domain ..
+  # note these polygons are created at the resolution specified in p$spatial_domain ..
   # which by default is very high ("canada.east.highres" = 0.5 km .. p$pres ).
-  # For lower one specify an appropriate p$spatial.domain
+  # For lower one specify an appropriate p$spatial_domain
   options(max.contour.segments=10000) # required if superhighres is being used
   for (g in c("canada.east.superhighres", "canada.east.highres", "canada.east", "SSE", "SSE.mpa", "snowcrab")) {
     print(g)
-    pb = aegis.bathymetry::bathymetry_parameters( project.mode="stmv", spatial.domain=g )
+    pb = aegis.bathymetry::bathymetry_parameters( project_class="stmv", spatial_domain=g )
     if( g=="snowcrab") depths = c( 10, 20, 50, 75, 100, 200, 250, 300, 350 )  # by definition .. in geo_subset
     if( g=="SSE") depths = depthsall[ depthsall < 801] # by definition
     if( g=="SSE.mpa") depths = depthsall[depthsall<2001]  # by definition
@@ -161,7 +160,7 @@ if( bathyclines.redo ) {
 # some test plots
 RLibrary( "aegis.bathymetry" , "aegis.coastline", "aegis.polygons")
 
-pb = aegis.bathymetry::bathymetry_parameters( project.mode="stmv", spatial.domain="canada.east" ) # reset to lower resolution
+pb = aegis.bathymetry::bathymetry_parameters( project_class="stmv", spatial_domain="canada.east" ) # reset to lower resolution
 depths = c( 100, 200, 300, 500, 1000)
 plygn = isobath.db( p=pb, DS="isobath", depths=depths  )
 
@@ -172,8 +171,8 @@ lines( plygn[ as.character(c( 500, 1000))], col="gray80" ) # for multiple polygo
 # plot( plygn, xlim=c(-68,-52), ylim=c(41,50))  # all isobaths commented as it is slow ..
 
 
-# or to get in projected (planar) coords as defined by p$spatial domain
-plygn = isobath.db( p=pb, DS="isobath", depths=c(100) , crs=p$internal.crs ) # as SpatialLines
+# or to get in projected (planar) coords as defined by p$spatial_domain
+plygn = isobath.db( p=pb, DS="isobath", depths=c(100) , crs=pb$aegis_proj4string_planar_km ) # as SpatialLines
 plot(plygn)
 
 plygn_aslist = coordinates( plygn)

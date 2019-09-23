@@ -1,9 +1,9 @@
 
-isobath.db = function( ip=NULL, p=NULL, depths=c(100, 200), DS="isobath", crs="+init=epsg:4326" ) {
+isobath.db = function( ip=NULL, p=NULL, depths=c(100, 200), DS="isobath", crs=projection_proj4string("lonlat_wgs84") ) {
   #\\ create or return isobaths and coastlines/coast polygons
   # require(stmv)
   if (DS %in% c( "isobath", "isobath.redo" )) {
-    fn = paste("isobaths", p$spatial.domain, "rdata", sep=".")
+    fn = paste("isobaths", p$spatial_domain, "rdata", sep=".")
     defaultdir = project.datadirectory( "aegis", "bathymetry" )
     fn.iso = file.path( p$data_root, "isobaths", fn )
     if (!file.exists( fn.iso )) fn.iso = file.path( defaultdir, "isobaths", fn )  # in case there is an alternate project
@@ -34,12 +34,12 @@ isobath.db = function( ip=NULL, p=NULL, depths=c(100, 200), DS="isobath", crs="+
 
     cl = contourLines( x=x, y=y, Zm, levels=depths )
 
-    isobaths = maptools::ContourLines2SLDF(cl, proj4string=sp::CRS( p$internal.crs ) )
+    isobaths = maptools::ContourLines2SLDF(cl, proj4string=sp::CRS( p$aegis_proj4string_planar_km ) )
     row.names(slot(isobaths, "data")) = as.character(depths)
     for (i in 1:length(depths)) slot( slot(isobaths, "lines")[[i]], "ID") = as.character(depths[i])
     isobaths = as.SpatialLines.SLDF( isobaths )
-    sp::proj4string( isobaths ) =  p$internal.crs   # crs gets reset .. not sure why
-    isobaths = spTransform( isobaths, sp::CRS("+init=epsg:4326") )  ## longlat  as storage format
+    sp::proj4string( isobaths ) =  p$aegis_proj4string_planar_km   # crs gets reset .. not sure why
+    isobaths = spTransform( isobaths, sp::CRS(projection_proj4string("lonlat_wgs84")) )  ## longlat  as storage format
 
     save( isobaths, file=fn.iso, compress=TRUE) # save spherical
     if ( ! proj4string( isobaths ) == as.character( crs) ) isobaths = spTransform( isobaths, sp::CRS( crs ) )

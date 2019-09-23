@@ -1,4 +1,4 @@
-bathymetry_parameters = function( p=NULL, project.name=NULL, project.mode="default", ... ) {
+bathymetry_parameters = function( p=NULL, project_name=NULL, project_class="default", ... ) {
 
   # ---------------------
   # deal with additional passed parameters
@@ -15,29 +15,29 @@ bathymetry_parameters = function( p=NULL, project.name=NULL, project.mode="defau
     "maps", "mapdata", "maptools", "parallel",  "rgdal", "rgeos",  "sp", "splancs", "GADMTools" ) )
   p$libs = c( p$libs, project.library ( "aegis", "aegis.bathymetry",  "aegis.polygons", "aegis.coastline") )
 
-  p$project.name = ifelse ( !is.null(project.name), project.name, "bathymetry" )
+  p$project_name = ifelse ( !is.null(project_name), project_name, "bathymetry" )
 
-  if ( !exists("data_root", p) ) p$data_root = project.datadirectory( "aegis", p$project.name )
+  if ( !exists("data_root", p) ) p$data_root = project.datadirectory( "aegis", p$project_name )
   if ( !exists("datadir", p) )   p$datadir  = file.path( p$data_root, "data" )
   if ( !exists("modeldir", p) )  p$modeldir = file.path( p$data_root, "modelled" )
 
   if ( !file.exists(p$datadir) ) dir.create( p$datadir, showWarnings=F, recursive=T )
   if ( !file.exists(p$modeldir) ) dir.create( p$modeldir, showWarnings=F, recursive=T )
 
-  if (!exists("spatial.domain", p) ) p$spatial.domain = "canada.east.superhighres"
-  if (!exists("spatial.domain.subareas", p)) p$spatial.domain.subareas = c( "canada.east", "SSE", "snowcrab", "SSE.mpa" )
+  if (!exists("spatial_domain", p) ) p$spatial_domain = "canada.east.superhighres"
+  if (!exists("spatial_domain_subareas", p)) p$spatial_domain_subareas = c( "canada.east", "SSE", "snowcrab", "SSE.mpa" )
 
   p = spatial_parameters( p=p)  # default (= only supported resolution of 0.2 km discretization)  .. do NOT change
 
 
-  if (project.mode=="default") {
+  if (project_class=="default") {
     return(p)
   }
 
-  if (project.mode=="stmv") {
+  if (project_class=="stmv") {
     p$libs = c( p$libs, project.library ( "stmv" ) )
 
-    if ( !exists("DATA", p) ) p$DATA = 'bathymetry.db( p=p, DS="stmv.inputs" )'
+    if ( !exists("DATA", p) ) p$DATA = 'bathymetry.db( p=p, DS="stmv_inputs" )'
     if ( !exists("variables", p)) p$variables = list()
     if ( !exists("LOCS", p$variables)) p$variables$LOCS = c("plon", "plat")
     if ( !exists("inputdata_spatial_discretization_planar_km", p) ) p$inputdata_spatial_discretization_planar_km = p$pres / 100 # controls resolution of data prior to modelling (km .. ie 100 linear units smaller than the final discretization pres)
@@ -117,7 +117,7 @@ bathymetry_parameters = function( p=NULL, project.name=NULL, project.mode="defau
   }
 
 
-  if (project.mode=="carstm") {
+  if (project_class=="carstm") {
     p$libs = c( p$libs, project.library ( "carstm" ) )
     if (!exists("variables", p)) p$variables = list()
     if (!exists("LOCS", p$variables)) p$variables$LOCS = c("plon", "plat")

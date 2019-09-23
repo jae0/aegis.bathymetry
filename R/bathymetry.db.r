@@ -5,8 +5,8 @@
     #\\ i.e., negative valued for above sea level and positive valued for below sea level
     if ( is.null(p)) p = bathymetry_parameters(...)
 
-    if ( !exists("project.name", p)) p$project.name = "bathymetry"
-    if ( !exists("data_root", p) ) p$data_root = project.datadirectory( "aegis", p$project.name )
+    if ( !exists("project_name", p)) p$project_name = "bathymetry"
+    if ( !exists("data_root", p) ) p$data_root = project.datadirectory( "aegis", p$project_name )
     if ( !exists("datadir", p) )   p$datadir  = file.path( p$data_root, "data" )
     if ( !exists("modeldir", p) )  p$modeldir = file.path( p$data_root, "modelled" )
 
@@ -300,11 +300,11 @@
 
     # ------------------------------
 
-    if ( DS %in% c("bathymetry", "stmv.inputs", "stmv.inputs.redo" )) {
+    if ( DS %in% c("bathymetry", "stmv_inputs", "stmv_inputs_redo" )) {
 
-      fn = file.path( p$modeldir, paste( "bathymetry", "stmv.inputs", "rdata", sep=".") )
-      if (DS %in% c("bathymetry", "stmv.inputs") ) {
-        print( "Warning: stmv.inputs is loading from a saved instance ... add redo=TRUE if data needs a refresh" )
+      fn = file.path( p$modeldir, paste( "bathymetry", "stmv_inputs", "rdata", sep=".") )
+      if (DS %in% c("bathymetry", "stmv_inputs") ) {
+        print( "Warning: stmv_inputs is loading from a saved instance ... add redo=TRUE if data needs a refresh" )
         load( fn)
         return( hm )
       }
@@ -313,7 +313,7 @@
 
       B = bathymetry.db ( p=p, DS="z.lonlat.rawdata" )  # 16 GB in RAM just to store!
       # B = B[ which(B$z > -100),]  # take part of the land to define coastline
-      B = lonlat2planar( B, proj.type=p$internal.crs )
+      B = lonlat2planar( B, proj.type=p$aegis_proj4string_planar_km )
       B$lon = NULL
       B$lat = NULL
       gc()
@@ -344,8 +344,8 @@
       ## NOTE::: This does not get used
 
       # on resolution of predictions
-      V = SpatialPoints( planar2lonlat( spatial_grid(p), proj.type=p$internal.crs )[, c("lon", "lat" )], CRS("+proj=longlat +datum=WGS84") )
-      landmask( lonlat=V, db="worldHires", regions=c("Canada", "US"), ylim=c(36,53), xlim=c(-72,-45), tag="predictions" ,internal.crs=p$internal.crs)
+      V = SpatialPoints( planar2lonlat( spatial_grid(p), proj.type=p$aegis_proj4string_planar_km )[, c("lon", "lat" )], CRS("+proj=longlat +datum=WGS84") )
+      landmask( lonlat=V, db="worldHires", regions=c("Canada", "US"), ylim=c(36,53), xlim=c(-72,-45), tag="predictions", crs=p$aegis_proj4string_planar_km)
 
       # on resolution of statistics
       sbox = list(
@@ -353,8 +353,8 @@
         plons = seq( p$corners$plon[1], p$corners$plon[2], by=p$stmv_distance_statsgrid ) )
       V = as.matrix( expand.grid( sbox$plons, sbox$plats ))
       names(V) = c("plon", "plat")
-      V = SpatialPoints( planar2lonlat( V, proj.type=p$internal.crs )[, c("lon", "lat" )], CRS("+proj=longlat +datum=WGS84") )
-      landmask( lonlat=V, db="worldHires",regions=c("Canada", "US"), ylim=c(36,53), xlim=c(-72,-45), tag="statistics" ,internal.crs=p$internal.crs)
+      V = SpatialPoints( planar2lonlat( V, proj.type=p$aegis_proj4string_planar_km )[, c("lon", "lat" )], CRS("+proj=longlat +datum=WGS84") )
+      landmask( lonlat=V, db="worldHires",regions=c("Canada", "US"), ylim=c(36,53), xlim=c(-72,-45), tag="statistics", crs=p$aegis_proj4string_planar_km)
     }
 
     #-------------------------
@@ -362,7 +362,7 @@
     if ( DS %in% c("complete", "complete.redo" )) {
       #// merge all stmv results and compute stats and warp to different grids
 
-      fn = file.path( p$modeldir, paste( "bathymetry", "complete", p$spatial.domain, "rdata", sep=".") )
+      fn = file.path( p$modeldir, paste( "bathymetry", "complete", p$spatial_domain, "rdata", sep=".") )
 
       if ( DS %in% c( "complete") ) {
         Z = NULL
@@ -430,19 +430,19 @@
       L0i = array_map( "xy->2", L0, gridparams=p0$gridparams )
 
       voi_bathy = setdiff( names(Z0), c("plon", "plat", "lon", "lat") )
-      grids = setdiff( unique( p0$spatial.domain.subareas ), p0$spatial.domain )
+      grids = setdiff( unique( p0$spatial_domain_subareas ), p0$spatial_domain )
 
       for (gr in grids ) {
         print(gr)
-        p1 = spatial_parameters( spatial.domain=gr ) #target projection
+        p1 = spatial_parameters( spatial_domain=gr ) #target projection
         # warping
           L1 = spatial_grid( p=p1 )
           L1i = array_map( "xy->2", L1[, c("plon", "plat")], gridparams=p1$gridparams )
-          L1 = planar2lonlat( L1, proj.type=p1$internal.crs )
+          L1 = planar2lonlat( L1, proj.type=p1$aegis_proj4string_planar_km )
           Z = L1
           L1$plon_1 = L1$plon # store original coords
           L1$plat_1 = L1$plat
-          L1 = lonlat2planar( L1, proj.type=p0$internal.crs )
+          L1 = lonlat2planar( L1, proj.type=p0$aegis_proj4string_planar_km )
 
           p1$wght = fields::setup.image.smooth(
             nrow=p1$nplons, ncol=p1$nplats, dx=p1$pres, dy=p1$pres,
@@ -453,7 +453,7 @@
             Z[,vn] = spatial_warp( Z0[,vn], L0, L1, p0, p1, "fast", L0i, L1i )
           }
         Z = Z[ , names(Z0) ]
-        fn = file.path( p$modeldir, paste( "bathymetry", "complete", p1$spatial.domain, "rdata", sep=".") )
+        fn = file.path( p$modeldir, paste( "bathymetry", "complete", p1$spatial_domain, "rdata", sep=".") )
         save (Z, file=fn, compress=TRUE)
       }
 
@@ -479,7 +479,7 @@
 
       if ( DS=="baseline" ) {
         #  used to obtain coordinates .. modeldir is "bathymetry/modelled" but in case there is a variation, test for file presence
-        fn = paste( "bathymetry", "baseline", p$spatial.domain, "rdata" , sep=".")
+        fn = paste( "bathymetry", "baseline", p$spatial_domain, "rdata" , sep=".")
         defaultdir = project.datadirectory( "aegis", "bathymetry", "modelled" )
         outfile =  file.path( p$modeldir, fn )
         if (!file.exists(outfile)) outfile =  file.path( defaultdir, fn )
@@ -493,14 +493,14 @@
         return (Z)
       }
 
-      for (domain in unique( c(p$spatial.domain.subareas, p$spatial.domain ) ) ) {
-        pn = spatial_parameters( spatial.domain=domain )
-        # if ( pn$spatial.domain == "snowcrab" ) {
+      for (domain in unique( c(p$spatial_domain_subareas, p$spatial_domain ) ) ) {
+        pn = spatial_parameters( spatial_domain=domain )
+        # if ( pn$spatial_domain == "snowcrab" ) {
         #   # NOTE::: snowcrab baseline == SSE baseline, except it is a subset so begin with the SSE conditions
-        #   pn = spatial_parameters( p=pn, spatial.domain="SSE" )
+        #   pn = spatial_parameters( p=pn, spatial_domain="SSE" )
         # }
         Z = bathymetry.db( p=pn, DS="complete" )
-        Z = geo_subset( spatial.domain=domain, Z=Z )
+        Z = geo_subset( spatial_domain=domain, Z=Z )
 
         # range checks
         ii = which( Z$dZ < exp(-6))

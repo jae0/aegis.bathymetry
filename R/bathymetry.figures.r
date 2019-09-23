@@ -12,7 +12,7 @@ bathymetry.figures = function( p=NULL, varnames="z", logyvar=FALSE, isodepths = 
       b[,vn] = log(b[,vn])
     }
 
-    # oc = landmask( db="worldHires", regions=c("Canada", "US"), return.value="not.land", tag="predictions",internal.crs=p$internal.crs )
+    # oc = landmask( db="worldHires", regions=c("Canada", "US"), return.value="not.land", tag="predictions", crs=p$aegis_proj4string_planar_km )
     # if (length(oc) > 0) {
     #   b = b[oc,]
     # }
@@ -30,17 +30,17 @@ bathymetry.figures = function( p=NULL, varnames="z", logyvar=FALSE, isodepths = 
       contour=FALSE, labels=FALSE, pretty=TRUE, xlab=NULL,ylab=NULL,scales=list(draw=FALSE),
       panel = function(x, y, subscripts, ...) {
         panel.levelplot (x, y, subscripts, aspect="iso", rez=c(1,1), ...)
-        sp.lines( isobath.db( p=p, DS="isobath", depths=isodepths, crs=p$internal.crs ), col = "gray80", cex=0.1 )
-        sp.lines( coastline.db( p=p, crs=p$internal.crs ), col = "steelblue", cex=0.1 )
+        sp.lines( isobath.db( p=p, DS="isobath", depths=isodepths, crs=p$aegis_proj4string_planar_km ), col = "gray80", cex=0.1 )
+        sp.lines( coastline.db( p=p, crs=p$aegis_proj4string_planar_km ), col = "steelblue", cex=0.1 )
       }
     )
 
     if ( savetofile != "" ) {
-      outdir = file.path(p$data_root, "maps", p$spatial.domain )
+      outdir = file.path(p$data_root, "maps", p$spatial_domain )
       for (i in 1:length(savetofile)){
         devtype = savetofile[i]
         if (devtype =="jpeg") devtype="jpg"
-        fn = file.path( outdir, paste( "bathymetry", vn, p$spatial.domain, devtype, sep=".") )
+        fn = file.path( outdir, paste( "bathymetry", vn, p$spatial_domain, devtype, sep=".") )
         print(fn)
         if (devtype == "pdf" ) {
           pdf(file=fn, width=5, height=4, bg='white')
