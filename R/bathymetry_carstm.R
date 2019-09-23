@@ -91,10 +91,9 @@ bathymetry_carstm = function(p=NULL, DS=NULL, sppoly=NULL, id=NULL, redo=FALSE, 
     sppoly = bathymetry_carstm( p=p, DS="areal_units" )  # will redo if not found
     sppoly = sppoly["StrataID"]
 
-    crs_lonlat = sp::CRS("+proj=longlat +datum=WGS84")
+    crs_lonlat = sp::CRS(projection_proj4string("lonlat_wgs84"))
 
     # do this immediately to reduce storage for sppoly (before adding other variables)
-    M = bathymetry_carstm( p=p, DS="carstm_inputs" )
     M$StrataID = over( SpatialPoints( M[, c("lon", "lat")], crs_lonlat ), spTransform(sppoly, crs_lonlat ) )$StrataID # match each datum to an area
     M$lon = NULL
     M$lat = NULL
@@ -110,9 +109,9 @@ bathymetry_carstm = function(p=NULL, DS=NULL, sppoly=NULL, id=NULL, redo=FALSE, 
 
     M = rbind( M, sppoly_df[, names(M)] )
     sppoly_df = NULL
-    sppoly = NULL
 
     M$StrataID  = factor( as.character(M$StrataID), levels=levels( sppoly$StrataID ) ) # revert to factors
+    sppoly = NULL
     M$strata  = as.numeric( M$StrataID)
     M$iid_error = 1:nrow(M) # for inla indexing for set level variation
 
@@ -211,24 +210,12 @@ bathymetry_carstm = function(p=NULL, DS=NULL, sppoly=NULL, id=NULL, redo=FALSE, 
 
     M = bathymetry_carstm( p=p, DS="carstm_inputs" )  # will redo if not found
 
-    if (p$carstm_modelengine %in% c( "glm", "gam" ) ) {
-
-      # simple glm/gam
-      fit = glm(
-        formula = z ~ 1 + StrataID,
-        family = gaussian(link="log"), # "zeroinflatedpoisson0",
-        data= M[ which(M$tag=="observations"), ]
-      )
-
+    if (p$carstm_modelengine == "glm" ) {
+      fit = glm( formula = z ~ 1 + StrataID,  family = gaussian(link="log"), data= M[ which(M$tag=="observations"), ] )
       s = summary(fit)
       AIC(fit)  # 104487274
-
       # reformat predictions into matrix form
-      ii = which(
-        M$tag=="predictions" &
-        M$StrataID %in% M[ which(M$tag=="observations"), "StrataID"]
-      )
-
+      ii = which( M$tag=="predictions" & M$StrataID %in% M[ which(M$tag=="observations"), "StrataID"] )
       preds = predict( fit, newdata=M[ii,], type="link", na.action=na.omit, se.fit=TRUE )  # no/km2
 
       # out = reformat_to_matrix(
@@ -237,11 +224,25 @@ bathymetry_carstm = function(p=NULL, DS=NULL, sppoly=NULL, id=NULL, redo=FALSE, 
       #   matchto   = list( StrataID=sppoly$StrataID  )
       # )
       # iy = match( as.character(sppoly$StrataID), aps$StrataID )
+        sppoly@data[,"z.predicted"] = exp( preds$fit) - p$constant_offset
+        sppoly@data[,"z.predicted_se"] = exp( preds$se.fit)
+        sppoly@data[,"z.predicted_lb"] = exp( preds$fit - preds$se.fit ) - p$constant_offset
+        sppoly@data[,"z.predicted_ub"] = exp( preds$fit + preds$se.fit ) - p$constant_offset
+      }
 
-      sppoly@data[,"z.predicted"] = exp( preds$fit[ii]) - p$constant_offset
-      sppoly@data[,"z.predicted"] = exp( preds$fit.se[ii])
-      sppoly@data$z.predicted_lb = exp( preds$fit[ii] - preds$fit.se[ii] ) - p$constant_offset
-      sppoly@data$z.predicted_ub = exp( preds$fit[ii] - preds$fit.se[ii] ) - p$constant_offset
+      if ( p$carstm_modelengine == "gam"  ) {
+        fit = gam( formula = z ~ 1 + StrataID,  family = gaussian(link="log"), data= M[ which(M$tag=="observations"), ] )
+        s = summary(fit)
+        AIC(fit)  # 104487274
+        # reformat predictions into matrix form
+        ii = which( M$tag=="predictions" & M$StrataID %in% M[ which(M$tag=="observations"), "StrataID"] )
+        preds = predict( fit, newdata=M[ii,], type="link", na.action=na.omit, se.fit=TRUE )  # no/km2
+        sppoly@data[,"z.predicted"] = exp( preds$fit) - p$constant_offset
+        sppoly@data[,"z.predicted_se"] = exp( preds$se.fit)
+        sppoly@data[,"z.predicted_lb"] = exp( preds$fit - preds$se.fit ) - p$constant_offset
+        sppoly@data[,"z.predicted_ub"] = exp( preds$fit + preds$se.fit ) - p$constant_offset
+      }
+
 
       # out[ out>1e10] = NA
       # convert numbers/km to biomass/strata (kg)..
@@ -254,15 +255,6 @@ bathymetry_carstm = function(p=NULL, DS=NULL, sppoly=NULL, id=NULL, redo=FALSE, 
       # plot( glm_cfanorth ~ yr, data=RES, lty=1, lwd=2.5, col="green", type="b")
       # plot( glm_cfasouth ~ yr, data=RES, lty=1, lwd=2.5, col="green", type="b")
       # plot( glm_cfa4x ~ yr, data=RES, lty=1, lwd=2.5, col="green", type="b")
-
-      if (map) {
-        vn = "z.predicted"
-        brks = interval_break(X= sppoly[[vn]], n=length(p$mypalette), style="quantile")
-        dev.new()
-        spplot( sppoly, vn, col.regions=p$mypalette, main=vn, at=brks, sp.layout=p$coastLayout, col="transparent" )
-      }
-      return( sppoly )
-
 
     }
 
@@ -301,14 +293,16 @@ bathymetry_carstm = function(p=NULL, DS=NULL, sppoly=NULL, id=NULL, redo=FALSE, 
       sppoly@data$z.random_strata_spatial = exp( fit$summary.random$strata[ jj+max(jj), "mean" ])
       sppoly@data$z.random_sample_iid = exp( fit$summary.random$iid_error[ ii[jj], "mean" ])
       save( spplot, file=fn, compress=TRUE )
-      if (map) {
-        vn = "z.predicted"
-        brks = interval_break(X= sppoly[[vn]], n=length(p$mypalette), style="quantile")
-        dev.new()
-        spplot( sppoly, vn, col.regions=p$mypalette, main=vn, at=brks, sp.layout=p$coastLayout, col="transparent" )
-      }
-      return( sppoly )
     }
+
+
+    if (map) {
+      vn = "z.predicted"
+      brks = interval_break(X= sppoly[[vn]], n=length(p$mypalette), style="quantile")
+      dev.new();  spplot( sppoly, vn, col.regions=p$mypalette, main=vn, at=brks, sp.layout=p$coastLayout, col="transparent" )
+    }
+
+    return( sppoly )
 
   }
 
