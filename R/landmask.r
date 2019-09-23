@@ -14,7 +14,7 @@
     require(sp)
 
     if (is.null(crs)) crs = sp::CRS( sp::proj4string(lonlat) )
-    if (is.null(crs)) crs = sp::CRS(projection_proj4string("lonlat_wgs84")
+    if (is.null(crs)) crs = sp::CRS( projection_proj4string("lonlat_wgs84") )
 
     fno = paste( tag, db, paste0(regions, collapse=""), paste0(crs, collapse=""), "rdata", sep=".")
 
