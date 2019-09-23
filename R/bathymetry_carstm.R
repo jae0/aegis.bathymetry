@@ -60,7 +60,6 @@ bathymetry_carstm = function(p=NULL, DS=NULL, sppoly=NULL, id=NULL, redo=FALSE, 
 
   if ( DS=="carstm_inputs") {
 
-
     fn = file.path( p$modeldir, paste( "bathymetry", "carstm_inputs", id, "rdata", sep=".") )
     if (!redo)  {
       if (file.exists(fn)) {
@@ -256,7 +255,6 @@ bathymetry_carstm = function(p=NULL, DS=NULL, sppoly=NULL, id=NULL, redo=FALSE, 
       # plot( glm_cfasouth ~ yr, data=RES, lty=1, lwd=2.5, col="green", type="b")
       # plot( glm_cfa4x ~ yr, data=RES, lty=1, lwd=2.5, col="green", type="b")
 
-    }
 
     if (p$carstm_modelengine == "inla") {
 
