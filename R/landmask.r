@@ -1,5 +1,5 @@
 
-  landmask = function( lonlat=NULL, db="worldHires", regions=c("Canada", "US"), return.value="not.land", tag="index", crs=NULL),
+  landmask = function( lonlat=NULL, db="worldHires", regions=c("Canada", "US"), return.value="not.land", tag="index", crs=NULL,
     data_root=file.path( project.datadirectory("aegis"), "bathymetry"), ... ) {
     #\\ Using the world coastline data base:
     #\\ return.value determines what is returned: "coast.lonat", "coast.polygon" (sp),
