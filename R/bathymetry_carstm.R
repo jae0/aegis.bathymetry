@@ -54,7 +54,7 @@ bathymetry_carstm = function(p=NULL, DS=NULL, sppoly=NULL, id=NULL, redo=FALSE, 
     )))
     M = NULL
     colnames(bb) = c("z.mean", "z.sd", "z.n")
-    plonplat = matrix(unlist(strsplit( rownames(bb), " ", fixed=TRUE)), ncol=2, byrow=TRUE)
+    plonplat = matrix( as.numeric( unlist(strsplit( rownames(bb), " ", fixed=TRUE))), ncol=2, byrow=TRUE)
 
     bb$plon = plonplat[,1]
     bb$plat = plonplat[,2]
@@ -63,6 +63,7 @@ bathymetry_carstm = function(p=NULL, DS=NULL, sppoly=NULL, id=NULL, redo=FALSE, 
     M = bb[ which( is.finite( bb$z.mean )) ,]
     bb =NULL
     gc()
+    M = planar2lonlat( M, p$aegis_proj4string_planar_km)
     save(M, file=fn, compress=TRUE)
 
     return( M )
@@ -94,10 +95,14 @@ bathymetry_carstm = function(p=NULL, DS=NULL, sppoly=NULL, id=NULL, redo=FALSE, 
 
     # reduce size
     M = M[ which( M$lon > p$corners$lon[1] & M$lon < p$corners$lon[2]  & M$lat > p$corners$lat[1] & M$lat < p$corners$lat[2] ), ]
+    # levelplot(z.mean~plon+plat, data=M, aspect="iso")
 
     M$StrataID = over( SpatialPoints( M[, c("lon", "lat")], crs_lonlat ), spTransform(sppoly, crs_lonlat ) )$StrataID # match each datum to an area
     M$lon = NULL
     M$lat = NULL
+    M$plon = NULL
+    M$plat = NULL
+
     M = M[ which(is.finite(M$StrataID)),]
     M$StrataID = as.character( M$StrataID )  # match each datum to an area
     M$z = M$z.mean + p$constant_offset # make all positive
