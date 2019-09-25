@@ -22,7 +22,7 @@ if (0) {
 p = aegis.bathymetry::bathymetry_parameters(
   project_class = "carstm", # defines which parameter set to load
   id = paste("bathymetry", subproject, sep="_"),
-  inputdata_spatial_discretization_planar_km = 0.5,  # km controls resolution of data prior to modelling to reduce data set and speed up modelling
+  inputdata_spatial_discretization_planar_km = 1,  # 1 km .. requires 32 GB RAM and limit of speed -- controls resolution of data prior to modelling to reduce data set and speed up modelling
   spatial_domain = spatial_domain,  # defines spatial area
   areal_units_resolution_km = 10, # km dim of lattice
   areal_units_proj4string_planar_km = projection_proj4string("utm20"),  # coord system to use for areal estimation and gridding for carstm
@@ -36,7 +36,7 @@ p = aegis.bathymetry::bathymetry_parameters(
     'z ~ 1 ',
     '  + f(strata, model="bym2", graph=sppoly@nb, scale.model=TRUE, constr=TRUE, hyper=H$bym2)',
     '  + f(iid_error, model="iid", hyper=H$iid)'
-  ) ,
+  )) ,
   constant_offset = 2500,
   libs = RLibrary ( "sp", "spdep", "rgeos", "spatialreg", "INLA", "raster", "aegis",  "aegis.polygons", "aegis.bathymetry", "carstm" )
 )
@@ -55,7 +55,7 @@ if (0) {
   # force creating of input data for modelling
   sppoly = areal_units( p=p, redo=TRUE )
   plot(sppoly)
-
+  #
   M = bathymetry_carstm( p=p, DS="aggregated_data", redo=TRUE )  # will redo if not found .. not used here but used for data matching/lookup in other aegis projects that use bathymetry
   M = bathymetry_carstm( p=p, DS="carstm_inputs", redo=TRUE )  # will redo if not found
   str(M)

@@ -23,7 +23,7 @@ bathymetry_carstm = function(p=NULL, DS=NULL, sppoly=NULL, id=NULL, redo=FALSE, 
       print( "Warning: aggregated_data is loading from a saved instance ... add redo=TRUE if data needs to be refresh" )
       if (file.exists(fn)) {
         load( fn)
-        return( sppoly )
+        return( M )
       }
       print( "Warning: aggregated_data load from saved instance failed ... " )
     }
