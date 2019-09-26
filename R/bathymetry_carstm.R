@@ -91,7 +91,7 @@ bathymetry_carstm = function(p=NULL, DS=NULL, sppoly=NULL, id=NULL, redo=FALSE, 
 
     # do this immediately to reduce storage for sppoly (before adding other variables)
 
-    M = bathymetry.db ( p=p, DS="aggregated_data" )  # 16 GB in RAM just to store!
+    M = bathymetry.carstm ( p=p, DS="aggregated_data" )  # 16 GB in RAM just to store!
 
     # reduce size
     M = M[ which( M$lon > p$corners$lon[1] & M$lon < p$corners$lon[2]  & M$lat > p$corners$lat[1] & M$lat < p$corners$lat[2] ), ]
@@ -102,9 +102,9 @@ bathymetry_carstm = function(p=NULL, DS=NULL, sppoly=NULL, id=NULL, redo=FALSE, 
     M$lat = NULL
     M$plon = NULL
     M$plat = NULL
-
     M = M[ which(is.finite(M$StrataID)),]
     M$StrataID = as.character( M$StrataID )  # match each datum to an area
+
     M$z = M$z.mean + p$constant_offset # make all positive
     M$tag = "observations"
 
@@ -133,7 +133,7 @@ bathymetry_carstm = function(p=NULL, DS=NULL, sppoly=NULL, id=NULL, redo=FALSE, 
 
   if ( DS %in% c("carstm_modelled", "carstm_modelled_fit") ) {
 
-    fn = file.path( p$modeldir, paste( "bathymetry", "carstm_modelled", id, p$carstm_modelengine, p$carstm_family, "rdata", sep=".") )
+    fn = file.path( p$modeldir, paste( "bathymetry", "carstm_modelled", id, p$carstm_modelengine, "rdata", sep=".") )
     fn_fit = file.path( p$modeldir, paste( "bathymetry", "carstm_modelled_fit", id, p$carstm_modelengine, "rdata", sep=".") )
 
     if (!redo)  {
@@ -156,36 +156,39 @@ bathymetry_carstm = function(p=NULL, DS=NULL, sppoly=NULL, id=NULL, redo=FALSE, 
     print( "Warning: carstm_modelled is being recreated ... " )
     print( "Warning: this needs a lot of RAM .. ~XX GB depending upon resolution of discretization .. a few hours " )
 
-    gc()
-
     # prediction surface
     sppoly = areal_units( p=p )  # will redo if not found
 #    sppoly = sppoly["StrataID"]
 
     M = bathymetry_carstm( p=p, DS="carstm_inputs" )  # will redo if not found
+    fit  = NULL
 
-    if (p$carstm_modelengine == "glm" ) {
-      fit = glm( formula = z ~ 1 + StrataID,  family = gaussian(link="log"), data= M[ which(M$tag=="observations"), ] )
-      s = summary(fit)
-      AIC(fit)  # 104487274
+    if ( grepl("glm", p$carstm_modelengine) ) {
+
+      assign("fit", eval(parse(text=paste( "try(", p$carstm_modelcall, ")" ) ) ))
+      if (is.null(fit)) error("model fit error")
+      if ("try-error" %in% class(fit) ) error("model fit error")
+      save( fit, file=fn_fit, compress=TRUE )
+
+      # s = summary(fit)
+      # AIC(fit)  # 104487274
       # reformat predictions into matrix form
       ii = which( M$tag=="predictions" & M$StrataID %in% M[ which(M$tag=="observations"), "StrataID"] )
       preds = predict( fit, newdata=M[ii,], type="link", na.action=na.omit, se.fit=TRUE )  # no/km2
 
-      # out = reformat_to_matrix(
-      #   input = preds$fit,
-      #   matchfrom = list( StrataID=M$StrataID[ii] ),
-      #   matchto   = list( StrataID=sppoly$StrataID  )
-      # )
-      # iy = match( as.character(sppoly$StrataID), aps$StrataID )
-        sppoly@data[,"z.predicted"] = exp( preds$fit) - p$constant_offset
+      sppoly@data[,"z.predicted"] = exp( preds$fit) - p$constant_offset
         sppoly@data[,"z.predicted_se"] = exp( preds$se.fit)
         sppoly@data[,"z.predicted_lb"] = exp( preds$fit - preds$se.fit ) - p$constant_offset
         sppoly@data[,"z.predicted_ub"] = exp( preds$fit + preds$se.fit ) - p$constant_offset
+        save( spplot, file=fn, compress=TRUE )
       }
 
-      if ( p$carstm_modelengine == "gam"  ) {
-        fit = gam( formula = z ~ 1 + StrataID,  family = gaussian(link="log"), data= M[ which(M$tag=="observations"), ] )
+      if ( grepl("gam", p$carstm_modelengine) ) {
+        assign("fit", eval(parse(text=paste( "try(", p$carstm_modelcall, ")" ) ) ))
+        if (is.null(fit)) error("model fit error")
+        if ("try-error" %in% class(fit) ) error("model fit error")
+        save( fit, file=fn_fit, compress=TRUE )
+
         s = summary(fit)
         AIC(fit)  # 104487274
         # reformat predictions into matrix form
@@ -195,46 +198,23 @@ bathymetry_carstm = function(p=NULL, DS=NULL, sppoly=NULL, id=NULL, redo=FALSE, 
         sppoly@data[,"z.predicted_se"] = exp( preds$se.fit)
         sppoly@data[,"z.predicted_lb"] = exp( preds$fit - preds$se.fit ) - p$constant_offset
         sppoly@data[,"z.predicted_ub"] = exp( preds$fit + preds$se.fit ) - p$constant_offset
-      }
+        save( spplot, file=fn, compress=TRUE )
+    }
 
 
-      # out[ out>1e10] = NA
-      # convert numbers/km to biomass/strata (kg)..
-      # RES$glm = colSums( {out * sppoly$sa_strata_km2}, na.rm=TRUE ) / 10^6  # 10^6 kg -> kt # kg/km * km
-      # RES$glm_cfanorth = colSums( {out * sppoly$cfanorth_surfacearea}, na.rm=TRUE ) / 10^6  # 10^6 kg -> kt # kg/km * km
-      # RES$glm_cfasouth = colSums( {out * sppoly$cfasouth_surfacearea}, na.rm=TRUE ) / 10^6  # 10^6 kg -> kt # kg/km * km
-      # RES$glm_cfa4x = colSums( {out * sppoly$cfa4x_surfacearea}, na.rm=TRUE ) / 10^6  # 10^6 kg -> kt # kg/km * km
-
-      # plot( glm ~ yr, data=RES, lty=1, lwd=2.5, col="blue", type="b")
-      # plot( glm_cfanorth ~ yr, data=RES, lty=1, lwd=2.5, col="green", type="b")
-      # plot( glm_cfasouth ~ yr, data=RES, lty=1, lwd=2.5, col="green", type="b")
-      # plot( glm_cfa4x ~ yr, data=RES, lty=1, lwd=2.5, col="green", type="b")
-
-
-    if (p$carstm_modelengine == "inla") {
+    if ( grepl("inla", p$carstm_modelengine) ) {
 
       H = carstm_hyperparameters( sd(log(M$z), na.rm=TRUE), alpha=0.5, median( log(M$z), na.rm=TRUE) )
-
-      fit = inla(
-        formula = p$carstm_formula,
-        family = p$carstm_family,
-        data= M,
-        control.compute=list(dic=TRUE, config=TRUE),
-        control.results=list(return.marginals.random=TRUE, return.marginals.predictor=TRUE ),
-        control.predictor=list(compute=FALSE, link=1 ),
-        # control.fixed=H$fixed,  # priors for fixed effects, generic is ok
-        # control.inla=list(int.strategy="eb") ,# to get empirical Bayes results much faster.
-        # control.inla=list( strategy="laplace", cutoff=1e-6, correct=TRUE, correct.verbose=FALSE ),
-        num.threads=2,
-        blas.num.threads=2,
-        verbose=TRUE
-      )
+      assign("fit", eval(parse(text=paste( "try(", p$carstm_modelcall, ")" ) ) ))
+      if (is.null(fit)) error("model fit error")
+      if ("try-error" %in% class(fit) ) error("model fit error")
       save( fit, file=fn_fit, compress=TRUE )
+
       s = summary(fit)
       s$dic$dic  # 31225
       s$dic$p.eff # 5200
 
-      plot(fit, plot.prior=TRUE, plot.hyperparameters=TRUE, plot.fixed.effects=FALSE )
+      # plot(fit, plot.prior=TRUE, plot.hyperparameters=TRUE, plot.fixed.effects=FALSE )
 
       # reformat predictions into matrix form
       ii = which(M$tag=="predictions")
