@@ -91,7 +91,7 @@ bathymetry_carstm = function(p=NULL, DS=NULL, sppoly=NULL, id=NULL, redo=FALSE, 
 
     # do this immediately to reduce storage for sppoly (before adding other variables)
 
-    M = bathymetry.carstm ( p=p, DS="aggregated_data" )  # 16 GB in RAM just to store!
+    M = bathymetry_carstm ( p=p, DS="aggregated_data" )  # 16 GB in RAM just to store!
 
     # reduce size
     M = M[ which( M$lon > p$corners$lon[1] & M$lon < p$corners$lon[2]  & M$lat > p$corners$lat[1] & M$lat < p$corners$lat[2] ), ]

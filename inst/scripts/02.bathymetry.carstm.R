@@ -10,7 +10,7 @@ if (0) reset_input_data = TRUE # choose this if we are redoing input data "views
 spatial_domain = "snowcrab"
 areal_units_overlay = "snowcrab"
 areal_units_resolution_km = 20
-areal_units_resolution_km = 10  # 16 hrs to model; 1o min to discretize? .. 25 configs
+# areal_units_resolution_km = 10  # 16 hrs to model; 1o min to discretize? .. 25 configs
 
 if (0) {
   # alternatively:
@@ -50,8 +50,8 @@ p = aegis.bathymetry::bathymetry_parameters(
       control.fixed=H$fixed,  # priors for fixed effects, generic is ok
       control.inla=list(int.strategy="eb") ,# to get empirical Bayes results much faster.
       # control.inla=list( strategy="laplace", cutoff=1e-6, correct=TRUE, correct.verbose=FALSE ),
-      # num.threads=4,
-      # blas.num.threads=4,
+      num.threads=4,
+      blas.num.threads=4,
       verbose=TRUE
     ) ',
   # carstm_modelcall = 'glm( formula = z ~ 1 + StrataID,  family = gaussian(link="log"), data= M[ which(M$tag=="observations"), ] ) ',  # for modelengine='glm'
@@ -73,8 +73,9 @@ p = c(p, aegis.coastline::coastline_layout( p=p, redo=reset_input_data ) )  # se
 if (0) {
   # force creating of input data for modelling
   sppoly = areal_units( p=p, redo=TRUE )
-  plot(sppoly)
-  #
+  # plot(sppoly)
+  spplot( sppoly, "StrataID", main="StrataID", sp.layout=p$coastLayout )
+
   M = bathymetry_carstm( p=p, DS="aggregated_data", redo=TRUE )  # will redo if not found .. not used here but used for data matching/lookup in other aegis projects that use bathymetry
   M = bathymetry_carstm( p=p, DS="carstm_inputs", redo=TRUE )  # will redo if not found
   str(M)
