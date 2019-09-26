@@ -10,7 +10,7 @@ if (0) reset_input_data = TRUE # choose this if we are redoing input data "views
 spatial_domain = "snowcrab"
 areal_units_overlay = "snowcrab"
 areal_units_resolution_km = 20
-# areal_units_resolution_km = 10  # 16 hrs
+areal_units_resolution_km = 10  # 16 hrs to model; 1o min to discretize? .. 25 configs
 
 if (0) {
   # alternatively:
