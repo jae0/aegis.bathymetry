@@ -90,7 +90,7 @@ bathymetry_carstm = function(p=NULL, DS=NULL, sppoly=NULL, id=NULL, redo=FALSE, 
     }
 
     # prediction surface
-    sppoly = areal_units( p=p )  # will redo if not found
+    if (is.null) sppoly = areal_units( p=p )  # will redo if not found
     sppoly = sppoly["StrataID"]
 
     crs_lonlat = sp::CRS(projection_proj4string("lonlat_wgs84"))
@@ -163,8 +163,8 @@ bathymetry_carstm = function(p=NULL, DS=NULL, sppoly=NULL, id=NULL, redo=FALSE, 
     print( "Warning: this needs a lot of RAM .. ~XX GB depending upon resolution of discretization .. a few hours " )
 
     # prediction surface
-    sppoly = areal_units( p=p )  # will redo if not found
-#    sppoly = sppoly["StrataID"]
+    if (is.null(sppoly)) sppoly = areal_units( p=p )  # will redo if not found
+    sppoly = sppoly["StrataID"]
 
     M = bathymetry_carstm( p=p, DS="carstm_inputs" )  # will redo if not found
     fit  = NULL
