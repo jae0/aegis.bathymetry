@@ -4,8 +4,8 @@
 
 for ( areal_units_resolution_km in c(10, 20, 25) ) {
   for ( spatial_domain in c("snowcrab", "SSE")) {
-    areal_units_overlay = "snowcrab"
-    if ( spd=="SSE") areal_units_overlay = "none" # or groundfish_strata
+    areal_units_overlay = c("snowcrab", "coastline")
+    if ( spatial_domain=="SSE") areal_units_overlay = c("groundfish_strata", "coastline")
     p = aegis.bathymetry::bathymetry_parameters(
       project_class = "carstm", # defines which parameter set to load
       id = paste("bathymetry", areal_units_overlay, sep="_"),
@@ -20,8 +20,8 @@ for ( areal_units_resolution_km in c(10, 20, 25) ) {
        libs = RLibrary ( "sp", "spdep", "rgeos", "spatialreg", "INLA", "raster", "aegis",  "aegis.polygons", "aegis.bathymetry", "carstm" )
     )
     sppoly = areal_units( p=p, redo=TRUE )
-    M = bathymetry_carstm( p=p, DS="aggregated_data", redo=TRUE )  # will redo if not found .. not used here but used for data matching/lookup in other aegis projects that use bathymetry
-    M = bathymetry_carstm( p=p, DS="carstm_inputs", redo=TRUE )  # will redo if not found
+    # M = bathymetry_carstm( p=p, DS="aggregated_data", redo=TRUE )  # will redo if not found .. not used here but used for data matching/lookup in other aegis projects that use bathymetry
+    # M = bathymetry_carstm( p=p, DS="carstm_inputs", redo=TRUE )  # will redo if not found
   }
 
 }
