@@ -119,9 +119,9 @@ bathymetry_parameters = function( p=NULL, project_name=NULL, project_class="defa
 
   if (project_class=="carstm") {
     p$libs = c( p$libs, project.library ( "carstm" ) )
-    if (!exists("variables", p)) p$variables = list()
-    if (!exists("LOCS", p$variables)) p$variables$LOCS = c("plon", "plat")
-    if (!exists("Y", p$variables)) p$variables$Y = "z" # name to give variable in extraction and model
+    # if (!exists("variables", p)) p$variables = list()
+    # if (!exists("LOCS", p$variables)) p$variables$LOCS = c("plon", "plat")
+    # if (!exists("Y", p$variables)) p$variables$Y = "z" #
 
     return(p)
   }

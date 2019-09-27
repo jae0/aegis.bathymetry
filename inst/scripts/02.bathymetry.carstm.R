@@ -1,37 +1,19 @@
 
 
-
-# areal_units_overlay defines spatial bounds and lattive areal_units_overlays
-spatial_domain = "snowcrab"
-areal_units_overlay = "snowcrab_managementareas" # 1.3 hrs
-areal_units_resolution_km = 25  # 1 hr to model etc
-# areal_units_resolution_km = 20  # 1 hr to model etc
-# areal_units_resolution_km = 10  # 16 hrs to model; 1o min to discretize? .. 25 configs
-
-if (0) {
-  # alternatively:
-  spatial_domain="SSE"
-  areal_units_overlay = "groundfish_strata"
-  # areal_units_resolution_km = 10 # 8.2 hrs
-  # areal_units_resolution_km = 20
-  areal_units_resolution_km = 25
-}
-
-
-# --------------------------------
 # construct basic parameter list defining the main characteristics of the study
 # and some plotting parameters (bounding box, projection, bathymetry layout, coastline)
 p = aegis.bathymetry::bathymetry_parameters(
-  project_class = "carstm", # defines which parameter set to load
-  id = paste("bathymetry", areal_units_overlay, sep="_"),
+  project_class = "carstm", # defines which parameter class / set to load
+  id = paste("bathymetry", areal_units_overlay, sep="_"),  # label to tag the results
   inputdata_spatial_discretization_planar_km = 1,  # 1 km .. requires 32 GB RAM and limit of speed -- controls resolution of data prior to modelling to reduce data set and speed up modelling
-  spatial_domain = spatial_domain,  # defines spatial area
-  areal_units_resolution_km = areal_units_resolution_km, # km dim of lattice
+  spatial_domain = "snowcrab",  # defines spatial area, currenty: "snowcrab" or "SSE"
+  areal_units_strata_type = "lattice", # "aegis_lattice" to use ageis fields instead of carstm fields ... note variables are not the same
+  areal_units_overlay = "snowcrab_managementareas", # currently: "snowcrab_managementareas",  "groundfish_strata" .. additional polygon layers for subsequent analysis for now ..
+  # areal_units_resolution_km = 10, # km dim of lattice ~ 16 hrs
+  # areal_units_resolution_km = 20, # km dim of lattice ~ 1 hr
+  areal_units_resolution_km = 25, # km dim of lattice ~ 1 hr
   areal_units_proj4string_planar_km = projection_proj4string("utm20"),  # coord system to use for areal estimation and gridding for carstm
   # areal_units_proj4string_planar_km = "+proj=omerc +lat_0=44.0 +lonc=-63.0 +gamma=0.0 +k=1 +alpha=325 +x_0=0 +y_0=0 +ellps=WGS84 +units=km",  # oblique mercator, centred on Scotian Shelf rotated by 325 degrees
-  areal_units_strata_type = "lattice", # "aegis_lattice" to use ageis fields instead of carstm fields ... note variables are not the same
-  areal_units_overlay = areal_units_overlay, # additional polygon layers for subsequent analysis such as management area: "snowcrab" or "groundfish"  # for now ..
-  areal_units_constraint="none", # set[, c("lon", "lat")],  # to limit to sppoly to only those with data that fall into them
   carstm_modelengine = "inla.default",  # {model engine}.{label to use to store}
   carstm_modelcall = '
     inla(
@@ -60,22 +42,13 @@ p$boundingbox = list( xlim=p$corners$lon, ylim=p$corners$lat) # bounding box for
 p$mypalette = RColorBrewer::brewer.pal(9, "YlOrRd")
 
 
-reset_input_data = FALSE
-if (0) reset_input_data = TRUE # choose this if we are redoing input data "views"
-p = c(p, aegis.coastline::coastline_layout( p=p, redo=reset_input_data ) )  # set up default map projection
 
-
-
-# --------------------------------
-# ensure if polys exist and create if required
-# for (au in c("cfanorth", "cfasouth", "cfa4x", "cfaall" )) plot(polygons_managementarea( species="snowcrab", au))
 
 if (0) {
-  # force creating of input data for modelling
+  # example sequence to force creating of input data for modelling
+  p = c(p, aegis.coastline::coastline_layout( p=p, redo=TRUE ) )  # set up default map projection
   sppoly = areal_units( p=p, redo=TRUE )
-  # plot(sppoly)
-  spplot( sppoly, "StrataID", main="StrataID", sp.layout=p$coastLayout )
-
+  plot(sppoly) # or: spplot( sppoly, "StrataID", main="StrataID", sp.layout=p$coastLayout )
   M = bathymetry_carstm( p=p, DS="aggregated_data", redo=TRUE )  # will redo if not found .. not used here but used for data matching/lookup in other aegis projects that use bathymetry
   M = bathymetry_carstm( p=p, DS="carstm_inputs", redo=TRUE )  # will redo if not found
   str(M)
@@ -87,38 +60,45 @@ sppoly = bathymetry_carstm( p=p, DS="carstm_modelled", redo=TRUE ) # extract pre
 if (0) {
   sppoly = bathymetry_carstm( p=p, DS="carstm_modelled" ) # to load currently saved sppoly
   fit =  bathymetry_carstm( p=p, DS="carstm_modelled_fit" )  # extract currently saved model fit
-    # s = summary(fit)
-    # s$dic$dic  # 31225
-    # s$dic$p.eff # 5200
+
+  plot(fit)
+
+  s = summary(fit)
+
+  s$dic$dic
+  s$dic$p.eff
+
+  # maps of some of the results
+  p = c(p, aegis.coastline::coastline_layout( p=p ) )  # set up default map projection
+
+  vn = "z.predicted"
+  dev.new();
+  spplot( sppoly, vn, main=vn,
+    col.regions=p$mypalette,
+    at=interval_break(X= sppoly[[vn]], n=length(p$mypalette), style="quantile"),
+    sp.layout=p$coastLayout,
+    col="transparent"
+  )
+
+  vn = "z.random_strata_nonspatial"
+  dev.new();
+  spplot( sppoly, vn, main=vn,
+    col.regions=p$mypalette,
+    at=interval_break(X= sppoly[[vn]], n=length(p$mypalette), style="quantile"),
+    sp.layout=p$coastLayout,
+    col="transparent"
+  )
+
+  vn = "z.random_strata_spatial"
+  dev.new();
+  spplot( sppoly, vn, main=vn,
+    col.regions=p$mypalette,
+    at=interval_break(X= sppoly[[vn]], n=length(p$mypalette), style="quantile"),
+    sp.layout=p$coastLayout,
+    col="transparent"
+  )
+
 
 }
-
-vn = "z.predicted"
-dev.new();
-spplot( sppoly, vn, main=vn,
-  col.regions=p$mypalette,
-  at=interval_break(X= sppoly[[vn]], n=length(p$mypalette), style="quantile"),
-  sp.layout=p$coastLayout,
-  col="transparent"
-)
-
-vn = "z.random_strata_nonspatial"
-dev.new();
-spplot( sppoly, vn, main=vn,
-  col.regions=p$mypalette,
-  at=interval_break(X= sppoly[[vn]], n=length(p$mypalette), style="quantile"),
-  sp.layout=p$coastLayout,
-  col="transparent"
-)
-
-vn = "z.random_strata_spatial"
-dev.new();
-spplot( sppoly, vn, main=vn,
-  col.regions=p$mypalette,
-  at=interval_break(X= sppoly[[vn]], n=length(p$mypalette), style="quantile"),
-  sp.layout=p$coastLayout,
-  col="transparent"
-)
-
 
 # end
