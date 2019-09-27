@@ -13,12 +13,12 @@ bathymetry_carstm = function(p=NULL, DS=NULL, sppoly=NULL, id=NULL, redo=FALSE, 
   if ( !exists("areal_units_constraint", p) )  p$areal_units_constraint="none"
   if ( !exists("areal_units_constraint", p) )  p$timeperiod="default"
 
-  if (is.null(id)) id = paste( p$spatial_domain, p$areal_units_overlay, p$areal_units_resolution_km, p$areal_units_strata_type, p$areal_units_constraint, p$timeperiod, sep="_" )
+  if (is.null(id)) id = paste( p$spatial_domain, paste0(p$areal_units_overlay, collapse="_"), p$areal_units_resolution_km, p$areal_units_strata_type, p$areal_units_constraint, p$timeperiod, sep="_" )
 
 
   # -------0----------------
 
-  if ( DS=="aggregated_data") {modeldir
+  if ( DS=="aggregated_data") {
 
     fn = file.path( p$modeldir, paste( "bathymetry", "aggregated_data", id, "rdata", sep=".") )
     if (!redo)  {
