@@ -2,23 +2,49 @@
 # ------------------------------------------------
 # Areal unit modelling of bathymetry
 
+for ( areal_units_resolution_km in c(10, 20, 25) ) {
+  for ( spatial_domain in c("snowcrab", "SSE")) {
+    areal_units_overlay = "snowcrab"
+    if ( spd=="SSE") areal_units_overlay = "none" # or groundfish_strata
+    p = aegis.bathymetry::bathymetry_parameters(
+      project_class = "carstm", # defines which parameter set to load
+      id = paste("bathymetry", areal_units_overlay, sep="_"),
+      inputdata_spatial_discretization_planar_km = 1,  # 1 km .. requires 32 GB RAM and limit of speed -- controls resolution of data prior to modelling to reduce data set and speed up modelling
+      spatial_domain = spatial_domain,  # defines spatial area
+      areal_units_resolution_km = areal_units_resolution_km, # km dim of lattice
+      areal_units_proj4string_planar_km = projection_proj4string("utm20"),  # coord system to use for areal estimation and gridding for carstm
+      # areal_units_proj4string_planar_km = "+proj=omerc +lat_0=44.0 +lonc=-63.0 +gamma=0.0 +k=1 +alpha=325 +x_0=0 +y_0=0 +ellps=WGS84 +units=km",  # oblique mercator, centred on Scotian Shelf rotated by 325 degrees
+      areal_units_strata_type = "lattice", # "aegis_lattice" to use ageis fields instead of carstm fields ... note variables are not the same
+      areal_units_overlay = areal_units_overlay, # additional polygon layers for subsequent analysis such as management area: "snowcrab" or "groundfish"  # for now ..
+      areal_units_constraint="none", # set[, c("lon", "lat")],  # to limit to sppoly to only those with data that fall into them
+       libs = RLibrary ( "sp", "spdep", "rgeos", "spatialreg", "INLA", "raster", "aegis",  "aegis.polygons", "aegis.bathymetry", "carstm" )
+    )
+    sppoly = areal_units( p=p, redo=TRUE )
+    M = bathymetry_carstm( p=p, DS="aggregated_data", redo=TRUE )  # will redo if not found .. not used here but used for data matching/lookup in other aegis projects that use bathymetry
+    M = bathymetry_carstm( p=p, DS="carstm_inputs", redo=TRUE )  # will redo if not found
+  }
+
+}
+
+
 
 reset_input_data = FALSE
 if (0) reset_input_data = TRUE # choose this if we are redoing input data "views"
 
 # areal_units_overlay defines spatial bounds and lattive areal_units_overlays
 spatial_domain = "snowcrab"
-areal_units_overlay = "snowcrab"
-areal_units_resolution_km = 20
+areal_units_overlay = "snowcrab" # 1.3 hrs
+areal_units_resolution_km = 25  # 1 hr to model etc
+# areal_units_resolution_km = 20  # 1 hr to model etc
 # areal_units_resolution_km = 10  # 16 hrs to model; 1o min to discretize? .. 25 configs
 
 if (0) {
   # alternatively:
   spatial_domain="SSE"
   areal_units_overlay = "groundfish"
-  # areal_units_resolution_km = 10
+  # areal_units_resolution_km = 10 # 8.2 hrs
+  # areal_units_resolution_km = 20
   areal_units_resolution_km = 25
-  # areal_units_resolution_km = 30
 }
 
 
@@ -87,9 +113,31 @@ sppoly = bathymetry_carstm( p=p, DS="carstm_modelled", redo=TRUE ) # extract pre
 if (0) {
   sppoly = bathymetry_carstm( p=p, DS="carstm_modelled" ) # to load currently saved sppoly
   fit =  bathymetry_carstm( p=p, DS="carstm_modelled_fit" )  # extract currently saved model fit
+    # s = summary(fit)
+    # s$dic$dic  # 31225
+    # s$dic$p.eff # 5200
+
 }
 
 vn = "z.predicted"
+dev.new();
+spplot( sppoly, vn, main=vn,
+  col.regions=p$mypalette,
+  at=interval_break(X= sppoly[[vn]], n=length(p$mypalette), style="quantile"),
+  sp.layout=p$coastLayout,
+  col="transparent"
+)
+
+vn = "z.random_strata_nonspatial"
+dev.new();
+spplot( sppoly, vn, main=vn,
+  col.regions=p$mypalette,
+  at=interval_break(X= sppoly[[vn]], n=length(p$mypalette), style="quantile"),
+  sp.layout=p$coastLayout,
+  col="transparent"
+)
+
+vn = "z.random_strata_spatial"
 dev.new();
 spplot( sppoly, vn, main=vn,
   col.regions=p$mypalette,
