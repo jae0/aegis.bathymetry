@@ -6,18 +6,8 @@ bathymetry_carstm = function(p=NULL, DS=NULL, sppoly=NULL, id=NULL, redo=FALSE, 
   if ( is.null(p)) p = bathymetry_parameters(...)
 
   if ( !exists("project_name", p)) p$project_name = "bathymetry"
-  if ( !exists("data_root", p) ) p$data_root = project.datadirectory( "aegis", p$project_name )
-  if ( !exists("datadir", p) )   p$datadir  = file.path( p$data_root, "data" )
-  if ( !exists("modeldir", p) )  p$modeldir = file.path( p$data_root, "modelled" )
 
-
-  if (!exists("areal_units_strata_type", p )) p$areal_units_strata_type = "lattice" #
-  if (!exists("areal_units_constraint", p )) p$areal_units_constraint = "none" #
-  if (!exists("areal_units_overlay", p )) p$areal_units_overlay = "none" #
-  if (!exists("areal_units_resolution_km", p )) stop( "areal_units_resolution_km should be defined ... " ) # km
-  if (!exists("areal_units_proj4string_planar_km", p )) stop( "areal_units_proj4string_planar_km should be defined ... " ) # km
-  if (!exists("timeperiod", p) )  p$timeperiod="default"
-
+  p = aegis_parameters( p=p, DS="carstm" )
 
   if (is.null(id)) id = paste( p$spatial_domain, paste0(p$areal_units_overlay, collapse="_"), p$areal_units_resolution_km, p$areal_units_strata_type, p$areal_units_constraint, p$timeperiod, sep="_" )
 

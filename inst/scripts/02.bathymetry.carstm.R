@@ -47,8 +47,8 @@ p = aegis.bathymetry::bathymetry_parameters(
   areal_units_strata_type = "lattice", # "aegis_lattice" to use ageis fields instead of carstm fields ... note variables are not the same
   areal_units_overlay = "snowcrab_managementareas", # currently: "snowcrab_managementareas",  "groundfish_strata" .. additional polygon layers for subsequent analysis for now ..
   # areal_units_resolution_km = 10, # km dim of lattice ~ 16 hrs
-  # areal_units_resolution_km = 20, # km dim of lattice ~ 1 hr
-  areal_units_resolution_km = 25, # km dim of lattice ~ 1 hr
+  areal_units_resolution_km = 20, # km dim of lattice ~ 1 hr
+  # areal_units_resolution_km = 25, # km dim of lattice ~ 1 hr
   areal_units_proj4string_planar_km = projection_proj4string("utm20"),  # coord system to use for areal estimation and gridding for carstm
   # areal_units_proj4string_planar_km = "+proj=omerc +lat_0=44.0 +lonc=-63.0 +gamma=0.0 +k=1 +alpha=325 +x_0=0 +y_0=0 +ellps=WGS84 +units=km",  # oblique mercator, centred on Scotian Shelf rotated by 325 degrees
   carstm_modelengine = "inla.default",  # {model engine}.{label to use to store}
