@@ -111,7 +111,7 @@ bathymetry_carstm = function(p=NULL, DS=NULL, sppoly=NULL, id=NULL, redo=FALSE, 
     M = M[ which(is.finite(M$StrataID)),]
     M$StrataID = as.character( M$StrataID )  # match each datum to an area
 
-    M$z = M$z.mean + p$constant_offset # make all positive
+    M$z = M$z.mean
     M$tag = "observations"
 
     sppoly_df = as.data.frame(sppoly)
@@ -164,9 +164,10 @@ bathymetry_carstm = function(p=NULL, DS=NULL, sppoly=NULL, id=NULL, redo=FALSE, 
 
     # prediction surface
     if (is.null(sppoly)) sppoly = areal_units( p=p )  # will redo if not found
-    sppoly = sppoly["StrataID"]
 
     M = bathymetry_carstm( p=p, DS="carstm_inputs" )  # will redo if not found
+    M$z = M$z.mean + p$constant_offset # make all positive
+
     fit  = NULL
 
     if ( grepl("glm", p$carstm_modelengine) ) {

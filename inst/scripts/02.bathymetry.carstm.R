@@ -34,12 +34,14 @@ for ( areal_units_resolution_km in c(10, 20, 25) ) {
 
 
 
+project = "snowcrab"
+
 
 # construct basic parameter list defining the main characteristics of the study
 # and some plotting parameters (bounding box, projection, bathymetry layout, coastline)
 p = aegis.bathymetry::bathymetry_parameters(
   project_class = "carstm", # defines which parameter class / set to load
-  id = paste("bathymetry", areal_units_overlay, sep="_"),  # label to tag the results
+  id = paste("bathymetry", project, sep="_"),  # label to tag the results
   inputdata_spatial_discretization_planar_km = 1,  # 1 km .. requires 32 GB RAM and limit of speed -- controls resolution of data prior to modelling to reduce data set and speed up modelling
   spatial_domain = "snowcrab",  # defines spatial area, currenty: "snowcrab" or "SSE"
   areal_units_strata_type = "lattice", # "aegis_lattice" to use ageis fields instead of carstm fields ... note variables are not the same
