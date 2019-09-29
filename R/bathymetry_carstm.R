@@ -80,7 +80,7 @@ bathymetry_carstm = function(p=NULL, DS=NULL, sppoly=NULL, id=NULL, redo=FALSE, 
     }
 
     # prediction surface
-    if (is.null) sppoly = areal_units( p=p )  # will redo if not found
+    if (is.null(sppoly)) sppoly = areal_units( p=p )  # will redo if not found
     sppoly = sppoly["StrataID"]
 
     crs_lonlat = sp::CRS(projection_proj4string("lonlat_wgs84"))
