@@ -1,5 +1,5 @@
 
-bathymetry_carstm = function(p=NULL, DS=NULL, sppoly=NULL, id=NULL, redo=FALSE, map=FALSE, ...) {
+bathymetry_carstm = function(p=NULL, DS=NULL, sppoly=NULL, redo=FALSE, map=FALSE, ...) {
 
   #\\ Note inverted convention: depths are positive valued
   #\\ i.e., negative valued for above sea level and positive valued for below sea level
@@ -9,14 +9,12 @@ bathymetry_carstm = function(p=NULL, DS=NULL, sppoly=NULL, id=NULL, redo=FALSE, 
 
   p = aegis_parameters( p=p, DS="carstm" )
 
-  if (is.null(id)) id = paste( p$spatial_domain, paste0(p$areal_units_overlay, collapse="_"), p$areal_units_resolution_km, p$areal_units_strata_type, p$areal_units_constraint, p$timeperiod, sep="_" )
-
 
   # -----------------------
 
   if ( DS=="aggregated_data") {
 
-    fn = file.path( p$modeldir, paste( "bathymetry", "aggregated_data", id, "rdata", sep=".") )
+    fn = file.path( p$modeldir, paste( "bathymetry", "aggregated_data", p$auid, "rdata", sep=".") )
     if (!redo)  {
       print( "Warning: aggregated_data is loading from a saved instance ... add redo=TRUE if data needs to be refresh" )
       if (file.exists(fn)) {
@@ -71,7 +69,7 @@ bathymetry_carstm = function(p=NULL, DS=NULL, sppoly=NULL, id=NULL, redo=FALSE, 
 
   if ( DS=="carstm_inputs") {
 
-    fn = file.path( p$modeldir, paste( "bathymetry", "carstm_inputs", id, "rdata", sep=".") )
+    fn = file.path( p$modeldir, paste( "bathymetry", "carstm_inputs", p$auid, "rdata", sep=".") )
     if (!redo)  {
       if (file.exists(fn)) {
         load( fn)
@@ -130,8 +128,8 @@ bathymetry_carstm = function(p=NULL, DS=NULL, sppoly=NULL, id=NULL, redo=FALSE, 
 
   if ( DS %in% c("carstm_modelled", "carstm_modelled_fit") ) {
 
-    fn = file.path( p$modeldir, paste( "bathymetry", "carstm_modelled", id, p$carstm_modelengine, "rdata", sep=".") )
-    fn_fit = file.path( p$modeldir, paste( "bathymetry", "carstm_modelled_fit", id, p$carstm_modelengine, "rdata", sep=".") )
+    fn = file.path( p$modeldir, paste( "bathymetry", "carstm_modelled", p$auid, p$carstm_modelengine, "rdata", sep=".") )
+    fn_fit = file.path( p$modeldir, paste( "bathymetry", "carstm_modelled_fit", p$auid, p$carstm_modelengine, "rdata", sep=".") )
 
     if (!redo)  {
       print( "Warning: carstm_modelled is loading from a saved instance ... add redo=TRUE if data needs to be refresh" )
