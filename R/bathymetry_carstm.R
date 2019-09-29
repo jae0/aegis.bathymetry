@@ -101,7 +101,8 @@ bathymetry_carstm = function(p=NULL, DS=NULL, sppoly=NULL, id=NULL, redo=FALSE, 
     M = M[ which(is.finite(M$StrataID)),]
     M$StrataID = as.character( M$StrataID )  # match each datum to an area
 
-    M$z = M$z.mean
+    names(M)[which(names(M)=="z.mean" )] = "z"
+
     M$tag = "observations"
 
     sppoly_df = as.data.frame(sppoly)
@@ -156,7 +157,7 @@ bathymetry_carstm = function(p=NULL, DS=NULL, sppoly=NULL, id=NULL, redo=FALSE, 
     if (is.null(sppoly)) sppoly = areal_units( p=p )  # will redo if not found
 
     M = bathymetry_carstm( p=p, DS="carstm_inputs" )  # will redo if not found
-    M$z = M$z.mean + p$constant_offset # make all positive
+    M$z = M$z + p$constant_offset # make all positive
 
     fit  = NULL
 
