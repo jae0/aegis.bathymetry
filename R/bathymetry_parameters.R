@@ -123,6 +123,10 @@ bathymetry_parameters = function( p=NULL, project_name=NULL, project_class="defa
     # if (!exists("LOCS", p$variables)) p$variables$LOCS = c("plon", "plat")
     # if (!exists("Y", p$variables)) p$variables$Y = "z" #
 
+    if ( !exists("project_name", p)) p$project_name = "bathymetry"
+
+    p = aegis_parameters( p=p, DS="carstm" )
+
     return(p)
   }
 
