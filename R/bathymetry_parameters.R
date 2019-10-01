@@ -44,7 +44,7 @@ bathymetry_parameters = function( p=NULL, project_name=NULL, project_class="defa
 
     if (!exists("stmv_local_modelengine", p)) p$stmv_local_modelengine="fft"  # fft is the perferred approach for bathymetry
 
-    # tweaked override the defaults of aegis_parameters( p=p, DS="stmv_spatial_model" :
+    # tweaked override the defaults of aegis_parameters( p=p, DS="stmv") :
     if ( p$stmv_local_modelengine %in% c("krige" )) {
       # nothing to do  .. this is faster than "gstat" .. do not use for bathymetry as it is oversmoothed
     }
@@ -108,9 +108,9 @@ bathymetry_parameters = function( p=NULL, project_name=NULL, project_class="defa
         return(  s$latent[i_intercept,1] + s$latent[ i_spatial.field,1] )
       }
 
-      if (!exists("stmv_dimensionality", p)) p$stmv_dimensionality="space"
+      if (!exists("aegis_dimensionality", p)) p$aegis_dimensionality="space"
 
-      p = aegis_parameters( p=p, DS="stmv_spatial_model" )
+      p = aegis_parameters( p=p, DS="stmv" )
 
     }
     return(p)

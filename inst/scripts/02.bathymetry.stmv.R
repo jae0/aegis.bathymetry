@@ -31,7 +31,7 @@ p = aegis.bathymetry::bathymetry_parameters(
   inputdata_spatial_discretization_planar_km = 0.05,  # 0.2==p$pres; controls resolution of data prior to modelling (km .. ie 20 linear units smaller than the final discretization pres)
   spatial_domain = "canada.east.superhighres",
   spatial_domain_subareas = c( "canada.east.highres", "canada.east",  "SSE", "SSE.mpa" , "snowcrab"),
-  stmv_dimensionality="space",
+  aegis_dimensionality="space",
   stmv_global_modelengine = "none",  # only marginally useful .. consider removing it and use "none",
   stmv_local_modelengine="fft",
   stmv_fft_filter = "matern tapered lowpass modelled fast_predictions", #  act as a low pass filter first before matern with taper .. depth has enough data for this. Otherwise, use:
