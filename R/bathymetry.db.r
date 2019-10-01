@@ -298,6 +298,57 @@
       return ( fn )
     }
 
+
+    # -----------------------
+
+    if ( DS=="aggregated_data") {
+
+      fn = file.path( p$datadir, paste( "bathymetry", "aggregated_data", p$inputdata_spatial_discretization_planar_km, "rdata", sep=".") )
+      if (!redo)  {
+        print( "Warning: aggregated_data is loading from a saved instance ... add redo=TRUE if data needs to be refresh" )
+        if (file.exists(fn)) {
+          load( fn)
+          return( M )
+        }
+      }
+
+      M = bathymetry.db ( p=p, DS="z.lonlat.rawdata" )  # 16 GB in RAM just to store!
+
+      if (!exists("inputdata_spatial_discretization_planar_km", p) )  p$inputdata_spatial_discretization_planar_km = 1
+
+      # thin data a bit ... remove potential duplicates and robustify
+      M = lonlat2planar( M, proj.type=p$aegis_proj4string_planar_km )
+      M$plon = round(M$plon / p$inputdata_spatial_discretization_planar_km + 1 ) * p$inputdata_spatial_discretization_planar_km
+      M$plat = round(M$plat / p$inputdata_spatial_discretization_planar_km + 1 ) * p$inputdata_spatial_discretization_planar_km
+
+      gc()
+
+      bb = as.data.frame( t( simplify2array(
+        tapply( X=M$z, INDEX=list(paste(  M$plon, M$plat) ),
+          FUN = function(w) { c(
+            mean(w, na.rm=TRUE),
+            sd(w, na.rm=TRUE),
+            length( which(is.finite(w)) )
+          ) }, simplify=TRUE )
+      )))
+      M = NULL
+      colnames(bb) = c("z.mean", "z.sd", "z.n")
+      plonplat = matrix( as.numeric( unlist(strsplit( rownames(bb), " ", fixed=TRUE))), ncol=2, byrow=TRUE)
+
+      bb$plon = plonplat[,1]
+      bb$plat = plonplat[,2]
+      plonplat = NULL
+
+      M = bb[ which( is.finite( bb$z.mean )) ,]
+      bb =NULL
+      gc()
+      M = planar2lonlat( M, p$aegis_proj4string_planar_km)
+      save(M, file=fn, compress=TRUE)
+
+      return( M )
+    }
+
+
     # ------------------------------
 
     if ( DS %in% c("bathymetry", "stmv_inputs", "stmv_inputs_redo" )) {

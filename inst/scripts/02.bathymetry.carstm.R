@@ -24,17 +24,13 @@ for ( areal_units_resolution_km in c(10, 20, 25) ) {
     )
 
     sppoly = areal_units( p=p, redo=TRUE )  # this has already been done in aegis.polygons::01 polygons.R .. should nto have to redo
-    M = bathymetry_carstm( p=p, DS="aggregated_data", redo=TRUE )  # will redo if not found .. not used here but used for data matching/lookup in other aegis projects that use bathymetry
+    M = bathymetry.db( p=p, DS="aggregated_data", redo=TRUE )  # will redo if not found .. not used here but used for data matching/lookup in other aegis projects that use bathymetry
     p$constant_offset = 2500
     M = bathymetry_carstm( p=p, DS="carstm_inputs", redo=TRUE )  # will redo if not found
   }
 }
 
 
-
-
-project = "snowcrab"
-project = "SSE"
 
 
 # construct basic parameter list defining the main characteristics of the study
@@ -86,7 +82,7 @@ if (0) {
   p = c(p, aegis.coastline::coastline_layout( p=p, redo=TRUE ) )  # set up default map projection
   sppoly = areal_units( p=p, redo=TRUE )
   plot(sppoly) # or: spplot( sppoly, "StrataID", main="StrataID", sp.layout=p$coastLayout )
-  M = bathymetry_carstm( p=p, DS="aggregated_data", redo=TRUE )  # will redo if not found .. not used here but used for data matching/lookup in other aegis projects that use bathymetry
+  M = bathymetry.db( p=p, DS="aggregated_data", redo=TRUE )  # will redo if not found .. not used here but used for data matching/lookup in other aegis projects that use bathymetry
   M = bathymetry_carstm( p=p, DS="carstm_inputs", redo=TRUE )  # will redo if not found
   str(M)
 }
