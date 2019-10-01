@@ -64,8 +64,6 @@ bathymetry_carstm = function(p=NULL, DS=NULL, sppoly=NULL, redo=FALSE, map_resul
 
     M$StrataID  = factor( as.character(M$StrataID), levels=levels( sppoly$StrataID ) ) # revert to factors
     sppoly = NULL
-    M$strata  = as.numeric( M$StrataID)
-    M$iid_error = 1:nrow(M) # for inla indexing for set level variation
 
     save( M, file=fn, compress=TRUE )
     return( M )
@@ -148,6 +146,9 @@ bathymetry_carstm = function(p=NULL, DS=NULL, sppoly=NULL, redo=FALSE, map_resul
 
 
     if ( grepl("inla", p$carstm_modelengine) ) {
+
+      M$strata  = as.numeric( M$StrataID)
+      M$iid_error = 1:nrow(M) # for inla indexing for set level variation
 
       H = carstm_hyperparameters( sd(log(M$z), na.rm=TRUE), alpha=0.5, median( log(M$z), na.rm=TRUE) )
       assign("fit", eval(parse(text=paste( "try(", p$carstm_modelcall, ")" ) ) ))
