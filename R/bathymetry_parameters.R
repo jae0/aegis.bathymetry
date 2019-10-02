@@ -126,6 +126,7 @@ bathymetry_parameters = function( p=NULL, project_name=NULL, project_class="defa
     if ( !exists("project_name", p)) p$project_name = "bathymetry"
 
     p = aegis_parameters( p=p, DS="carstm" )
+    if ( !exists("constant_offset", p)) p$constant_offset = 2500
 
     return(p)
   }
