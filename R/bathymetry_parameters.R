@@ -169,7 +169,7 @@ bathymetry_parameters = function( p=NULL, project_name=NULL, project_class="defa
       if ( grepl("glm", p$carstm_modelengine) ) {
         p$carstm_modelcall = 'glm( formula = z ~ 1 + StrataID,  family = gaussian(link="log"), data= M[ which(M$tag=="observations"), ]   ) '  # for modelengine='glm'
       }
-      if ( grepl("gam", p$carstm_modelengines) ) {
+      if ( grepl("gam", p$carstm_modelengine) ) {
         p$carstm_modelcall = 'gam( formula = z ~ 1 + StrataID,  family = gaussian(link="log"), data= M[ which(M$tag=="observations"), ] ) '  # for modelengine='gam'
       }
     }
