@@ -147,7 +147,7 @@ bathymetry_parameters = function( p=NULL, project_name=NULL, project_class="defa
     if ( !exists("carstm_modelengine", p)) p$carstm_modelengine = "inla.default"  # {model engine}.{label to use to store}
 
     if ( !exists("carstm_modelcall", p)) {
-      if ( grepl("inla", p$carstm_modelcall) ) {
+      if ( grepl("inla", p$carstm_modelengine) ) {
         p$carstm_modelcall = '
           inla(
             formula = z ~ 1
@@ -166,10 +166,10 @@ bathymetry_parameters = function( p=NULL, project_name=NULL, project_class="defa
             verbose=TRUE
           ) '
       }
-      if ( grepl("glm", p$carstm_modelcall) ) {
+      if ( grepl("glm", p$carstm_modelengine) ) {
         p$carstm_modelcall = 'glm( formula = z ~ 1 + StrataID,  family = gaussian(link="log"), data= M[ which(M$tag=="observations"), ]   ) '  # for modelengine='glm'
       }
-      if ( grepl("gam", p$carstm_modelcall) ) {
+      if ( grepl("gam", p$carstm_modelengines) ) {
         p$carstm_modelcall = 'gam( formula = z ~ 1 + StrataID,  family = gaussian(link="log"), data= M[ which(M$tag=="observations"), ] ) '  # for modelengine='gam'
       }
     }
