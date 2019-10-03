@@ -153,16 +153,16 @@ bathymetry_parameters = function( p=NULL, project_name=NULL, project_class="defa
             formula = z ~ 1
               + f(strata, model="bym2", graph=sppoly@nb, scale.model=TRUE, constr=TRUE, hyper=H$bym2)
               + f(iid_error, model="iid", hyper=H$iid),
-            family = "lognormal", # "zeroinflatedpoisson0",
+            family = "lognormal",
             data= M,
             control.compute=list(dic=TRUE, config=TRUE),  # config=TRUE if doing posterior simulations
             control.results=list(return.marginals.random=TRUE, return.marginals.predictor=TRUE ),
             control.predictor=list(compute=FALSE, link=1 ),
             control.fixed=H$fixed,  # priors for fixed effects, generic is ok
-            control.inla=list(int.strategy="eb") ,# to get empirical Bayes results much faster.
+            # control.inla=list(int.strategy="eb") ,# to get empirical Bayes results much faster.
             # control.inla=list( strategy="laplace", cutoff=1e-6, correct=TRUE, correct.verbose=FALSE ),
             num.threads=4,
-            blas.num.threads=4,
+            blas.num.threads=2,
             verbose=TRUE
           ) '
       }
