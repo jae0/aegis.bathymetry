@@ -172,8 +172,9 @@ bathymetry_parameters = function( p=NULL, project_name=NULL, project_class="defa
       if ( grepl("gam", p$carstm_modelcall) ) {
         p$carstm_modelcall = 'gam( formula = z ~ 1 + StrataID,  family = gaussian(link="log"), data= M[ which(M$tag=="observations"), ] ) '  # for modelengine='gam'
       }
+    }
 
-      if ( !exists("constant_offset", p)) p$constant_offset = 2500 # pre-modelling transformations
+    if ( !exists("constant_offset", p)) p$constant_offset = 2500 # pre-modelling transformations
     return(p)
   }
 
