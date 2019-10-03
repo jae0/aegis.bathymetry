@@ -1,5 +1,5 @@
 
-bathymetry_carstm = function(p=NULL, DS=NULL, sppoly=NULL, redo=FALSE, map_results=FALSE, ...) {
+bathymetry_carstm = function(p=NULL, DS=NULL, redo=FALSE, map_results=FALSE, ...) {
 
   #\\ Note inverted convention: depths are positive valued
   #\\ i.e., negative valued for above sea level and positive valued for below sea level
@@ -32,16 +32,11 @@ bathymetry_carstm = function(p=NULL, DS=NULL, sppoly=NULL, redo=FALSE, map_resul
     warning( "Generating carstm_inputs ... ")
 
     # prediction surface
-    if (is.null(sppoly)) sppoly = areal_units( p=p )  # will redo if not found
-    sppoly = sppoly["StrataID"]
-
+    sppoly = areal_units( p=p )  # will redo if not found
     crs_lonlat = sp::CRS(projection_proj4string("lonlat_wgs84"))
 
-    # do this immediately to reduce storage for sppoly (before adding other variables)
-
-    M = bathymetry.db ( p=p, DS="aggregated_data" )  # 16 GB in RAM just to store!
-
     # reduce size
+    M = bathymetry.db ( p=p, DS="aggregated_data" )  # 16 GB in RAM just to store!
     M = M[ which( M$lon > p$corners$lon[1] & M$lon < p$corners$lon[2]  & M$lat > p$corners$lat[1] & M$lat < p$corners$lat[2] ), ]
     # levelplot(z.mean~plon+plat, data=M, aspect="iso")
 
@@ -101,7 +96,7 @@ bathymetry_carstm = function(p=NULL, DS=NULL, sppoly=NULL, redo=FALSE, map_resul
     }
 
     # prediction surface
-    if (is.null(sppoly)) sppoly = areal_units( p=p )  # will redo if not found
+    sppoly = areal_units( p=p )  # will redo if not found
 
     M = bathymetry_carstm( p=p, DS="carstm_inputs" )  # will redo if not found
     M$z = M$z + p$constant_offset # make all positive

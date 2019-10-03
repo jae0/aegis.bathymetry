@@ -305,7 +305,6 @@
 
       fn = file.path( p$datadir, paste( "bathymetry", "aggregated_data", p$inputdata_spatial_discretization_planar_km, "rdata", sep=".") )
       if (!redo)  {
-        print( "Warning: aggregated_data is loading from a saved instance ... add redo=TRUE if data needs to be refresh" )
         if (file.exists(fn)) {
           load( fn)
           return( M )
