@@ -36,15 +36,15 @@ p = aegis.bathymetry::bathymetry_parameters(
 
 
 
-# example sequence to force creating of input data for modelling
-
-sppoly = areal_units( p=p, redo=TRUE ); plot(sppoly) # or: spplot( sppoly, "StrataID", main="StrataID", sp.layout=p$coastLayout )
-M = bathymetry.db( p=p, DS="aggregated_data", redo=TRUE )  # will redo if not found .. not used here but used for data matching/lookup in other aegis projects that use bathymetry
-M = bathymetry_carstm( p=p, DS="carstm_inputs", redo=TRUE )  # will redo if not found
-str(M)
-sppoly = bathymetry_carstm( p=p, DS="carstm_modelled", redo=TRUE ) # run model and obtain predictions
-
 if (0) {
+
+  # example sequence to force creating of input data for modelling
+
+  sppoly = areal_units( p=p, redo=TRUE ); plot(sppoly) # or: spplot( sppoly, "StrataID", main="StrataID", sp.layout=p$coastLayout )
+  M = bathymetry.db( p=p, DS="aggregated_data", redo=TRUE )  # will redo if not found .. not used here but used for data matching/lookup in other aegis projects that use bathymetry
+  M = bathymetry_carstm( p=p, DS="carstm_inputs", redo=TRUE )  # will redo if not found
+  str(M)
+  sppoly = bathymetry_carstm( p=p, DS="carstm_modelled", redo=TRUE ) # run model and obtain predictions
   sppoly = bathymetry_carstm( p=p, DS="carstm_modelled" ) # to load currently saved sppoly
   fit =    bathymetry_carstm( p=p, DS="carstm_modelled_fit" )  # extract currently saved model fit
 
@@ -86,7 +86,6 @@ if (0) {
     sp.layout=p$coastLayout,
     col="transparent"
   )
-
 
 }
 
