@@ -118,7 +118,7 @@ bathymetry_parameters = function( p=NULL, project_name=NULL, project_class="defa
 
 
   if (project_class=="carstm") {
-    if ( !exists("libs", p)) p$libs = RLibrary ( "sp", "spdep", "rgeos", "spatialreg", "INLA", "raster", "mgcv", "aegis",  "aegis.polygons", "aegis.bathymetry", "carstm" )
+    p$libs = c( p$libs, project.library ( "sp", "spdep", "rgeos", "spatialreg", "INLA", "raster", "mgcv", "aegis",  "aegis.polygons", "aegis.bathymetry", "carstm" ) )
 
     if ( !exists("project_name", p)) p$project_name = "bathymetry"
 
