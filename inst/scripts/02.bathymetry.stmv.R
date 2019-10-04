@@ -13,13 +13,13 @@
 
 
 #  100.182 hrs
-scale_ram_required_main_process = 30 # GB twostep / fft
-scale_ram_required_per_process  = 10 # twostep / fft /fields vario ..  (mostly 0.5 GB, but up to 5 GB)
+scale_ram_required_main_process = 1 # GB twostep / fft
+scale_ram_required_per_process  = 1 # twostep / fft /fields vario ..  (mostly 0.5 GB, but up to 5 GB)
 scale_ncpus = min( parallel::detectCores(), floor( (ram_local()- scale_ram_required_main_process) / scale_ram_required_per_process ) )
 
 # interpolate = 2.4 days; boost = ...
-interpolate_ram_required_main_process = 30 # GB twostep / fft
-interpolate_ram_required_per_process  = 10 # twostep / fft /fields vario ..
+interpolate_ram_required_main_process = 1 # GB twostep / fft
+interpolate_ram_required_per_process  = 1.5 # twostep / fft /fields vario ..
 interpolate_ncpus = min( parallel::detectCores(), floor( (ram_local()- interpolate_ram_required_main_process) / interpolate_ram_required_per_process ) )
 
 
@@ -51,8 +51,8 @@ p = aegis.bathymetry::bathymetry_parameters(
   stmv_distance_prediction_limits =c( 2.5, 10 ), # range of permissible predictions km (i.e 1/2 stats grid to upper limit based upon data density)
   stmv_distance_scale = c(2.5, 5, 10, 20, 25, 40, 80), # km ... approx guesses of 95% AC range
   stmv_distance_basis_interpolation = c( 5, 10, 15, 20, 40, 80  ) , # range of permissible predictions km (i.e 1/2 stats grid to upper limit) .. in this case 5, 10, 20
-  stmv_nmin = 100, # min number of data points req before attempting to model in a localized space
-  stmv_nmax = 1000, # no real upper bound.. just speed /RAM
+  stmv_nmin = 50, # min number of data points req before attempting to model in a localized space
+  stmv_nmax = 50*10, # no real upper bound.. just speed /RAM
   stmv_force_complete_method = "linear",
   stmv_runmode = list(
     scale = rep("localhost", scale_ncpus),
