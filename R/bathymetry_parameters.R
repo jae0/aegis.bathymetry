@@ -12,7 +12,7 @@ bathymetry_parameters = function( p=NULL, project_name=NULL, project_class="defa
   # ---------------------
   # create/update library list
   p$libs = c( p$libs, RLibrary ( "colorspace",  "fields", "geosphere", "lubridate",  "lattice",
-    "maps", "mapdata", "maptools", "parallel",  "rgdal", "rgeos",  "sp", "splancs", "GADMTools" ) )
+    "maps", "mapdata", "maptools", "parallel",  "rgdal", "rgeos",  "sp", "spdep", "splancs", "GADMTools" ) )
   p$libs = c( p$libs, project.library ( "aegis", "aegis.bathymetry",  "aegis.polygons", "aegis.coastline") )
 
   p$project_name = ifelse ( !is.null(project_name), project_name, "bathymetry" )
@@ -118,7 +118,7 @@ bathymetry_parameters = function( p=NULL, project_name=NULL, project_class="defa
 
 
   if (project_class=="carstm") {
-    p$libs = c( p$libs, project.library ( "sp", "spdep", "rgeos", "spatialreg", "INLA", "raster", "mgcv", "aegis",  "aegis.polygons", "aegis.bathymetry", "carstm" ) )
+    p$libs = c( p$libs, project.library ( "spatialreg", "INLA", "raster", "mgcv",  "carstm" ) )
 
     if ( !exists("project_name", p)) p$project_name = "bathymetry"
 
