@@ -1,5 +1,5 @@
 
-bathymetry_carstm = function(p=NULL, DS=NULL, redo=FALSE, map_results=FALSE, ...) {
+bathymetry_carstm = function(p=NULL, DS=NULL, redo=FALSE, ...) {
 
   #\\ Note inverted convention: depths are positive valued
   #\\ i.e., negative valued for above sea level and positive valued for below sea level
@@ -29,7 +29,7 @@ bathymetry_carstm = function(p=NULL, DS=NULL, redo=FALSE, map_results=FALSE, ...
       }
     }
 
-    warning( "Generating carstm_inputs ... ")
+    message( "Generating carstm_inputs ... ")
 
     # prediction surface
     sppoly = areal_units( p=p )  # will redo if not found
@@ -84,7 +84,7 @@ bathymetry_carstm = function(p=NULL, DS=NULL, redo=FALSE, map_results=FALSE, ...
       if (DS=="carstm_modelled") {
         if (file.exists(fn)) {
           load( fn)
-          return( sppoly )
+          return( res )
         }
       }
       if (DS=="carstm_modelled_fit") {
@@ -97,6 +97,7 @@ bathymetry_carstm = function(p=NULL, DS=NULL, redo=FALSE, map_results=FALSE, ...
 
     # prediction surface
     sppoly = areal_units( p=p )  # will redo if not found
+    res = sppoly@data["StrataID"]  # init results data frame
 
     M = bathymetry_carstm( p=p, DS="carstm_inputs" )  # will redo if not found
     M$z = M$z + p$constant_offset # make all positive
@@ -116,11 +117,11 @@ bathymetry_carstm = function(p=NULL, DS=NULL, redo=FALSE, map_results=FALSE, ...
       ii = which( M$tag=="predictions" & M$StrataID %in% M[ which(M$tag=="observations"), "StrataID"] )
       preds = predict( fit, newdata=M[ii,], type="link", na.action=na.omit, se.fit=TRUE )  # no/km2
 
-      sppoly@data[,"z.predicted"] = exp( preds$fit) - p$constant_offset
-      sppoly@data[,"z.predicted_se"] = exp( preds$se.fit)
-      sppoly@data[,"z.predicted_lb"] = exp( preds$fit - preds$se.fit ) - p$constant_offset
-      sppoly@data[,"z.predicted_ub"] = exp( preds$fit + preds$se.fit ) - p$constant_offset
-      save( sppoly, file=fn, compress=TRUE )
+      res[,"z.predicted"] = exp( preds$fit) - p$constant_offset
+      res[,"z.predicted_se"] = exp( preds$se.fit)
+      res[,"z.predicted_lb"] = exp( preds$fit - preds$se.fit ) - p$constant_offset
+      res[,"z.predicted_ub"] = exp( preds$fit + preds$se.fit ) - p$constant_offset
+      save( res, file=fn, compress=TRUE )
     }
 
     if ( grepl("gam", p$carstm_modelengine) ) {
@@ -134,11 +135,11 @@ bathymetry_carstm = function(p=NULL, DS=NULL, redo=FALSE, map_results=FALSE, ...
       # reformat predictions into matrix form
       ii = which( M$tag=="predictions" & M$StrataID %in% M[ which(M$tag=="observations"), "StrataID"] )
       preds = predict( fit, newdata=M[ii,], type="link", na.action=na.omit, se.fit=TRUE )  # no/km2
-      sppoly@data[,"z.predicted"] = exp( preds$fit) - p$constant_offset
-      sppoly@data[,"z.predicted_se"] = exp( preds$se.fit)
-      sppoly@data[,"z.predicted_lb"] = exp( preds$fit - preds$se.fit ) - p$constant_offset
-      sppoly@data[,"z.predicted_ub"] = exp( preds$fit + preds$se.fit ) - p$constant_offset
-      save( sppoly, file=fn, compress=TRUE )
+      res[,"z.predicted"] = exp( preds$fit) - p$constant_offset
+      res[,"z.predicted_se"] = exp( preds$se.fit)
+      res[,"z.predicted_lb"] = exp( preds$fit - preds$se.fit ) - p$constant_offset
+      res[,"z.predicted_ub"] = exp( preds$fit + preds$se.fit ) - p$constant_offset
+      save( res, file=fn, compress=TRUE )
     }
 
 
@@ -152,31 +153,20 @@ bathymetry_carstm = function(p=NULL, DS=NULL, redo=FALSE, map_results=FALSE, ...
       if (is.null(fit)) error("model fit error")
       if ("try-error" %in% class(fit) ) error("model fit error")
       save( fit, file=fn_fit, compress=TRUE )
-
-
       # plot(fit, plot.prior=TRUE, plot.hyperparameters=TRUE, plot.fixed.effects=FALSE )
 
       # reformat predictions into matrix form
       ii = which(M$tag=="predictions")
-      jj = match(M$StrataID[ii], sppoly$StrataID)
-      sppoly@data$z.predicted = exp( fit$summary.fitted.values[ ii[jj], "mean" ]) - p$constant_offset
-      sppoly@data$z.predicted_lb = exp( fit$summary.fitted.values[ ii[jj], "0.025quant" ]) - p$constant_offset
-      sppoly@data$z.predicted_ub = exp( fit$summary.fitted.values[ ii[jj], "0.975quant" ]) - p$constant_offset
-      sppoly@data$z.random_strata_nonspatial = exp( fit$summary.random$strata[ jj, "mean" ])
-      sppoly@data$z.random_strata_spatial = exp( fit$summary.random$strata[ jj+max(jj), "mean" ])
-      sppoly@data$z.random_sample_iid = exp( fit$summary.random$iid_error[ ii[jj], "mean" ])
-      save( sppoly, file=fn, compress=TRUE )
+      jj = match(M$StrataID[ii], res$StrataID)
+      res$z.predicted = exp( fit$summary.fitted.values[ ii[jj], "mean" ]) - p$constant_offset
+      res$z.predicted_lb = exp( fit$summary.fitted.values[ ii[jj], "0.025quant" ]) - p$constant_offset
+      res$z.predicted_ub = exp( fit$summary.fitted.values[ ii[jj], "0.975quant" ]) - p$constant_offset
+      res$z.random_strata_nonspatial = exp( fit$summary.random$strata[ jj, "mean" ])
+      res$z.random_strata_spatial = exp( fit$summary.random$strata[ jj+max(jj), "mean" ])
+      res$z.random_sample_iid = exp( fit$summary.random$iid_error[ ii[jj], "mean" ])
+      save( res, file=fn, compress=TRUE )
     }
 
-
-    if (map_results) {
-      vn = "z.predicted"
-      brks = interval_break(X= sppoly[[vn]], n=length(p$mypalette), style="quantile")
-      dev.new();  spplot( sppoly, vn, col.regions=p$mypalette, main=vn, at=brks, sp.layout=p$coastLayout, col="transparent" )
-    }
-
-    return( sppoly )
-
+    return( res )
   }
-
 }

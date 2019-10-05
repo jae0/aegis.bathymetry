@@ -161,15 +161,15 @@ bathymetry_parameters = function( p=NULL, project_name=NULL, project_class="defa
             # control.inla=list(int.strategy="eb") ,# to get empirical Bayes results much faster.
             # control.inla=list( strategy="laplace", cutoff=1e-6, correct=TRUE, correct.verbose=FALSE ),
             num.threads=4,
-            blas.num.threads=2,
+            blas.num.threads=4,
             verbose=TRUE
           ) '
       }
       if ( grepl("glm", p$carstm_modelengine) ) {
-        p$carstm_modelcall = 'glm( formula = z ~ 1 + StrataID,  family = gaussian(link="log"), data= M[ which(M$tag=="observations"), ]   ) '  # for modelengine='glm'
+        p$carstm_modelcall = 'glm( formula = z ~ 1 + StrataID,  family = gaussian(link="log"), data= M[ which(M$tag=="observations"), ], family=gaussian(link="log")  ) '  # for modelengine='glm'
       }
       if ( grepl("gam", p$carstm_modelengine) ) {
-        p$carstm_modelcall = 'gam( formula = z ~ 1 + StrataID,  family = gaussian(link="log"), data= M[ which(M$tag=="observations"), ] ) '  # for modelengine='gam'
+        p$carstm_modelcall = 'gam( formula = z ~ 1 + StrataID,  family = gaussian(link="log"), data= M[ which(M$tag=="observations"), ], family=gaussian(link="log")  ) '  # for modelengine='gam'
       }
     }
 

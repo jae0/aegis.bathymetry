@@ -23,7 +23,6 @@ for ( areal_units_resolution_km in c(10, 20, 25) ) {
 
 
 
-
 # construct basic parameter list defining the main characteristics of the study
 # and some plotting parameters (bounding box, projection, bathymetry layout, coastline)
 p = aegis.bathymetry::bathymetry_parameters(
@@ -44,48 +43,23 @@ if (0) {
   M = bathymetry.db( p=p, DS="aggregated_data", redo=TRUE )  # will redo if not found .. not used here but used for data matching/lookup in other aegis projects that use bathymetry
   M = bathymetry_carstm( p=p, DS="carstm_inputs", redo=TRUE )  # will redo if not found
   str(M)
-  sppoly = bathymetry_carstm( p=p, DS="carstm_modelled", redo=TRUE ) # run model and obtain predictions
-  sppoly = bathymetry_carstm( p=p, DS="carstm_modelled" ) # to load currently saved sppoly
-  fit =    bathymetry_carstm( p=p, DS="carstm_modelled_fit" )  # extract currently saved model fit
 
+  res = bathymetry_carstm( p=p, DS="carstm_modelled", redo=TRUE ) # run model and obtain predictions
+
+  # loading saved results
+  res = bathymetry_carstm( p=p, DS="carstm_modelled" ) # to load currently saved sppoly
+  fit = bathymetry_carstm( p=p, DS="carstm_modelled_fit" )  # extract currently saved model fit
   plot(fit)
+  plot(fit, plot.prior=TRUE, plot.hyperparameters=TRUE, plot.fixed.effects=FALSE )
 
   s = summary(fit)
-
   s$dic$dic
   s$dic$p.eff
 
   # maps of some of the results
-  p$boundingbox = list( xlim=p$corners$lon, ylim=p$corners$lat) # bounding box for plots using spplot
-  p$mypalette = RColorBrewer::brewer.pal(9, "YlOrRd")
-  p = c(p, aegis.coastline::coastline_layout( p=p ) )  # set up default map projection
-
-  vn = "z.predicted"
-  dev.new();
-  spplot( sppoly, vn, main=vn,
-    col.regions=p$mypalette,
-    at=interval_break(X= sppoly[[vn]], n=length(p$mypalette), style="quantile"),
-    sp.layout=p$coastLayout,
-    col="transparent"
-  )
-
-  vn = "z.random_strata_nonspatial"
-  dev.new();
-  spplot( sppoly, vn, main=vn,
-    col.regions=p$mypalette,
-    at=interval_break(X= sppoly[[vn]], n=length(p$mypalette), style="quantile"),
-    sp.layout=p$coastLayout,
-    col="transparent"
-  )
-
-  vn = "z.random_strata_spatial"
-  dev.new();
-  spplot( sppoly, vn, main=vn,
-    col.regions=p$mypalette,
-    at=interval_break(X= sppoly[[vn]], n=length(p$mypalette), style="quantile"),
-    sp.layout=p$coastLayout,
-    col="transparent"
-  )
+  carstm_plot( p=p, res=res, vn="z.predicted" )
+  carstm_plot( p=p, res=res, vn="z.random_strata_nonspatial" )
+  carstm_plot( p=p, res=res, vn="z.random_strata_spatial" )
 
 }
 
