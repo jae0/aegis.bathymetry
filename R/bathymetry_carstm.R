@@ -12,7 +12,6 @@ bathymetry_carstm = function(p=NULL, DS=NULL, redo=FALSE, ...) {
   if ( length(i) > 0 ) p = p[-i] # give any passed parameters a higher priority, overwriting pre-existing variable
 
 
-
   # ----------------------
 
 
@@ -110,17 +109,13 @@ bathymetry_carstm = function(p=NULL, DS=NULL, redo=FALSE, ...) {
       if (is.null(fit)) error("model fit error")
       if ("try-error" %in% class(fit) ) error("model fit error")
       save( fit, file=fn_fit, compress=TRUE )
-
-      # s = summary(fit)
-      # AIC(fit)  # 104487274
-      # reformat predictions into matrix form
       ii = which( M$tag=="predictions" & M$StrataID %in% M[ which(M$tag=="observations"), "StrataID"] )
+      jj = match( M$StrataID[ii], res$StrataID )
       preds = predict( fit, newdata=M[ii,], type="link", na.action=na.omit, se.fit=TRUE )  # no/km2
-
-      res[,"z.predicted"] = exp( preds$fit) - p$constant_offset
-      res[,"z.predicted_se"] = exp( preds$se.fit)
-      res[,"z.predicted_lb"] = exp( preds$fit - preds$se.fit ) - p$constant_offset
-      res[,"z.predicted_ub"] = exp( preds$fit + preds$se.fit ) - p$constant_offset
+      res[,"z.predicted"] = exp( preds$fit[jj]) - p$constant_offset
+      res[,"z.predicted_se"] = exp( preds$se.fit[jj])
+      res[,"z.predicted_lb"] = exp( preds$fit[jj] - preds$se.fit[jj] ) - p$constant_offset
+      res[,"z.predicted_ub"] = exp( preds$fit[jj] + preds$se.fit[jj] ) - p$constant_offset
       save( res, file=fn, compress=TRUE )
     }
 
@@ -129,33 +124,24 @@ bathymetry_carstm = function(p=NULL, DS=NULL, redo=FALSE, ...) {
       if (is.null(fit)) error("model fit error")
       if ("try-error" %in% class(fit) ) error("model fit error")
       save( fit, file=fn_fit, compress=TRUE )
-
-      s = summary(fit)
-      AIC(fit)  # 104487274
-      # reformat predictions into matrix form
       ii = which( M$tag=="predictions" & M$StrataID %in% M[ which(M$tag=="observations"), "StrataID"] )
+      jj = match( M$StrataID[ii], res$StrataID )
       preds = predict( fit, newdata=M[ii,], type="link", na.action=na.omit, se.fit=TRUE )  # no/km2
-      res[,"z.predicted"] = exp( preds$fit) - p$constant_offset
-      res[,"z.predicted_se"] = exp( preds$se.fit)
-      res[,"z.predicted_lb"] = exp( preds$fit - preds$se.fit ) - p$constant_offset
-      res[,"z.predicted_ub"] = exp( preds$fit + preds$se.fit ) - p$constant_offset
+      res[,"z.predicted"] = exp( preds$fit[jj]) - p$constant_offset
+      res[,"z.predicted_se"] = exp( preds$se.fit[jj])
+      res[,"z.predicted_lb"] = exp( preds$fit[jj] - preds$se.fit[jj] ) - p$constant_offset
+      res[,"z.predicted_ub"] = exp( preds$fit[jj] + preds$se.fit[jj] ) - p$constant_offset
       save( res, file=fn, compress=TRUE )
     }
 
-
     if ( grepl("inla", p$carstm_modelengine) ) {
-
       M$strata  = as.numeric( M$StrataID)
       M$iid_error = 1:nrow(M) # for inla indexing for set level variation
-
       H = carstm_hyperparameters( sd(log(M$z), na.rm=TRUE), alpha=0.5, median( log(M$z), na.rm=TRUE) )
       assign("fit", eval(parse(text=paste( "try(", p$carstm_modelcall, ")" ) ) ))
       if (is.null(fit)) error("model fit error")
       if ("try-error" %in% class(fit) ) error("model fit error")
       save( fit, file=fn_fit, compress=TRUE )
-      # plot(fit, plot.prior=TRUE, plot.hyperparameters=TRUE, plot.fixed.effects=FALSE )
-
-      # reformat predictions into matrix form
       ii = which(M$tag=="predictions")
       jj = match(M$StrataID[ii], res$StrataID)
       res$z.predicted = exp( fit$summary.fitted.values[ ii[jj], "mean" ]) - p$constant_offset
@@ -166,7 +152,6 @@ bathymetry_carstm = function(p=NULL, DS=NULL, redo=FALSE, ...) {
       res$z.random_sample_iid = exp( fit$summary.random$iid_error[ ii[jj], "mean" ])
       save( res, file=fn, compress=TRUE )
     }
-
     return( res )
   }
 }

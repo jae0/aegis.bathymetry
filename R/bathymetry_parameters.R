@@ -118,14 +118,12 @@ bathymetry_parameters = function( p=NULL, project_name=NULL, project_class="defa
 
 
   if (project_class=="carstm") {
-    p$libs = c( p$libs, project.library ( "spatialreg", "INLA", "raster", "mgcv",  "carstm" ) )
+    p$libs = unique( c( p$libs, project.library ( "spatialreg", "INLA", "raster", "mgcv",  "carstm" ) ) )
 
     if ( !exists("project_name", p)) p$project_name = "bathymetry"
 
     p = aegis_parameters( p=p, DS="carstm" )
 
-    # if ( !exists("spatial_domain", p)) p$spatial_domain = "snowcrab"  # defines spatial area, currenty: "snowcrab" or "SSE"
-    if ( !exists("spatial_domain", p)) p$spatial_domain = "SSE"  # defines spatial area, currenty: "snowcrab" or "SSE"
     if ( !exists("areal_units_strata_type", p)) p$areal_units_strata_type = "lattice" # "stmv_lattice" to use ageis fields instead of carstm fields ... note variables are not the same
 
     if ( p$spatial_domain == "SSE" ) {
@@ -147,8 +145,8 @@ bathymetry_parameters = function( p=NULL, project_name=NULL, project_class="defa
 
     if ( !exists("carstm_modelcall", p)) {
       if ( grepl("inla", p$carstm_modelengine) ) {
-        p$carstm_modelcall = '
-          inla(
+        p$carstm_modelcall = paste(
+          'inla(
             formula = z ~ 1
               + f(strata, model="bym2", graph=sppoly@nb, scale.model=TRUE, constr=TRUE, hyper=H$bym2)
               + f(iid_error, model="iid", hyper=H$iid),
@@ -163,7 +161,7 @@ bathymetry_parameters = function( p=NULL, project_name=NULL, project_class="defa
             num.threads=4,
             blas.num.threads=4,
             verbose=TRUE
-          ) '
+          ) ' )
       }
       if ( grepl("glm", p$carstm_modelengine) ) {
         p$carstm_modelcall = 'glm( formula = z ~ 1 + StrataID,  family = gaussian(link="log"), data= M[ which(M$tag=="observations"), ], family=gaussian(link="log")  ) '  # for modelengine='glm'
