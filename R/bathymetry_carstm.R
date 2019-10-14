@@ -96,10 +96,12 @@ bathymetry_carstm = function(p=NULL, DS=NULL, redo=FALSE, ...) {
 
     # prediction surface
     sppoly = areal_units( p=p )  # will redo if not found
-    res = sppoly@data["StrataID"]  # init results data frame
+    res = list(StrataID = sppoly[["StrataID"]])  # init results data frame
+    res$strata = as.numeric(res$StrataID)
 
     M = bathymetry_carstm( p=p, DS="carstm_inputs" )  # will redo if not found
     M$z = M$z + p$constant_offset # make all positive
+    M$strata  = as.numeric( M$StrataID)
 
     fit  = NULL
 
@@ -109,8 +111,8 @@ bathymetry_carstm = function(p=NULL, DS=NULL, redo=FALSE, ...) {
       if (is.null(fit)) warning("model fit error")
       if ("try-error" %in% class(fit) ) warning("model fit error")
       save( fit, file=fn_fit, compress=TRUE )
-      ii = which( M$tag=="predictions" & M$StrataID %in% M[ which(M$tag=="observations"), "StrataID"] )
-      jj = match( M$StrataID[ii], res$StrataID )
+      ii = which( M$tag=="predictions" & M$strata %in% M[ which(M$tag=="observations"), "strata"] )
+      jj = match( M$strata[ii], res$strata )
       preds = predict( fit, newdata=M[ii,], type="link", na.action=na.omit, se.fit=TRUE )  # no/km2
       res[,"z.predicted"] = exp( preds$fit[jj]) - p$constant_offset
       res[,"z.predicted_se"] = exp( preds$se.fit[jj])
@@ -124,8 +126,8 @@ bathymetry_carstm = function(p=NULL, DS=NULL, redo=FALSE, ...) {
       if (is.null(fit)) warning("model fit error")
       if ("try-error" %in% class(fit) ) warning("model fit error")
       save( fit, file=fn_fit, compress=TRUE )
-      ii = which( M$tag=="predictions" & M$StrataID %in% M[ which(M$tag=="observations"), "StrataID"] )
-      jj = match( M$StrataID[ii], res$StrataID )
+      ii = which( M$tag=="predictions" & M$strata %in% M[ which(M$tag=="observations"), "strata"] )
+      jj = match( M$strata[ii], res$strata )
       preds = predict( fit, newdata=M[ii,], type="link", na.action=na.omit, se.fit=TRUE )  # no/km2
       res[,"z.predicted"] = exp( preds$fit[jj]) - p$constant_offset
       res[,"z.predicted_se"] = exp( preds$se.fit[jj])
@@ -135,7 +137,6 @@ bathymetry_carstm = function(p=NULL, DS=NULL, redo=FALSE, ...) {
     }
 
     if ( grepl("inla", p$carstm_modelengine) ) {
-      M$strata  = as.numeric( M$StrataID)
       M$iid_error = 1:nrow(M) # for inla indexing for set level variation
       H = carstm_hyperparameters( sd(log(M$z), na.rm=TRUE), alpha=0.5, median( log(M$z), na.rm=TRUE) )
       assign("fit", eval(parse(text=paste( "try(", p$carstm_modelcall, ")" ) ) ))
@@ -143,10 +144,12 @@ bathymetry_carstm = function(p=NULL, DS=NULL, redo=FALSE, ...) {
       if ("try-error" %in% class(fit) ) warning("model fit error")
       save( fit, file=fn_fit, compress=TRUE )
       ii = which(M$tag=="predictions")
-      jj = match(M$StrataID[ii], res$StrataID)
+      jj = match(M$strata[ii], res$strata )
       res$z.predicted = exp( fit$summary.fitted.values[ ii[jj], "mean" ]) - p$constant_offset
       res$z.predicted_lb = exp( fit$summary.fitted.values[ ii[jj], "0.025quant" ]) - p$constant_offset
       res$z.predicted_ub = exp( fit$summary.fitted.values[ ii[jj], "0.975quant" ]) - p$constant_offset
+
+      # simple spatial so just do the following here
       res$z.random_strata_nonspatial = exp( fit$summary.random$strata[ jj, "mean" ])
       res$z.random_strata_spatial = exp( fit$summary.random$strata[ jj+max(jj), "mean" ])
       res$z.random_sample_iid = exp( fit$summary.random$iid_error[ ii[jj], "mean" ])

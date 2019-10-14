@@ -14,12 +14,12 @@
 
 #  100.182 hrs
 scale_ram_required_main_process = 30 # GB twostep / fft
-scale_ram_required_per_process  = 10 # twostep / fft /fields vario ..  (mostly 0.5 GB, but up to 5 GB)
+scale_ram_required_per_process  = 14 # twostep / fft /fields vario ..  (mostly 0.5 GB, but up to 5 GB)
 scale_ncpus = min( parallel::detectCores(), floor( (ram_local()- scale_ram_required_main_process) / scale_ram_required_per_process ) )
 
 # interpolate = 2.4 days; boost = ...
 interpolate_ram_required_main_process = 30 # GB twostep / fft
-interpolate_ram_required_per_process  = 10 # twostep / fft /fields vario ..
+interpolate_ram_required_per_process  = 12 # twostep / fft /fields vario ..
 interpolate_ncpus = min( parallel::detectCores(), floor( (ram_local()- interpolate_ram_required_main_process) / interpolate_ram_required_per_process ) )
 
 
