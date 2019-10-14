@@ -10,6 +10,8 @@ for ( areal_units_resolution_km in c(10, 20, 25) ) {
    for ( spatial_domain in c("snowcrab", "SSE")) {
     p = aegis.bathymetry::bathymetry_parameters(
       project_class = "carstm", # defines which parameter class / set to load
+      project_name = "bathymetry",
+      variabletomodel = "z",
       spatial_domain = spatial_domain,  # defines spatial area, currenty: "snowcrab" or "SSE"
       inputdata_spatial_discretization_planar_km = 1,  # 1 km .. requires 32 GB RAM and limit of speed -- controls resolution of data prior to modelling to reduce data set and speed up modelling
       areal_units_resolution_km = areal_units_resolution_km, # km dim of lattice ~ 1 hr
@@ -20,4 +22,3 @@ for ( areal_units_resolution_km in c(10, 20, 25) ) {
     M = bathymetry_carstm( p=p, DS="carstm_inputs", redo=TRUE )  # will redo if not found
   }
 }
-
