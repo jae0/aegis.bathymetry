@@ -45,6 +45,8 @@ bathymetry_parameters = function( p=NULL, project_name=NULL, project_class="defa
   if (!exists("spatial_domain", p) ) p$spatial_domain = "canada.east.superhighres"
   if (!exists("spatial_domain_subareas", p)) p$spatial_domain_subareas = c( "canada.east", "SSE", "snowcrab", "SSE.mpa" )
 
+  if (!exists("aegis_dimensionality", p)) p$aegis_dimensionality="space"
+
   p = spatial_parameters( p=p)  # default (= only supported resolution of 0.2 km discretization)  .. do NOT change
 
 
@@ -126,7 +128,6 @@ bathymetry_parameters = function( p=NULL, project_name=NULL, project_class="defa
         return(  s$latent[i_intercept,1] + s$latent[ i_spatial.field,1] )
       }
 
-      if (!exists("aegis_dimensionality", p)) p$aegis_dimensionality="space"
 
       p = aegis_parameters( p=p, DS="stmv" )
 
