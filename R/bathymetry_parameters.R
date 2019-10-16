@@ -12,6 +12,14 @@ bathymetry_parameters = function( p=NULL, project_name=NULL, project_class="defa
   if (project_class =="carstm_auid") {
     # translate param values from one project to a unified representation
     # must be first to catch p
+    if ( !exists("project_name", p) )  p$project_name = "bathymetry"
+    if ( !exists("variabletomodel", p) )  p$variabletomodel = "z"
+    if ( !exists("spatial_domain", p) ) p$spatial_domain = "SSE"  # defines spatial area, currenty: "snowcrab" or "SSE"
+    if ( !exists("inputdata_spatial_discretization_planar_km", p) ) p$inputdata_spatial_discretization_planar_km = 1  # 1 km .. some thinning .. requires 32 GB RAM and limit of speed -- controls resolution of data prior to modelling to reduce data set and speed up modelling
+    if ( !exists("data_transformation", p) ) p$data_transformation=list( forward=function(x){ x+2500 }, backward=function(x) {x-2500} )
+    if ( !exists("areal_units_resolution_km", p) ) p$areal_units_resolution_km = 25 # km dim of lattice ~ 1 hr
+    if ( !exists("areal_units_proj4string_planar_km", p) ) p$areal_units_proj4string_planar_km = projection_proj4string("utm20")  # coord system to use for areal estimation and gridding for carstm
+
     P = bathymetry_parameters(
       project_class = "carstm", # defines which parameter class / set to load
       project_name = "bathymetry",
@@ -19,9 +27,12 @@ bathymetry_parameters = function( p=NULL, project_name=NULL, project_class="defa
       areal_units_overlay = p$areal_units_overlay, # currently: "snowcrab_managementareas",  "groundfish_strata" .. additional polygon layers for subsequent analysis for now ..
       areal_units_resolution_km = p$areal_units_resolution_km, # km dim of lattice ~ 1 hr
       areal_units_proj4string_planar_km = p$areal_units_proj4string_planar_km,  # coord system to use for areal estimation and gridding for carstm
+      variabletomodel = p$variabletomodel ,
       inputdata_spatial_discretization_planar_km = p$inputdata_spatial_discretization_planar_km,  # 1 km .. some thinning .. requires 32 GB RAM and limit of speed -- controls resolution of data prior to modelling to reduce data set and speed up modelling
       auid = p$auid
     )
+
+
     return(P)
   }
 
