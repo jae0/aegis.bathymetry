@@ -19,6 +19,6 @@ for ( areal_units_resolution_km in c(10, 20, 25) ) {
     )
     sppoly = areal_units( p=p, redo=TRUE )  # this has already been done in aegis.polygons::01 polygons.R .. should nto have to redo
     M = bathymetry.db( p=p, DS="aggregated_data", redo=TRUE )  # already done in 01.bathymetry_data.R will redo if not found .. not used here but used for data matching/lookup in other aegis projects that use bathymetry
-    M = bathymetry_carstm( p=p, DS="carstm_inputs", redo=TRUE )  # will redo if not found
+    M = bathymetry.db( p=p, DS="carstm_inputs", redo=TRUE )  # will redo if not found
   }
 }

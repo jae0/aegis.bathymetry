@@ -191,7 +191,6 @@ bathymetry_parameters = function( p=NULL, project_name=NULL, project_class="defa
       }
     }
 
-    if ( !exists("constant_offset", p)) p$constant_offset = 2500 # pre-modelling transformations
     return(p)
   }
 
