@@ -398,7 +398,6 @@
     sppoly_df = NULL
 
     M$StrataID  = factor( as.character(M$StrataID), levels=levels( sppoly$StrataID ) ) # revert to factors
-    if (exists("data_transformation", p)) M$z = p$data_transformation$forward( M$z ) # make all positive
 
     save( M, file=fn, compress=TRUE )
     return( M )
