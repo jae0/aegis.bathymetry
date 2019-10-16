@@ -147,6 +147,9 @@ bathymetry_parameters = function( p=NULL, project_name=NULL, project_class="defa
 
     p = aegis_parameters( p=p, DS="carstm" )
 
+    if ( !exists("variabletomodel", p)) p$variabletomodel = "z"
+    if ( !exists("data_transformation", p)) p$data_transformation=list( forward=function(x){ x+2500 }, backward=function(x) {x-2500} )
+
     if ( !exists("areal_units_strata_type", p)) p$areal_units_strata_type = "lattice" # "stmv_lattice" to use ageis fields instead of carstm fields ... note variables are not the same
 
     if ( p$spatial_domain == "SSE" ) {
@@ -163,6 +166,8 @@ bathymetry_parameters = function( p=NULL, project_name=NULL, project_class="defa
       # if ( !exists("areal_units_proj4string_planar_km", p)) p$areal_units_proj4string_planar_km = projection_proj4string("omerc_nova_scotia")  # coord system to use for areal estimation and gridding for carstm
       if ( !exists("inputdata_spatial_discretization_planar_km", p)) p$inputdata_spatial_discretization_planar_km = 1  # 1 km .. requires 32 GB RAM and limit of speed -- controls resolution of data prior to modelling to reduce data set and speed up modelling
     }
+
+
 
     if ( !exists("carstm_modelengine", p)) p$carstm_modelengine = "inla.default"  # {model engine}.{label to use to store}
 
@@ -194,6 +199,8 @@ bathymetry_parameters = function( p=NULL, project_name=NULL, project_class="defa
         p$libs = unique( c( p$libs, project.library ( "mgcv" ) ) )
         p$carstm_modelcall = paste( 'gam( formula = ', p$variabletomodel, '  ~ 1 + StrataID,  family = gaussian(link="log"), data= M[ which(M$tag=="observations"), ], family=gaussian(link="log")  ) ' )  # for modelengine='gam'
       }
+
+
     }
 
     return(p)
