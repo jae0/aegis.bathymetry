@@ -24,8 +24,6 @@ bathymetry_parameters = function( p=NULL, project_name=NULL, project_class="defa
       inputdata_spatial_discretization_planar_km = p$inputdata_spatial_discretization_planar_km,  # 1 km .. some thinning .. requires 32 GB RAM and limit of speed -- controls resolution of data prior to modelling to reduce data set and speed up modelling
       auid = p$auid
     )
-
-
     return(P)
   }
 
@@ -45,6 +43,8 @@ bathymetry_parameters = function( p=NULL, project_name=NULL, project_class="defa
 
   if ( !file.exists(p$datadir) ) dir.create( p$datadir, showWarnings=F, recursive=T )
   if ( !file.exists(p$modeldir) ) dir.create( p$modeldir, showWarnings=F, recursive=T )
+
+  if ( !exists("variabletomodel", p)) p$variabletomodel = "z"
 
   if (!exists("spatial_domain", p) ) p$spatial_domain = "canada.east.superhighres"
   if (!exists("spatial_domain_subareas", p)) p$spatial_domain_subareas = c( "canada.east", "SSE", "snowcrab", "SSE.mpa" )
@@ -102,8 +102,8 @@ bathymetry_parameters = function( p=NULL, project_name=NULL, project_class="defa
       # timings:
       # 14 hrs on hyperion with 100 knots
       ## data range is from -1667 to 5467 m .. 2000 shifts all to positive valued by one order of magnitude
-      if (!exists("stmv_local_modelformula", p))  p$stmv_local_modelformula = formula(
-        'z ~ s(plon,k=3, bs="ts") + s(plat, k=3, bs="ts") + s(plon, plat, k=200, bs="ts")')
+      if (!exists("stmv_local_modelformula", p))  p$stmv_local_modelformula = formula( paste(
+        p$variabletomodel, ' ~ s(plon,k=3, bs="ts") + s(plat, k=3, bs="ts") + s(plon, plat, k=200, bs="ts")') )
       if (!exists("stmv_local_model_distanceweighted", p)) p$stmv_local_model_distanceweighted = TRUE
       if (!exists("stmv_gam_optimizer", p))  p$stmv_gam_optimizer = c("outer", "bfgs")
     }
@@ -112,8 +112,8 @@ bathymetry_parameters = function( p=NULL, project_name=NULL, project_class="defa
       ## data range is from -1667 to 5467 m .. 2000 shifts all to positive valued by one order of magnitude
       if (!exists("stmv_local_model_bayesxmethod", p)) p$stmv_local_model_bayesxmethod="MCMC"  # REML actually seems to be the same speed ... i.e., most of the time is spent in thhe prediction step ..
       if (!exists("stmv_local_model_distanceweighted", p)) p$stmv_local_model_distanceweighted = TRUE
-      if (!exists("stmv_local_modelformula", p)) p$stmv_local_modelformula = formula(
-        'z ~ s(plon, bs="ps") + s(plat, bs="ps") + s(plon, plat, bs="te")')   # more detail than "gs" .. "te" is preferred
+      if (!exists("stmv_local_modelformula", p)) p$stmv_local_modelformula = formula( paste(
+        p$variabletomodel, ' ~ s(plon, bs="ps") + s(plat, bs="ps") + s(plon, plat, bs="te")') )   # more detail than "gs" .. "te" is preferred
     }
 
     if (p$stmv_local_modelengine == "inla" ){
@@ -121,7 +121,7 @@ bathymetry_parameters = function( p=NULL, project_name=NULL, project_class="defa
       ## data range is from -1667 to 5467 m .. 2000 shifts all to positive valued by one order of magnitude
       if (!exists("inla.alpha", p))  p$inla.alpha = 0.5 # bessel function curviness .. ie "nu"
       if (!exists("stmv_local_modelformula", p))  p$stmv_local_modelformula = formula( paste(
-        'z ~ -1 + intercept + f( spatial.field, model=SPDE )' ) ) # SPDE is the spatial covaria0nce model .. defined in stmv___inla
+        p$variabletomodel, ' ~ -1 + intercept + f( spatial.field, model=SPDE )' ) ) # SPDE is the spatial covaria0nce model .. defined in stmv___inla
       if (!exists("stmv.posterior.extract", p)) p$stmv.posterior.extract = function(s, rnm) {
         # rnm are the rownames that will contain info about the indices ..
         # optimally the grep search should only be done once but doing so would
@@ -147,7 +147,6 @@ bathymetry_parameters = function( p=NULL, project_name=NULL, project_class="defa
 
     p = aegis_parameters( p=p, DS="carstm" )
 
-    if ( !exists("variabletomodel", p)) p$variabletomodel = "z"
     if ( !exists("data_transformation", p)) p$data_transformation=list( forward=function(x){ x+2500 }, backward=function(x) {x-2500} )
 
     if ( !exists("areal_units_strata_type", p)) p$areal_units_strata_type = "lattice" # "stmv_lattice" to use ageis fields instead of carstm fields ... note variables are not the same
