@@ -13,13 +13,13 @@
 
 
 #  100.182 hrs
-scale_ram_required_main_process = 30 # GB twostep / fft
-scale_ram_required_per_process  = 14 # twostep / fft /fields vario ..  (mostly 0.5 GB, but up to 5 GB)
+scale_ram_required_main_process = 20  # GB twostep / fft
+scale_ram_required_per_process  = 6 # twostep / fft /fields vario ..  (mostly 0.5 GB, but up to 5 GB)
 scale_ncpus = min( parallel::detectCores(), floor( (ram_local()- scale_ram_required_main_process) / scale_ram_required_per_process ) )
 
 # interpolate = 2.4 days; boost = ...
-interpolate_ram_required_main_process = 30 # GB twostep / fft
-interpolate_ram_required_per_process  = 12 # twostep / fft /fields vario ..
+interpolate_ram_required_main_process = 20 # GB twostep / fft
+interpolate_ram_required_per_process  = 6 # twostep / fft /fields vario ..
 interpolate_ncpus = min( parallel::detectCores(), floor( (ram_local()- interpolate_ram_required_main_process) / interpolate_ram_required_per_process ) )
 
 
@@ -28,7 +28,7 @@ p = aegis.bathymetry::bathymetry_parameters(
   data_root = project.datadirectory( "aegis", "bathymetry" ),
   DATA = 'bathymetry.db( p=p, DS="stmv_inputs" )',
   variables = list(Y="z"),  # required as fft has no formulae
-  inputdata_spatial_discretization_planar_km = 0.2,  # 0.2==p$pres; controls resolution of data prior to modelling (km .. ie 20 linear units smaller than the final discretization pres)
+  inputdata_spatial_discretization_planar_km = 0.1,  # 0.2==p$pres; controls resolution of data prior to modelling (km .. ie 20 linear units smaller than the final discretization pres)
   spatial_domain = "canada.east.superhighres",
   spatial_domain_subareas = c( "canada.east.highres", "canada.east",  "SSE", "SSE.mpa" , "snowcrab"),
   aegis_dimensionality="space",
