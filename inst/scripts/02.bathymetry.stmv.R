@@ -22,7 +22,7 @@ interpolate_ram_required_main_process = 20 # GB twostep / fft
 interpolate_ram_required_per_process  = 6 # twostep / fft /fields vario ..
 interpolate_ncpus = min( parallel::detectCores(), floor( (ram_local()- interpolate_ram_required_main_process) / interpolate_ram_required_per_process ) )
 
-
+pres =0.2
 p = aegis.bathymetry::bathymetry_parameters(
   project_class="stmv",
   data_root = project.datadirectory( "aegis", "bathymetry" ),
@@ -39,7 +39,7 @@ p = aegis.bathymetry::bathymetry_parameters(
   stmv_lowpass_phi = stmv::matern_distance2phi( distance=0.2, nu=0.5, cor=0.1 ),  # note: p$pres = 0.2
   stmv_autocorrelation_fft_taper = 0.8,  # benchmark from which to taper
   stmv_autocorrelation_localrange = 0.1,  # for output to stats
-  stmv_autocorrelation_basis_interpolation = c(0.5, 0.25, 0.1, 0.01, 0.001),
+  stmv_autocorrelation_basis_interpolation = c(0.25, 0.1, 0.05, 0.01, 0.001),
   stmv_variogram_method = "fft",
   stmv_filter_depth_m = FALSE,  # need data above sea level to get coastline
   stmv_Y_transform =list(
