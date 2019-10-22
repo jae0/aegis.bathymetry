@@ -302,6 +302,10 @@
     # -----------------------
 
     if ( DS=="aggregated_data") {
+      p = bathymetry_parameters(
+        variabletomodel = p$variabletomodel,
+        inputdata_spatial_discretization_planar_km=p$inputdata_spatial_discretization_planar_km
+      )
 
       fn = file.path( p$datadir, paste( "bathymetry", "aggregated_data", p$inputdata_spatial_discretization_planar_km, "rdata", sep=".") )
       if (!redo)  {
@@ -323,7 +327,7 @@
       gc()
 
       bb = as.data.frame( t( simplify2array(
-        tapply( X=M$z, INDEX=list(paste(  M$plon, M$plat) ),
+        tapply( X=M[,p$variabletomodel], INDEX=list(paste(  M$plon, M$plat) ),
           FUN = function(w) { c(
             mean(w, na.rm=TRUE),
             sd(w, na.rm=TRUE),
@@ -331,14 +335,14 @@
           ) }, simplify=TRUE )
       )))
       M = NULL
-      colnames(bb) = c("z.mean", "z.sd", "z.n")
+      colnames(bb) = paste( p$variabletomodel, c("mean", "sd", "n"), sep=".")
       plonplat = matrix( as.numeric( unlist(strsplit( rownames(bb), " ", fixed=TRUE))), ncol=2, byrow=TRUE)
 
       bb$plon = plonplat[,1]
       bb$plat = plonplat[,2]
       plonplat = NULL
 
-      M = bb[ which( is.finite( bb$z.mean )) ,]
+      M = bb[ which( is.finite( bb[paste(p$variabletomodel, "mean", sep=".")] )) ,]
       bb =NULL
       gc()
       M = planar2lonlat( M, p$aegis_proj4string_planar_km)
@@ -373,7 +377,7 @@
     # reduce size
     M = bathymetry.db ( p=p, DS="aggregated_data" )  # 16 GB in RAM just to store!
     M = M[ which( M$lon > p$corners$lon[1] & M$lon < p$corners$lon[2]  & M$lat > p$corners$lat[1] & M$lat < p$corners$lat[2] ), ]
-    # levelplot(z.mean~plon+plat, data=M, aspect="iso")
+    # levelplot( eval(paste(p$variabletomodel, "mean", sep="."))~plon+plat, data=M, aspect="iso")
 
     M$StrataID = over( SpatialPoints( M[, c("lon", "lat")], crs_lonlat ), spTransform(sppoly, crs_lonlat ) )$StrataID # match each datum to an area
     M$lon = NULL
@@ -383,12 +387,12 @@
     M = M[ which(is.finite(M$StrataID)),]
     M$StrataID = as.character( M$StrataID )  # match each datum to an area
 
-    names(M)[which(names(M)=="z.mean" )] = "z"
+    names(M)[which(names(M)==paste(p$variabletomodel, "mean", sep=".") )] = p$variabletomodel
 
     M$tag = "observations"
 
     sppoly_df = as.data.frame(sppoly)
-    sppoly_df$z = NA
+    sppoly_df[, p$variabletomodel] = NA
     sppoly_df$StrataID = as.character( sppoly_df$StrataID )
     sppoly_df$tag ="predictions"
 
@@ -435,7 +439,7 @@
       keep = NULL
       gc()
 
-      B = B[ which( is.finite( B$z )) ,]
+      B = B[ which( is.finite( B[,p$variabletomodel] )) ,]
 
       hm = list( input=B, output=list( LOCS = spatial_grid(p) ) )
       B = NULL; gc()
@@ -496,7 +500,7 @@
       # Z$z[oc] = NA
       # Z$z.sd[oc] = NA
 
-      Zmn = matrix( Z$z, nrow=nr, ncol=nc )  # means
+      Zmn = matrix( Z[,p$variabletomodel], nrow=nr, ncol=nc )  # means
 
       # first order central differences but the central term drops out:
       # diffr = ( ( Zmn[ 1:(nr-2), ] - Zmn[ 2:(nr-1), ] ) + ( Zmn[ 2:(nr-1), ] - Zmn[ 3:nr, ] ) ) / 2
