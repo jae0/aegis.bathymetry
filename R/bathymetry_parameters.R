@@ -145,7 +145,6 @@ bathymetry_parameters = function( p=NULL, project_name=NULL, project_class="defa
 
     if ( !exists("project_name", p)) p$project_name = "bathymetry"
 
-    p = aegis_parameters( p=p, DS="carstm" )
 
     if ( !exists("data_transformation", p)) p$data_transformation=list( forward=function(x){ x+2500 }, backward=function(x) {x-2500} )
 
@@ -199,6 +198,7 @@ bathymetry_parameters = function( p=NULL, project_name=NULL, project_class="defa
         p$carstm_modelcall = paste( 'gam( formula = ', p$variabletomodel, '  ~ 1 + StrataID,  family = gaussian(link="log"), data= M[ which(M$tag=="observations"), ], family=gaussian(link="log")  ) ' )  # for modelengine='gam'
       }
 
+      p = carstm_parameters( p=p, DS="basic" )  # fill in anything missing and some checks
 
     }
 
