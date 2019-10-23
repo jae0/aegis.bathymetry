@@ -18,12 +18,11 @@
       # translate param values from one project to a unified representation
       # must be first to catch p
 
-      p = bathymetry_carstm(
+      pc = bathymetry_carstm(
         DS = "parameters",
         project_class = "carstm", # defines which parameter class / set to load
         project_name = "bathymetry",
         variabletomodel = "z",
-        p=p,
         spatial_domain = p$spatial_domain,  # defines spatial area, currenty: "snowcrab" or "SSE"
         areal_units_overlay = p$areal_units_overlay, # currently: "snowcrab_managementareas",  "groundfish_strata" .. additional polygon layers for subsequent analysis for now ..
         areal_units_resolution_km = p$areal_units_resolution_km, # km dim of lattice ~ 1 hr
@@ -31,7 +30,7 @@
         inputdata_spatial_discretization_planar_km = p$inputdata_spatial_discretization_planar_km,  # 1 km .. some thinning .. requires 32 GB RAM and limit of speed -- controls resolution of data prior to modelling to reduce data set and speed up modelling
         auid = p$auid
       )
-      return(p)
+      return(pc)
     }
 
   # ------------------
