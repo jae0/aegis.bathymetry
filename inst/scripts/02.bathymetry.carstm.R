@@ -14,8 +14,8 @@
 
 # example sequence to force creating of input data for modelling
   sppoly = areal_units( p=p, redo=TRUE ); plot(sppoly) # or: spplot( sppoly, "StrataID", main="StrataID", sp.layout=p$coastLayout )
-  M = bathymetry_carstm_db( p=p, DS="aggregated_data", redo=TRUE )  # will redo if not found .. not used here but used for data matching/lookup in other aegis projects that use bathymetry
-  M = bathymetry_carstm_db( p=p, DS="carstm_inputs", redo=TRUE )  # will redo if not found
+  M = bathymetry_carstm( p=p, DS="aggregated_data", redo=TRUE )  # will redo if not found .. not used here but used for data matching/lookup in other aegis projects that use bathymetry
+  M = bathymetry_carstm( p=p, DS="carstm_inputs", redo=TRUE )  # will redo if not found
   str(M)
 
 # run the model ... about 24 hrs

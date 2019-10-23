@@ -1,5 +1,5 @@
 
-  bathymetry_carstm_db = function( p=NULL, DS=NULL, varnames=NULL, redo=FALSE, ... ) {
+  bathymetry_carstm = function( p=NULL, DS=NULL, varnames=NULL, redo=FALSE, ... ) {
 
     #\\ Note inverted convention: depths are positive valued
     #\\ i.e., negative valued for above sea level and positive valued for below sea level
@@ -85,7 +85,7 @@
     crs_lonlat = sp::CRS(projection_proj4string("lonlat_wgs84"))
 
     # reduce size
-    M = bathymetry_carstm_db ( p=p, DS="aggregated_data" )  # 16 GB in RAM just to store!
+    M = bathymetry_carstm ( p=p, DS="aggregated_data" )  # 16 GB in RAM just to store!
     M = M[ which( M$lon > p$corners$lon[1] & M$lon < p$corners$lon[2]  & M$lat > p$corners$lat[1] & M$lat < p$corners$lat[2] ), ]
     # levelplot( eval(paste(p$variabletomodel, "mean", sep="."))~plon+plat, data=M, aspect="iso")
 
