@@ -3,7 +3,8 @@
 
 # construct basic parameter list defining the main characteristics of the study
 # and some plotting parameters (bounding box, projection, bathymetry layout, coastline)
-  p = aegis.bathymetry::bathymetry_parameters(
+  p = aegis.bathymetry::bathymetry_carstm(
+    DS = "parameters",
     project_name = "bathymetry",
     project_class = "carstm", # defines which parameter class / set to load
     spatial_domain = "SSE",  # defines spatial area, currenty: "snowcrab" or "SSE"
@@ -19,7 +20,7 @@
   str(M)
 
 # run the model ... about 24 hrs
-  res = carstm_model( p=p, M=bathymetry_cartsm_db( p=p, DS="carstm_inputs" ) ) # run model and obtain predictions
+  res = carstm_model( p=p, M=bathymetry_cartsm( p=p, DS="carstm_inputs" ) ) # run model and obtain predictions
 
 # loading saved results
   res = carstm_model( p=p, DS="carstm_modelled" ) # to load currently saved sppoly
