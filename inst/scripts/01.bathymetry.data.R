@@ -4,12 +4,16 @@ p = aegis.bathymetry::bathymetry_parameters( DS="bathymetry" )
 bathymetry.db( p=p, DS="z.lonlat.rawdata.redo" ) # needs about 42 GB RAM, JC 2015
 
 
+
+
 # The rest are for underlying areal units and data for modelling of bathymetry via carstm lattices
+require(carstm)
+require(aegis)
+
 for ( areal_units_resolution_km in c(10, 20, 25) ) {
   # for ( spatial_domain in c("snowcrab", "SSE")) {
    for ( spatial_domain in c("snowcrab", "SSE")) {
-    p = aegis.bathymetry::bathymetry_parameters(
-      project_class = "carstm", # defines which parameter class / set to load
+    p = bathymetry_carstm(
       project_name = "bathymetry",
       variabletomodel = "z",
       spatial_domain = spatial_domain,  # defines spatial area, currenty: "snowcrab" or "SSE"
