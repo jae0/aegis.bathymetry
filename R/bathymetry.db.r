@@ -299,6 +299,60 @@
     }
 
 
+    # ------------------------------
+
+    if ( DS=="aggregated_data") {
+
+      fn = file.path( p$datadir, paste( "bathymetry", "aggregated_data", p$inputdata_spatial_discretization_planar_km, "rdata", sep=".") )
+      if (!redo)  {
+        if (file.exists(fn)) {
+          load( fn)
+          return( M )
+        }
+      }
+
+      M = bathymetry.db ( p=p, DS="z.lonlat.rawdata" )  # 16 GB in RAM just to store!
+
+      # p$quantile_bounds_data = c(0.0005, 0.9995)
+      if (exists("quantile_bounds_data", p)) {
+        TR = quantile(M[,p$variabletomodel], probs=p$quantile_bounds_data, na.rm=TRUE )
+        keep = which( M[,p$variabletomodel] >=  TR[1] & M[,p$variabletomodel] <=  TR[2] )
+        if (length(keep) > 0 ) M = M[ keep, ]
+      }
+
+      if (!exists("inputdata_spatial_discretization_planar_km", p) )  p$inputdata_spatial_discretization_planar_km = 1
+
+      # thin data a bit ... remove potential duplicates and robustify
+      M = lonlat2planar( M, proj.type=p$aegis_proj4string_planar_km )
+      M$plon = round(M$plon / p$inputdata_spatial_discretization_planar_km + 1 ) * p$inputdata_spatial_discretization_planar_km
+      M$plat = round(M$plat / p$inputdata_spatial_discretization_planar_km + 1 ) * p$inputdata_spatial_discretization_planar_km
+
+      gc()
+
+      bb = as.data.frame( t( simplify2array(
+        tapply( X=M[,p$variabletomodel], INDEX=list(paste(  M$plon, M$plat) ),
+          FUN = function(w) { c(
+            mean(w, na.rm=TRUE),
+            sd(w, na.rm=TRUE),
+            length( which(is.finite(w)) )
+          ) }, simplify=TRUE )
+      )))
+      M = NULL
+      colnames(bb) = paste( p$variabletomodel, c("mean", "sd", "n"), sep=".")
+      plonplat = matrix( as.numeric( unlist(strsplit( rownames(bb), " ", fixed=TRUE))), ncol=2, byrow=TRUE)
+
+      bb$plon = plonplat[,1]
+      bb$plat = plonplat[,2]
+      plonplat = NULL
+
+      M = bb[ which( is.finite( bb[paste(p$variabletomodel, "mean", sep=".")] )) ,]
+      bb =NULL
+      gc()
+      M = planar2lonlat( M, p$aegis_proj4string_planar_km)
+      save(M, file=fn, compress=TRUE)
+
+      return( M )
+    }
 
     # ------------------------------
 
@@ -311,24 +365,12 @@
         return( hm )
       }
 
-      print( "Warning: this needs a lot of RAM .. ~60GB depending upon resolution of discretization .. a few hours " )
-
-      B = bathymetry.db ( p=p, DS="z.lonlat.rawdata" )  # 16 GB in RAM just to store!
-      # B = B[ which(B$z > -100),]  # take part of the land to define coastline
-      B = lonlat2planar( B, proj.type=p$aegis_proj4string_planar_km )
+      B = bathymetry.db ( p=p, DS="aggregated_data", redo=TRUE )  # 16 GB in RAM just to store!
       B$lon = NULL
       B$lat = NULL
-      gc()
+      names(B)[which(names(B) == paste(p$variabletomodel, "mean", sep="."))] = p$variabletomodel
 
-      # thin data a bit ... remove potential duplicates and robustify
-      B$plon = round(B$plon / p$inputdata_spatial_discretization_planar_km + 1 ) * p$inputdata_spatial_discretization_planar_km
-      B$plat = round(B$plat / p$inputdata_spatial_discretization_planar_km + 1 ) * p$inputdata_spatial_discretization_planar_km
-      keep = which( !duplicated(paste( B$plon, B$plat )) )
-      B = B[ keep , ]
-      keep = NULL
-      gc()
-
-      B = B[ which( is.finite( B[,p$variabletomodel] )) ,]
+      print( "Warning: this needs a lot of RAM .. ~60GB depending upon resolution of discretization .. a few hours " )
 
       hm = list( input=B, output=list( LOCS = spatial_grid(p) ) )
       B = NULL; gc()
