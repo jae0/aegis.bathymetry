@@ -303,7 +303,7 @@
 
     if ( DS=="aggregated_data") {
 
-      fn = file.path( p$datadir, paste( "bathymetry", "aggregated_data", p$inputdata_spatial_discretization_planar_km, "rdata", sep=".") )
+      fn = file.path( p$datadir, paste( "bathymetry", "aggregated_data", round(p$inputdata_spatial_discretization_planar_km, 6) , "rdata", sep=".") )
       if (!redo)  {
         if (file.exists(fn)) {
           load( fn)
