@@ -350,6 +350,10 @@
       bb =NULL
       gc()
       M = planar2lonlat( M, p$aegis_proj4string_planar_km)
+
+      attr( M, "proj4string_planar" ) =  p$aegis_proj4string_planar_km
+      attr( M, "proj4string_lonlat" ) =  projection_proj4string("lonlat_wgs84")
+
       save(M, file=fn, compress=TRUE)
 
       return( M )
