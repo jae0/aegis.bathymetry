@@ -323,7 +323,8 @@
       if (!exists("inputdata_spatial_discretization_planar_km", p) )  p$inputdata_spatial_discretization_planar_km = 1
 
       # thin data a bit ... remove potential duplicates and robustify
-      M = lonlat2planar( M, proj.type=p$aegis_proj4string_planar_km )
+      M = lonlat2planar( M, proj.type=p$aegis_proj4string_planar_km )  # first ensure correct projection
+
       M$plon = round(M$plon / p$inputdata_spatial_discretization_planar_km + 1 ) * p$inputdata_spatial_discretization_planar_km
       M$plat = round(M$plat / p$inputdata_spatial_discretization_planar_km + 1 ) * p$inputdata_spatial_discretization_planar_km
 
