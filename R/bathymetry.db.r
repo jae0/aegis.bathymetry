@@ -303,6 +303,8 @@
 
     if ( DS=="aggregated_data") {
 
+      if (!exists("inputdata_spatial_discretization_planar_km", p) )  p$inputdata_spatial_discretization_planar_km = 1
+
       fn = file.path( p$datadir, paste( "bathymetry", "aggregated_data", round(p$inputdata_spatial_discretization_planar_km, 6) , "rdata", sep=".") )
       if (!redo)  {
         if (file.exists(fn)) {
@@ -320,7 +322,6 @@
         if (length(keep) > 0 ) M = M[ keep, ]
       }
 
-      if (!exists("inputdata_spatial_discretization_planar_km", p) )  p$inputdata_spatial_discretization_planar_km = 1
 
       # thin data a bit ... remove potential duplicates and robustify
       M = lonlat2planar( M, proj.type=p$aegis_proj4string_planar_km )  # first ensure correct projection
