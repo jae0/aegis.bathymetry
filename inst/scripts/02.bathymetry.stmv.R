@@ -27,7 +27,7 @@ p = aegis.bathymetry::bathymetry_parameters(
   project_class="stmv",
   data_root = project.datadirectory( "aegis", "bathymetry" ),
   DATA = 'bathymetry.db( p=p, DS="stmv_inputs" )',
-  variables = list(Y="z"),  # required as fft has no formulae
+  stmv_variables = list(Y="z"),  # required as fft has no formulae
   inputdata_spatial_discretization_planar_km = 0.1,  # 0.2==p$pres; controls resolution of data prior to modelling (km .. ie 20 linear units smaller than the final discretization pres)
   spatial_domain = "canada.east.superhighres",
   spatial_domain_subareas = c( "canada.east.highres", "canada.east",  "SSE", "SSE.mpa" , "snowcrab"),
@@ -181,3 +181,4 @@ lapply( plygn_aslist[[1]], points, pch="." )
 
 plygn_as_xypoints = coordinates( as( plygn, "SpatialPoints") )# ... etc...
 plot(plygn_as_xypoints, pch=".",  xaxs="i", yaxs="i", axes=TRUE)
+
