@@ -12,13 +12,13 @@
 # krige method is a bit too oversmoothed, especially where rapid changes are occuring
 
 
-#  100.182 hrs
-scale_ram_required_main_process = 20  # GB twostep / fft
-scale_ram_required_per_process  = 6 # twostep / fft /fields vario ..  (mostly 0.5 GB, but up to 5 GB)
+#  ~40 hrs
+scale_ram_required_main_process = 15 # GB twostep / fft
+scale_ram_required_per_process  = 5 # twostep / fft /fields vario ..  (mostly 0.5 GB, but up to 5 GB)
 scale_ncpus = min( parallel::detectCores(), floor( (ram_local()- scale_ram_required_main_process) / scale_ram_required_per_process ) )
 
-# interpolate = 2.4 days; boost = ... --- 16 days +
-interpolate_ram_required_main_process = 20 # GB twostep / fft
+# ~96 hrs
+interpolate_ram_required_main_process = 12 # GB twostep / fft
 interpolate_ram_required_per_process  = 6 # twostep / fft /fields vario ..
 interpolate_ncpus = min( parallel::detectCores(), floor( (ram_local()- interpolate_ram_required_main_process) / interpolate_ram_required_per_process ) )
 
@@ -39,7 +39,7 @@ p = aegis.bathymetry::bathymetry_parameters(
   stmv_lowpass_phi = stmv::matern_distance2phi( distance=0.2, nu=0.5, cor=0.1 ),  # note: p$pres = 0.2
   stmv_autocorrelation_fft_taper = 0.8,  # benchmark from which to taper
   stmv_autocorrelation_localrange = 0.1,  # for output to stats
-  stmv_autocorrelation_basis_interpolation = c(0.25, 0.1, 0.05, 0.01, 0.001),
+  stmv_autocorrelation_basis_interpolation = c(0.25, 0.1, 0.05, 0.01),
   stmv_variogram_method = "fft",
   stmv_filter_depth_m = FALSE,  # need data above sea level to get coastline
   stmv_Y_transform =list(
@@ -48,19 +48,19 @@ p = aegis.bathymetry::bathymetry_parameters(
   ), # data range is from -1667 to 5467 m: make all positive valued
   stmv_rsquared_threshold = 0.01, # lower threshold  .. ignore
   stmv_distance_statsgrid = 5, # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
-  stmv_distance_prediction_limits =c( 2.5, 10 ), # range of permissible predictions km (i.e 1/2 stats grid to upper limit based upon data density)
+  stmv_distance_prediction_limits =c( 2.5, 15 ), # range of permissible predictions km (i.e 1/2 stats grid to upper limit based upon data density)
   stmv_distance_scale = c(2.5, 5, 10, 20, 25, 40, 80), # km ... approx guesses of 95% AC range
   stmv_distance_basis_interpolation = c( 5, 10, 15, 20, 40, 80  ) , # range of permissible predictions km (i.e 1/2 stats grid to upper limit) .. in this case 5, 10, 20
   stmv_nmin = 50, # min number of data points req before attempting to model in a localized space
-  stmv_nmax = 50*10, # no real upper bound.. just speed /RAM
-  stmv_force_complete_method = "linear",
+  stmv_nmax = 50*20, # no real upper bound.. just speed /RAM
+  stmv_force_complete_method = "fft",
   stmv_runmode = list(
     scale = rep("localhost", scale_ncpus),
     interpolate = list(
       c1 = rep("localhost", interpolate_ncpus),  # ncpus for each runmode
       c2 = rep("localhost", interpolate_ncpus),  # ncpus for each runmode
       c3 = rep("localhost", max(1, interpolate_ncpus-1)),
-      c4 = rep("localhost", max(1, interpolate_ncpus-2)),
+      c4 = rep("localhost", max(1, interpolate_ncpus-1)),
       c5 = rep("localhost", max(1, interpolate_ncpus-2))
     ),
     # if a good idea of autocorrelation is missing, forcing via explicit distance limits is an option
@@ -72,11 +72,12 @@ p = aegis.bathymetry::bathymetry_parameters(
     #   d5 = rep("localhost", max(1, interpolate_ncpus-2)),
     #   d6 = rep("localhost", max(1, interpolate_ncpus-2))
     # ),
-    interpolate_force_complete = rep("localhost", max(1, interpolate_ncpus-2)),
+    interpolate_force_complete = TRUE,
     globalmodel = FALSE,
-    restart_load = FALSE,
+    # restart_load = "interpolate_correlation_basis_0.25" ,  # only needed if this is restarting from some saved instance
     save_intermediate_results = TRUE,
-    save_completed_data = TRUE # just a dummy variable with the correct name
+    save_completed_data = TRUE
+
   )  # ncpus for each runmode
 )
 
@@ -85,6 +86,7 @@ p = aegis.bathymetry::bathymetry_parameters(
 if (0) {  # model testing
   # if resetting data for input to stmv run this or if altering discretization resolution
   bathymetry.db( p=p, DS="stmv_inputs_redo" )  # recreate fields for .. requires 60GB+
+  # p$restart_load = paste("interpolate_correlation_basis_", p$stmv_autocorrelation_basis_interpolation[length(p$stmv_autocorrelation_basis_interpolation)], sep="")  # to choose the last save
 }
 
 stmv( p=p )  # This will take from 40-70 hrs, depending upon system
@@ -96,16 +98,20 @@ stmv( p=p )  # This will take from 40-70 hrs, depending upon system
   locations   = spatial_grid( p )
 
   # comparisons
-  dev.new(); surface( as.image( Z=rowMeans(predictions), x=locations, nx=p$nplons, ny=p$nplats, na.rm=TRUE) )
+  dev.new(); surface( as.image( Z=predictions, x=locations, nx=p$nplons, ny=p$nplats, na.rm=TRUE) )
 
   # stats
   # p$statsvars = c( "sdTotal", "rsquared", "ndata", "sdSpatial", "sdObs", "phi", "nu", "localrange" )
-  dev.new(); levelplot( predictions[,1] ~ locations[,1] + locations[,2], aspect="iso" )
+  dev.new(); levelplot( predictions ~ locations[,1] + locations[,2], aspect="iso" )
 
   dev.new(); levelplot( statistics[,match("nu", p$statsvars)]  ~ locations[,1] + locations[,2], aspect="iso" ) # nu
   dev.new(); levelplot( statistics[,match("sdSpatial", p$statsvars)]  ~ locations[,1] + locations[,2], aspect="iso" ) #sd total
   dev.new(); levelplot( statistics[,match("localrange", p$statsvars)]  ~ locations[,1] + locations[,2], aspect="iso" ) #localrange
 
+# water only
+o = which( predictions>0)
+levelplot( log( statistics[o,match("sdTotal", p$statsvars)] ) ~ locations[o,1] + locations[o,2], aspect="iso" ) #sd total
+levelplot( predictions[o] ~ locations[o,1] + locations[o,2], aspect="iso" )
 
 
 
