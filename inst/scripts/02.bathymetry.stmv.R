@@ -37,10 +37,10 @@ p = aegis.bathymetry::bathymetry_parameters(
   stmv_fft_filter = "matern tapered lowpass modelled fast_predictions", #  act as a low pass filter first before matern with taper .. depth has enough data for this. Otherwise, use:
   stmv_lowpass_nu = 0.5, # exp
   stmv_lowpass_phi = stmv::matern_distance2phi( distance=0.2, nu=0.5, cor=0.1 ),  # note: p$pres = 0.2
-  stmv_autocorrelation_fft_taper = 0.8,  # benchmark from which to taper
+  stmv_autocorrelation_fft_taper = 0.9,  # benchmark from which to taper
   stmv_autocorrelation_localrange = 0.1,  # for output to stats
   stmv_autocorrelation_basis_interpolation = c(0.25, 0.1, 0.05, 0.01),
-  stmv_variogram_method = "fft",
+  stmv_variogram_method = "interp",
   stmv_filter_depth_m = FALSE,  # need data above sea level to get coastline
   stmv_Y_transform =list(
     transf = function(x) {log10(x + 2500)} ,
@@ -53,7 +53,7 @@ p = aegis.bathymetry::bathymetry_parameters(
   stmv_distance_basis_interpolation = c( 5, 10, 15, 20, 40, 80  ) , # range of permissible predictions km (i.e 1/2 stats grid to upper limit) .. in this case 5, 10, 20
   stmv_nmin = 50, # min number of data points req before attempting to model in a localized space
   stmv_nmax = 50*20, # no real upper bound.. just speed /RAM
-  stmv_force_complete_method = "fft",
+  stmv_force_complete_method = "linear_interp",
   stmv_runmode = list(
     scale = rep("localhost", scale_ncpus),
     interpolate = list(
@@ -72,9 +72,9 @@ p = aegis.bathymetry::bathymetry_parameters(
     #   d5 = rep("localhost", max(1, interpolate_ncpus-2)),
     #   d6 = rep("localhost", max(1, interpolate_ncpus-2))
     # ),
-    interpolate_force_complete = TRUE,
+    interpolate_predictions = TRUE,
     globalmodel = FALSE,
-    # restart_load = "interpolate_correlation_basis_0.25" ,  # only needed if this is restarting from some saved instance
+    # restart_load = "interpolate_correlation_basis_0.05" ,  # only needed if this is restarting from some saved instance
     save_intermediate_results = TRUE,
     save_completed_data = TRUE
 
