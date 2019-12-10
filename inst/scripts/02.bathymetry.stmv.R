@@ -28,7 +28,7 @@ p = aegis.bathymetry::bathymetry_parameters(
   data_root = project.datadirectory( "aegis", "bathymetry" ),
   DATA = 'bathymetry.db( p=p, DS="stmv_inputs" )',
   stmv_variables = list(Y="z"),  # required as fft has no formulae
-  inputdata_spatial_discretization_planar_km = 0.1,  # 0.2==p$pres; controls resolution of data prior to modelling (km .. ie 20 linear units smaller than the final discretization pres)
+  inputdata_spatial_discretization_planar_km = 0.2,  # 0.2==p$pres; .. 10x10 = 100 data point in each grid controls resolution of data prior to modelling (km .. ie 20 linear units smaller than the final discretization pres)
   spatial_domain = "canada.east.superhighres",
   spatial_domain_subareas = c( "canada.east.highres", "canada.east",  "SSE", "SSE.mpa" , "snowcrab"),
   aegis_dimensionality="space",
@@ -40,7 +40,7 @@ p = aegis.bathymetry::bathymetry_parameters(
   stmv_autocorrelation_fft_taper = 0.9,  # benchmark from which to taper
   stmv_autocorrelation_localrange = 0.1,  # for output to stats
   stmv_autocorrelation_basis_interpolation = c(0.25, 0.1, 0.05, 0.01),
-  stmv_variogram_method = "interp",
+  stmv_variogram_method = "fft",
   stmv_filter_depth_m = FALSE,  # need data above sea level to get coastline
   stmv_Y_transform =list(
     transf = function(x) {log10(x + 2500)} ,
@@ -48,10 +48,10 @@ p = aegis.bathymetry::bathymetry_parameters(
   ), # data range is from -1667 to 5467 m: make all positive valued
   stmv_rsquared_threshold = 0.01, # lower threshold  .. ignore
   stmv_distance_statsgrid = 5, # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
-  stmv_distance_prediction_limits =c( 2.5, 15 ), # range of permissible predictions km (i.e 1/2 stats grid to upper limit based upon data density)
+  stmv_distance_prediction_limits =c( 4, 20 ), # range of permissible predictions km (i.e 1/2 stats grid to upper limit based upon data density)
   stmv_distance_scale = c(2.5, 5, 10, 20, 25, 40, 80), # km ... approx guesses of 95% AC range
-  stmv_distance_basis_interpolation = c( 5, 10, 15, 20, 40, 80  ) , # range of permissible predictions km (i.e 1/2 stats grid to upper limit) .. in this case 5, 10, 20
-  stmv_nmin = 100, # min number of data points req before attempting to model in a localized space
+  stmv_distance_basis_interpolation = c(  2.5 , 5, 10, 15, 20, 40, 80  ) , # range of permissible predictions km (i.e 1/2 stats grid to upper limit) .. in this case 5, 10, 20
+  stmv_nmin = 80, # min number of data points req before attempting to model in a localized space
   stmv_nmax = 800, # no real upper bound.. just speed /RAM
   stmv_force_complete_method = "linear_interp",
   stmv_runmode = list(
