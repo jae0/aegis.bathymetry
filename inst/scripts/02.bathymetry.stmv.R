@@ -117,9 +117,9 @@ stmv( p=p )  # This will take from 40-70 hrs, depending upon system
   dev.new(); levelplot( statistics[,match("localrange", p$statsvars)]  ~ locations[,1] + locations[,2], aspect="iso" ) #localrange
 
 # water only
-o = which( predictions>0)
+o = which( predictions>0 & predictions <1000)
 levelplot( log( statistics[o,match("sdTotal", p$statsvars)] ) ~ locations[o,1] + locations[o,2], aspect="iso" ) #sd total
-levelplot( predictions[o] ~ locations[o,1] + locations[o,2], aspect="iso" )
+levelplot( log(predictions[o]) ~ locations[o,1] + locations[o,2], aspect="iso" )
 
 
 
