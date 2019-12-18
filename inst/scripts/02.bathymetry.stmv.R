@@ -13,13 +13,13 @@
 
 
 #  ~40 hrs
-scale_ram_required_main_process = 15 # GB twostep / fft
-scale_ram_required_per_process  = 5 # twostep / fft /fields vario ..  (mostly 0.5 GB, but up to 5 GB)
+scale_ram_required_main_process = 20 # GB twostep / fft
+scale_ram_required_per_process  = 6 # twostep / fft /fields vario ..  (mostly 0.5 GB, but up to 5 GB)
 scale_ncpus = min( parallel::detectCores(), floor( (ram_local()- scale_ram_required_main_process) / scale_ram_required_per_process ) )
 
 # ~96 hrs
-interpolate_ram_required_main_process = 12 # GB twostep / fft
-interpolate_ram_required_per_process  = 6 # twostep / fft /fields vario ..
+interpolate_ram_required_main_process = 10 # GB twostep / fft
+interpolate_ram_required_per_process  = 8 # twostep / fft /fields vario ..
 interpolate_ncpus = min( parallel::detectCores(), floor( (ram_local()- interpolate_ram_required_main_process) / interpolate_ram_required_per_process ) )
 
 pres =0.2
@@ -55,7 +55,7 @@ p = aegis.bathymetry::bathymetry_parameters(
   stmv_nmax = 800, # no real upper bound.. just speed /RAM
   stmv_force_complete_method = "linear_interp",
   stmv_runmode = list(
-    scale = rep("localhost", scale_ncpus),
+    # scale = rep("localhost", scale_ncpus),
     interpolate = list(
       c1 = rep("localhost", interpolate_ncpus),  # ncpus for each runmode
       c2 = rep("localhost", interpolate_ncpus),  # ncpus for each runmode
@@ -72,9 +72,17 @@ p = aegis.bathymetry::bathymetry_parameters(
     #   d5 = rep("localhost", max(1, interpolate_ncpus-2)),
     #   d6 = rep("localhost", max(1, interpolate_ncpus-2))
     # ),
-    interpolate_predictions = TRUE,
+    interpolate_predictions = list(
+      c1 = rep("localhost", max(1, interpolate_ncpus-1)),  # ncpus for each runmode
+      c2 = rep("localhost", max(1, interpolate_ncpus-1)),  # ncpus for each runmode
+      c3 = rep("localhost", max(1, interpolate_ncpus-2)),
+      c4 = rep("localhost", max(1, interpolate_ncpus-3)),
+      c5 = rep("localhost", max(1, interpolate_ncpus-4)),
+      c6 = rep("localhost", max(1, interpolate_ncpus-4)),
+      c7 = rep("localhost", max(1, interpolate_ncpus-5))
+     ),
     globalmodel = FALSE,
-    # restart_load = "interpolate_correlation_basis_0.05" ,  # only needed if this is restarting from some saved instance
+    restart_load = "interpolate_correlation_basis_0.01" ,  # only needed if this is restarting from some saved instance
     save_intermediate_results = TRUE,
     save_completed_data = TRUE
 

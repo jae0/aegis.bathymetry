@@ -3,7 +3,15 @@
 
     #\\ Note inverted convention: depths are positive valued
     #\\ i.e., negative valued for above sea level and positive valued for below sea level
-    if ( is.null(p)) p = bathymetry_parameters(...)
+    if ( is.null(p))  {
+      p_add = list(...)
+      if (length(p_add) > 0 ) {
+        p = bathymetry_parameters(...)
+      } else {
+        p = bathymetry_parameters()
+      }
+    }
+
 
     if ( !exists("project_name", p)) p$project_name = "bathymetry"
     if ( !exists("data_root", p) ) p$data_root = project.datadirectory( "aegis", p$project_name )
@@ -288,12 +296,12 @@
       write.table( bathy, file=fn.xz, col.names=F, quote=F, row.names=F)
       system( paste( "xz",  fn.bathymetry.xyz ))  # compress for space
 
-      file.remove(fn.bathymetry.xyz)
-      file.remove( fn0 )
-      file.remove( fn1 )
-      file.remove( fn0g )
-      file.remove( fn1g )
-      file.remove( fn0b )
+      if (file.exists (fn.bathymetry.xyz) ) file.remove(fn.bathymetry.xyz)
+      if (file.exists (fn0) ) file.remove( fn0 )
+      if (file.exists (fn1) ) file.remove( fn1 )
+      if (file.exists (fn0g) ) file.remove( fn0g )
+      if (file.exists (fn1g) ) file.remove( fn1g )
+      if (file.exists (fn0b) ) file.remove( fn0b )
 
       return ( fn )
     }
