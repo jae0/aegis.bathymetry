@@ -131,24 +131,9 @@ bathymetry.db( p=p, DS="complete.redo" ) # finalise at diff resolutions 15 min .
 bathymetry.db( p=p, DS="baseline.redo" )  # coords of areas of interest ..filtering of areas and or depth to reduce file size, in planar coords only
 
 
-# a few plots :
-pb = aegis.bathymetry::bathymetry_parameters( project_class="stmv", spatial_domain="canada.east.highres" )
-bathymetry.figures( p=pb, varnames=c("z", "dZ", "ddZ", "b.localrange"), logyvar=TRUE, savetofile="png" )
-bathymetry.figures( p=pb, varnames=c("b.sdTotal", "b.sdSpatial", "b.sdObs"), logyvar=FALSE, savetofile="png" )
-
-pb = aegis.bathymetry::bathymetry_parameters( project_class="stmv", spatial_domain="canada.east.superhighres" )
-bathymetry.figures( p=pb, varnames=c("z", "dZ", "ddZ", "b.localrange"), logyvar=TRUE, savetofile="png" )
-bathymetry.figures( p=pb, varnames=c("b.sdTotal", "b.sdSpatial", "b.sdObs"), logyvar=FALSE, savetofile="png" )
-
-
-pb = aegis.bathymetry::bathymetry_parameters( project_class="stmv", spatial_domain="snowcrab" )
-bathymetry.figures( p=pb, varnames=c("z", "dZ", "ddZ", "b.localrange"), logyvar=TRUE, savetofile="png" )
-bathymetry.figures( p=pb, varnames=c("b.sdTotal", "b.sdSpatial", "b.sdObs"), logyvar=FALSE, savetofile="png" )
-
-
 
 ### -----------------------------------------------------------------
-# to recreate new polygons, run the following:
+# to update/recreate new polygons, run the following:
 bathyclines.redo = FALSE
 # bathyclines.redo = TRUE
 depthsall = c( 0, 10, 20, 50, 75, 100, 200, 250, 300, 350, 400, 450, 500, 550, 600, 700, 750, 800, 900,
@@ -157,7 +142,7 @@ if( bathyclines.redo ) {
   # note these polygons are created at the resolution specified in p$spatial_domain ..
   # which by default is very high ("canada.east.highres" = 0.5 km .. p$pres ).
   # For lower one specify an appropriate p$spatial_domain
-  options(max.contour.segments=10000) # required if superhighres is being used
+  # options(max.contour.segments=1000) # might be required if superhighres is being used
   for (g in c("canada.east.superhighres", "canada.east.highres", "canada.east", "SSE", "SSE.mpa", "snowcrab")) {
     print(g)
     pb = aegis.bathymetry::bathymetry_parameters( project_class="stmv", spatial_domain=g )
@@ -168,7 +153,6 @@ if( bathyclines.redo ) {
     plygn = isobath.db( p=pb, DS="isobath.redo", depths=depths  )
   }
 }
-
 
 ### -----------------------------------------------------------------
 # some test plots
@@ -195,4 +179,24 @@ lapply( plygn_aslist[[1]], points, pch="." )
 
 plygn_as_xypoints = coordinates( as( plygn, "SpatialPoints") )# ... etc...
 plot(plygn_as_xypoints, pch=".",  xaxs="i", yaxs="i", axes=TRUE)
+
+
+
+
+# a few plots :
+pb = aegis.bathymetry::bathymetry_parameters( project_class="stmv", spatial_domain="canada.east.highres" )
+bathymetry.figures( p=pb, varnames=c("z", "dZ", "ddZ", "b.localrange"), logyvar=TRUE, savetofile="png" )
+bathymetry.figures( p=pb, varnames=c("b.sdTotal", "b.sdSpatial", "b.sdObs"), logyvar=FALSE, savetofile="png" )
+
+pb = aegis.bathymetry::bathymetry_parameters( project_class="stmv", spatial_domain="canada.east.superhighres" )
+bathymetry.figures( p=pb, varnames=c("z", "dZ", "ddZ", "b.localrange"), logyvar=TRUE, savetofile="png" )
+bathymetry.figures( p=pb, varnames=c("b.sdTotal", "b.sdSpatial", "b.sdObs"), logyvar=FALSE, savetofile="png" )
+
+
+pb = aegis.bathymetry::bathymetry_parameters( project_class="stmv", spatial_domain="snowcrab" )
+bathymetry.figures( p=pb, varnames=c("z", "dZ", "ddZ", "b.localrange"), logyvar=TRUE, savetofile="png" )
+bathymetry.figures( p=pb, varnames=c("b.sdTotal", "b.sdSpatial", "b.sdObs"), logyvar=FALSE, savetofile="png" )
+
+
+
 
