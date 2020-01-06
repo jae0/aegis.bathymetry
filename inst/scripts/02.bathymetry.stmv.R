@@ -48,11 +48,11 @@ p = aegis.bathymetry::bathymetry_parameters(
   ), # data range is from -1667 to 5467 m: make all positive valued
   stmv_rsquared_threshold = 0.01, # lower threshold  .. ignore
   stmv_distance_statsgrid = 5, # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
-  stmv_distance_prediction_limits =c( 4, 20 ), # range of permissible predictions km (i.e 1/2 stats grid to upper limit based upon data density)
-  stmv_distance_scale = c(2.5, 5, 10, 20, 25, 40, 80), # km ... approx guesses of 95% AC range
-  stmv_distance_basis_interpolation = c(  2.5 , 5, 10, 15, 20, 40, 80  ) , # range of permissible predictions km (i.e 1/2 stats grid to upper limit) .. in this case 5, 10, 20
-  stmv_nmin = 80, # min number of data points req before attempting to model in a localized space
-  stmv_nmax = 800, # no real upper bound.. just speed /RAM
+  stmv_distance_prediction_limits =c( 3, 25 ), # range of permissible predictions km (i.e 1/2 stats grid to upper limit based upon data density)
+  stmv_distance_scale = c( 5, 10, 20, 25, 40, 80, 150, 200), # km ... approx guesses of 95% AC range
+  stmv_distance_basis_interpolation = c(  2.5 , 5, 10, 15, 20, 40, 80, 150, 200 ) , # range of permissible predictions km (i.e 1/2 stats grid to upper limit) .. in this case 5, 10, 20
+  stmv_nmin = 90, # min number of data points req before attempting to model in a localized space
+  stmv_nmax = 900, # no real upper bound.. just speed /RAM
   stmv_force_complete_method = "linear_interp",
   stmv_runmode = list(
     # scale = rep("localhost", scale_ncpus),
@@ -82,7 +82,7 @@ p = aegis.bathymetry::bathymetry_parameters(
       c7 = rep("localhost", max(1, interpolate_ncpus-5))
      ),
     globalmodel = FALSE,
-    restart_load = "interpolate_correlation_basis_0.01" ,  # only needed if this is restarting from some saved instance
+    # restart_load = "interpolate_correlation_basis_0.01" ,  # only needed if this is restarting from some saved instance
     save_intermediate_results = TRUE,
     save_completed_data = TRUE
 
@@ -118,7 +118,7 @@ stmv( p=p )  # This will take from 40-70 hrs, depending upon system
 
 # water only
 o = which( predictions>0 & predictions <1000)
-levelplot( log( statistics[o,match("sdTotal", p$statsvars)] ) ~ locations[o,1] + locations[o,2], aspect="iso" ) #sd total
+#levelplot( log( statistics[o,match("sdTotal", p$statsvars)] ) ~ locations[o,1] + locations[o,2], aspect="iso" ) #sd total
 levelplot( log(predictions[o]) ~ locations[o,1] + locations[o,2], aspect="iso" )
 
 
@@ -154,32 +154,34 @@ if( bathyclines.redo ) {
   }
 }
 
-### -----------------------------------------------------------------
-# some test plots
-RLibrary( "aegis.bathymetry" , "aegis.coastline", "aegis.polygons")
 
-pb = aegis.bathymetry::bathymetry_parameters( project_class="stmv", spatial_domain="canada.east" ) # reset to lower resolution
-depths = c( 100, 200, 300, 500, 1000)
-plygn = isobath.db( p=pb, DS="isobath", depths=depths  )
+if (0) {
+    ### -----------------------------------------------------------------
+    # some test plots
+    RLibrary( "aegis.bathymetry" , "aegis.coastline", "aegis.polygons")
 
-coast = coastline.db( xlim=c(-75,-52), ylim=c(41,50), no.clip=TRUE )  # no.clip is an option for maptools::getRgshhsMap
-plot( coast, col="transparent", border="steelblue2" , xlim=c(-68,-52), ylim=c(41,50),  xaxs="i", yaxs="i", axes=TRUE )  # ie. coastline
-lines( plygn[ as.character(c( 100, 200, 300 ))], col="gray90" ) # for multiple polygons
-lines( plygn[ as.character(c( 500, 1000))], col="gray80" ) # for multiple polygons
-# plot( plygn, xlim=c(-68,-52), ylim=c(41,50))  # all isobaths commented as it is slow ..
+    pb = aegis.bathymetry::bathymetry_parameters( project_class="stmv", spatial_domain="canada.east" ) # reset to lower resolution
+    depths = c( 100, 200, 300, 500, 1000)
+    plygn = isobath.db( p=pb, DS="isobath", depths=depths  )
+
+    coast = coastline.db( xlim=c(-75,-52), ylim=c(41,50), no.clip=TRUE )  # no.clip is an option for maptools::getRgshhsMap
+    plot( coast, col="transparent", border="steelblue2" , xlim=c(-68,-52), ylim=c(41,50),  xaxs="i", yaxs="i", axes=TRUE )  # ie. coastline
+    lines( plygn[ as.character(c( 100, 200, 300 ))], col="gray90" ) # for multiple polygons
+    lines( plygn[ as.character(c( 500, 1000))], col="gray80" ) # for multiple polygons
+    # plot( plygn, xlim=c(-68,-52), ylim=c(41,50))  # all isobaths commented as it is slow ..
 
 
-# or to get in projected (planar) coords as defined by p$spatial_domain
-plygn = isobath.db( p=pb, DS="isobath", depths=c(100) , crs=pb$aegis_proj4string_planar_km ) # as SpatialLines
-plot(plygn)
+    # or to get in projected (planar) coords as defined by p$spatial_domain
+    plygn = isobath.db( p=pb, DS="isobath", depths=c(100) , crs=pb$aegis_proj4string_planar_km ) # as SpatialLines
+    plot(plygn)
 
-plygn_aslist = coordinates( plygn)
-plot( 0,0, type="n", xlim=c(-200,200), ylim=c(-200,200)  )
-lapply( plygn_aslist[[1]], points, pch="." )
+    plygn_aslist = coordinates( plygn)
+    plot( 0,0, type="n", xlim=c(-200,200), ylim=c(-200,200)  )
+    lapply( plygn_aslist[[1]], points, pch="." )
 
-plygn_as_xypoints = coordinates( as( plygn, "SpatialPoints") )# ... etc...
-plot(plygn_as_xypoints, pch=".",  xaxs="i", yaxs="i", axes=TRUE)
-
+    plygn_as_xypoints = coordinates( as( plygn, "SpatialPoints") )# ... etc...
+    plot(plygn_as_xypoints, pch=".",  xaxs="i", yaxs="i", axes=TRUE)
+}
 
 
 
@@ -197,6 +199,10 @@ pb = aegis.bathymetry::bathymetry_parameters( project_class="stmv", spatial_doma
 bathymetry.figures( p=pb, varnames=c("z", "dZ", "ddZ", "b.localrange"), logyvar=TRUE, savetofile="png" )
 bathymetry.figures( p=pb, varnames=c("b.sdTotal", "b.sdSpatial", "b.sdObs"), logyvar=FALSE, savetofile="png" )
 
+
+pb = aegis.bathymetry::bathymetry_parameters( project_class="stmv", spatial_domain="SSE" )
+bathymetry.figures( p=pb, varnames=c("z", "dZ", "ddZ", "b.localrange"), logyvar=TRUE, savetofile="png" )
+bathymetry.figures( p=pb, varnames=c("b.sdTotal", "b.sdSpatial", "b.sdObs"), logyvar=FALSE, savetofile="png" )
 
 
 
