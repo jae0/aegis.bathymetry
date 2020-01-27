@@ -340,7 +340,7 @@
       gc()
 
       bb = as.data.frame( t( simplify2array(
-        tapply( X=M[,p$variabletomodel], INDEX=list(paste(  M$plon, M$plat) ),
+        tapply( X=M[,p$variabletomodel], INDEX=list(paste(  M$plon, M$plat, sep="~") ),
           FUN = function(w) { c(
             mean(w, na.rm=TRUE),
             sd(w, na.rm=TRUE),
@@ -349,7 +349,7 @@
       )))
       M = NULL
       colnames(bb) = paste( p$variabletomodel, c("mean", "sd", "n"), sep=".")
-      plonplat = matrix( as.numeric( unlist(strsplit( rownames(bb), " ", fixed=TRUE))), ncol=2, byrow=TRUE)
+      plonplat = matrix( as.numeric( unlist(strsplit( rownames(bb), "~", fixed=TRUE))), ncol=2, byrow=TRUE)
 
       bb$plon = plonplat[,1]
       bb$plat = plonplat[,2]
