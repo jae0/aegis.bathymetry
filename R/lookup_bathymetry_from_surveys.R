@@ -12,6 +12,9 @@ lookup_bathymetry_from_surveys = function( p, locs, vnames="z.mean" ) {
   if (!exists("variabletomodel", pS)) pS$variabletomodel = "z"
 
   B = bathymetry.db ( p=pS, DS="aggregated_data" )
+  B = lonlat2planar( B, proj.type=pS$aegis_proj4string_planar_km )
+  B$plon = round(B$plon / pS$inputdata_spatial_discretization_planar_km + 1 ) * pS$inputdata_spatial_discretization_planar_km
+  B$plat = round(B$plat / pS$inputdata_spatial_discretization_planar_km + 1 ) * pS$inputdata_spatial_discretization_planar_km
 
   locs = lonlat2planar( locs, proj.type=pS$aegis_proj4string_planar_km )
   locs$plon = round(locs$plon / pS$inputdata_spatial_discretization_planar_km + 1 ) * pS$inputdata_spatial_discretization_planar_km
