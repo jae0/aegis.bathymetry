@@ -1,19 +1,12 @@
 
-isobath.db = function( ip=NULL, p=NULL, depths=c(100, 200), DS="isobath", crs=projection_proj4string("lonlat_wgs84") ) {
+isobath.db = function( ip=NULL, p=NULL, depths=c(100, 200), DS="isobath", crs=projection_proj4string("lonlat_wgs84", datadir=NULL ) ) {
   #\\ create or return isobaths and coastlines/coast polygons
   # require(stmv)
   if (DS %in% c( "isobath", "isobath.redo" )) {
     fn = paste("isobaths", p$spatial_domain, "rdata", sep=".")
-    defaultdir = project.datadirectory( "aegis", "bathymetry" )
-
-    if (exists( "data_root", p)) {
-      datadir = p$data_root
-    } else {
-      datadir = defaultdir
-    }
+    if ( is.null(datadir)) ) datadir = project.datadirectory( "aegis", "bathymetry" )
     fn.iso = file.path( datadir, "isobaths", fn )  # in case there is an alternate project
-
-    if (!file.exists( fn.iso )) fn.iso = file.path( defaultdir, "isobaths", fn )  # in case there is an alternate project
+    if (!file.exists( fn.iso )) fn.iso = file.path( datadir, "isobaths", fn )  # in case there is an alternate project
 
     isobaths = NULL
     notfound = NULL
