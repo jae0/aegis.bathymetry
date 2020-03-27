@@ -1,5 +1,5 @@
 
-isobath.db = function( ip=NULL, p=NULL, depths=c(100, 200), DS="isobath", crs=projection_proj4string("lonlat_wgs84")data_dir=project.datadirectory( "aegis", "bathymetry" ) ) {
+isobath.db = function( ip=NULL, p=NULL, depths=c(100, 200), DS="isobath", crs=projection_proj4string("lonlat_wgs84"), data_dir=project.datadirectory( "aegis", "bathymetry" ) ) {
   #\\ create or return isobaths and coastlines/coast polygons
   # require(stmv)
   if (DS %in% c( "isobath", "isobath.redo" )) {
