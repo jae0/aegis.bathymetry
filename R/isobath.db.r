@@ -18,18 +18,18 @@ isobath.db = function( ip=NULL, p=NULL, depths=c(100, 200), DS="isobath", crs=pr
       }
     }
 
-    p = spatial_parameters( p )
+    p0 = spatial_parameters( spatial_domain=p$spatial_domain )
     depths = sort( unique(c(depths, notfound) ))
-    x=seq(min(p$corners$plon), max(p$corners$plon), by=p$pres)
-    y=seq(min(p$corners$plat), max(p$corners$plat), by=p$pres)
+    x=seq(min(p0$corners$plon), max(p0$corners$plon), by=p0$pres)
+    y=seq(min(p0$corners$plat), max(p0$corners$plat), by=p0$pres)
 
     Z = bathymetry.db( p=p, DS="complete", varnames=c("plon", "plat", "z") )
-    Zi = array_map( "xy->2", Z[, c("plon", "plat")], gridparams=p$gridparams )
-    Zm = matrix( NA, ncol=p$nplats, nrow=p$nplons )
+    Zi = array_map( "xy->2", Z[, c("plon", "plat")], gridparams=p0$gridparams )
+    Zm = matrix( NA, ncol=p0$nplats, nrow=p0$nplons )
     Zm[Zi] = Z$z
     rm(Z); gc()
 
-    # Zm = fields::image.smooth( Zm, theta=p$pres, dx=p$pres, dy=p$pres ) # a little smoothed to make contours cleaner     .. too slow
+    # Zm = fields::image.smooth( Zm, theta=p0$pres, dx=p0$pres, dy=p0$pres ) # a little smoothed to make contours cleaner     .. too slow
 
     cl = contourLines( x=x, y=y, Zm, levels=depths )
 
