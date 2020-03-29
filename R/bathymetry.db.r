@@ -1,5 +1,5 @@
 
-  bathymetry.db = function( p=NULL, DS=NULL, varnames=NULL, redo=FALSE, data_root_override=NULL, ... ) {
+  bathymetry.db = function( p=NULL, DS=NULL, varnames=NULL, redo=FALSE, modeldir_override=NULL, ... ) {
 
     #\\ Note inverted convention: depths are positive valued
     #\\ i.e., negative valued for above sea level and positive valued for below sea level
@@ -15,17 +15,17 @@
 
     if ( !exists("project_name", p)) p$project_name = "bathymetry"
     if ( !exists("data_root", p) ) p$data_root = project.datadirectory( "aegis", p$project_name )
-    if ( !is.null(data_root_override) ) {
-      # for projects that require access to default data and local data, a switch is needed to force use of default data
-      if ( is.logical(data_root_override) )  {
-        p$data_root = project.datadirectory( "aegis", p$project_name )
-      } else if (is.character(data_root_override)) {
-        p$data_root = data_root_override
-      }
-    }
-
     if ( !exists("datadir", p) )   p$datadir  = file.path( p$data_root, "data" )
     if ( !exists("modeldir", p) )  p$modeldir = file.path( p$data_root, "modelled" )
+
+    if ( !is.null(modeldir_override) ) {
+      # for projects that require access to default data and local data, a switch is needed to force use of default data
+      if ( is.logical(modeldir_override) )  {
+        p$modeldir = file.path( p$data_root, "modelled" )
+      } else if (is.character(modeldir_override)) {
+        p$modeldir = modeldir_override
+      }
+    }
 
 
     if ( DS=="gebco") {
