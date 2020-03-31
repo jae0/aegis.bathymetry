@@ -12,7 +12,6 @@
       }
     }
 
-
     if ( !exists("project_name", p)) p$project_name = "bathymetry"
     if ( !exists("data_root", p) ) p$data_root = project.datadirectory( "aegis", p$project_name )
     if ( !exists("datadir", p) )   p$datadir  = file.path( p$data_root, "data" )
