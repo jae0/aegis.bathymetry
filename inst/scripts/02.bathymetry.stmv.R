@@ -172,7 +172,7 @@ if (0) {
 
 
     # or to get in projected (planar) coords as defined by p$spatial_domain
-    plygn = isobath.db( p=pb, DS="isobath", depths=c(100) , crs=pb$aegis_proj4string_planar_km ) # as SpatialLines
+    plygn = isobath.db( p=pb, DS="isobath", depths=c(100) , project_to=pb$aegis_proj4string_planar_km ) # as SpatialLines
     plot(plygn)
 
     plygn_aslist = coordinates( plygn)
