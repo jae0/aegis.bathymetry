@@ -9,7 +9,6 @@ bathymetry.db( p=p, DS="z.lonlat.rawdata.redo" ) # needs about 42 GB RAM, JC 201
 # The rest are for underlying areal units and data for modelling of bathymetry via carstm lattices
 require(carstm)
 require(aegis)
-require(aegis.carstm)
 
 for ( areal_units_resolution_km in c(10, 20, 25) ) {
   # for ( spatial_domain in c("snowcrab", "SSE")) {
