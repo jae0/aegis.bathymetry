@@ -19,6 +19,7 @@
       p$datadir  = NULL
       p$data_transformation=list( forward=function(x){ x+2500 }, backward=function(x) {x-2500} )
       p$carstm_modelcall = NULL  # defaults to generic
+      p$carstm_model_tag = NULL
 
       p = aegis.bathymetry::bathymetry_parameters(p=p, ...)
     }
