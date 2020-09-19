@@ -76,7 +76,7 @@
         p$carstm_modelcall = paste(
           'inla(
             formula = ', p$variabletomodel, ' ~ 1
-              + f(auid, model="bym2", graph=sppoly@nb, scale.model=TRUE, constr=TRUE, hyper=H$bym2),
+              + f(auid, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, constr=TRUE, hyper=H$bym2),
             family = "lognormal",
             data= M,
             control.compute=list(dic=TRUE, waic=TRUE, cpo=TRUE, config=TRUE),  # config=TRUE if doing posterior simulations
