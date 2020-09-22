@@ -8,6 +8,7 @@
 # and some plotting parameters (bounding box, projection, bathymetry layout, coastline)
 # --- look inside "parameters_production" and define alternates based upon it
   p = aegis.bathymetry::bathymetry_carstm( DS = "parameters_production" )
+    # DS = "parameters_production"; areal_units_resolution_km=5 ... takes 79 Hrs!
 
 # example sequence to force creating of input data for modelling
   sppoly = areal_units( p=p, redo=TRUE ); plot(sppoly) # or: spplot( sppoly, "AUID", main="AUID", sp.layout=p$coastLayout )
