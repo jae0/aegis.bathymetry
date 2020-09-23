@@ -26,7 +26,7 @@ pres =0.2
 p = aegis.bathymetry::bathymetry_parameters(
   project_class="stmv",
   data_root = project.datadirectory( "aegis", "bathymetry" ),
-  DATA = 'bathymetry.db( p=p, DS="stmv_inputs" )',
+  DATA = 'bathymetry_db( p=p, DS="stmv_inputs" )',
   stmv_variables = list(Y="z"),  # required as fft has no formulae
   inputdata_spatial_discretization_planar_km = 0.2,  # 0.2==p$pres; .. 10x10 = 100 data point in each grid controls resolution of data prior to modelling (km .. ie 20 linear units smaller than the final discretization pres)
   spatial_domain = "canada.east.superhighres",
@@ -93,7 +93,7 @@ p = aegis.bathymetry::bathymetry_parameters(
 
 if (0) {  # model testing
   # if resetting data for input to stmv run this or if altering discretization resolution
-  bathymetry.db( p=p, DS="stmv_inputs_redo" )  # recreate fields for .. requires 60GB+
+  bathymetry_db( p=p, DS="stmv_inputs_redo" )  # recreate fields for .. requires 60GB+
   # p$restart_load = paste("interpolate_correlation_basis_", p$stmv_autocorrelation_basis_interpolation[length(p$stmv_autocorrelation_basis_interpolation)], sep="")  # to choose the last save
 }
 
@@ -127,8 +127,8 @@ levelplot( log(predictions[o]) ~ locations[o,1] + locations[o,2], aspect="iso" )
 # and then regrid/warp as the interpolation process is so expensive, regrid/upscale/downscale based off the above run
 # .. still uses about 30-40 GB as the base layer is "superhighres" ..
 # if parallelizing .. use different servers than local nodes
-bathymetry.db( p=p, DS="complete.redo" ) # finalise at diff resolutions 15 min ..
-bathymetry.db( p=p, DS="baseline.redo" )  # coords of areas of interest ..filtering of areas and or depth to reduce file size, in planar coords only
+bathymetry_db( p=p, DS="complete.redo" ) # finalise at diff resolutions 15 min ..
+bathymetry_db( p=p, DS="baseline.redo" )  # coords of areas of interest ..filtering of areas and or depth to reduce file size, in planar coords only
 
 
 
@@ -150,7 +150,7 @@ if( bathyclines.redo ) {
     if( g=="SSE") depths = depthsall[ depthsall < 801] # by definition
     if( g=="SSE.mpa") depths = depthsall[depthsall<2001]  # by definition
     if( grepl( "canada.east", g)) depths = depthsall
-    plygn = isobath.db( p=pb, DS="isobath.redo", depths=depths  )
+    plygn = isobath_db( p=pb, DS="isobath.redo", depths=depths  )
   }
 }
 
@@ -162,7 +162,7 @@ if (0) {
 
     pb = aegis.bathymetry::bathymetry_parameters( project_class="stmv", spatial_domain="canada.east" ) # reset to lower resolution
     depths = c( 100, 200, 300, 500, 1000)
-    plygn = isobath.db( p=pb, DS="isobath", depths=depths  )
+    plygn = isobath_db( p=pb, DS="isobath", depths=depths  )
 
     coast = coastline_db( xlim=c(-75,-52), ylim=c(41,50), no.clip=TRUE )  # no.clip is an option for maptools::getRgshhsMap
     plot( coast, col="transparent", border="steelblue2" , xlim=c(-68,-52), ylim=c(41,50),  xaxs="i", yaxs="i", axes=TRUE )  # ie. coastline
@@ -172,7 +172,7 @@ if (0) {
 
 
     # or to get in projected (planar) coords as defined by p$spatial_domain
-    plygn = isobath.db( p=pb, DS="isobath", depths=c(100) , project_to=pb$aegis_proj4string_planar_km ) # as SpatialLines
+    plygn = isobath_db( p=pb, DS="isobath", depths=c(100) , project_to=pb$aegis_proj4string_planar_km ) # as SpatialLines
     plot(plygn)
 
     plygn_aslist = coordinates( plygn)
@@ -187,22 +187,22 @@ if (0) {
 
 # a few plots :
 pb = aegis.bathymetry::bathymetry_parameters( project_class="stmv", spatial_domain="canada.east.highres" )
-bathymetry.figures( p=pb, varnames=c("z", "dZ", "ddZ", "b.localrange"), logyvar=TRUE, savetofile="png" )
-bathymetry.figures( p=pb, varnames=c("b.sdTotal", "b.sdSpatial", "b.sdObs"), logyvar=FALSE, savetofile="png" )
+bathymetry_figures( p=pb, varnames=c("z", "dZ", "ddZ", "b.localrange"), logyvar=TRUE, savetofile="png" )
+bathymetry_figures( p=pb, varnames=c("b.sdTotal", "b.sdSpatial", "b.sdObs"), logyvar=FALSE, savetofile="png" )
 
 pb = aegis.bathymetry::bathymetry_parameters( project_class="stmv", spatial_domain="canada.east.superhighres" )
-bathymetry.figures( p=pb, varnames=c("z", "dZ", "ddZ", "b.localrange"), logyvar=TRUE, savetofile="png" )
-bathymetry.figures( p=pb, varnames=c("b.sdTotal", "b.sdSpatial", "b.sdObs"), logyvar=FALSE, savetofile="png" )
+bathymetry_figures( p=pb, varnames=c("z", "dZ", "ddZ", "b.localrange"), logyvar=TRUE, savetofile="png" )
+bathymetry_figures( p=pb, varnames=c("b.sdTotal", "b.sdSpatial", "b.sdObs"), logyvar=FALSE, savetofile="png" )
 
 
 pb = aegis.bathymetry::bathymetry_parameters( project_class="stmv", spatial_domain="snowcrab" )
-bathymetry.figures( p=pb, varnames=c("z", "dZ", "ddZ", "b.localrange"), logyvar=TRUE, savetofile="png" )
-bathymetry.figures( p=pb, varnames=c("b.sdTotal", "b.sdSpatial", "b.sdObs"), logyvar=FALSE, savetofile="png" )
+bathymetry_figures( p=pb, varnames=c("z", "dZ", "ddZ", "b.localrange"), logyvar=TRUE, savetofile="png" )
+bathymetry_figures( p=pb, varnames=c("b.sdTotal", "b.sdSpatial", "b.sdObs"), logyvar=FALSE, savetofile="png" )
 
 
 pb = aegis.bathymetry::bathymetry_parameters( project_class="stmv", spatial_domain="SSE" )
-bathymetry.figures( p=pb, varnames=c("z", "dZ", "ddZ", "b.localrange"), logyvar=TRUE, savetofile="png" )
-bathymetry.figures( p=pb, varnames=c("b.sdTotal", "b.sdSpatial", "b.sdObs"), logyvar=FALSE, savetofile="png" )
+bathymetry_figures( p=pb, varnames=c("z", "dZ", "ddZ", "b.localrange"), logyvar=TRUE, savetofile="png" )
+bathymetry_figures( p=pb, varnames=c("b.sdTotal", "b.sdSpatial", "b.sdObs"), logyvar=FALSE, savetofile="png" )
 
 
 

@@ -21,19 +21,19 @@ bathymetry_lookup = function( p, locs, vnames="z", output_data_class="points", s
   # load input data or reformat it
    if (source_data_class=="rawdata") {
 
-      B = bathymetry.db ( p=p_source, DS="lonlat.highres" )  # 16 GB in RAM just to store!
+      B = bathymetry_db ( p=p_source, DS="lonlat.highres" )  # 16 GB in RAM just to store!
 #      Bnames = c("lon", "lat", "grainsize", "plon", "plat"),
 
    } else if (source_data_class=="aggregated_rawdata") {
 
-      B = bathymetry.db ( p=p_source, DS="aggregated_data" )
+      B = bathymetry_db ( p=p_source, DS="aggregated_data" )
 #       Bnames = c("z.mean", "z.sd",  "z.n", "plon", "plat", "lon", "lat")
       B$z = B$z.mean
       B$z.mean  = NULL
 
    } else if (source_data_class=="modelled_stmv") {
 
-      B = bathymetry.db(p=p_source, DS="complete", varnames="all" )
+      B = bathymetry_db(p=p_source, DS="complete", varnames="all" )
     # Bnames = c( "plon", "plat", "z", "z.lb", "z.ub",
     #   "z.sdTotal", "z.rsquared", "z.ndata", "z.sdSpatial", "z.sdObs", "z.phi", "z.nu", "z.localrange" )
       zname = "z"

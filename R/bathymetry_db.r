@@ -1,5 +1,5 @@
 
-  bathymetry.db = function( p=NULL, DS=NULL, varnames=NULL, redo=FALSE, modeldir_override=NULL, ... ) {
+  bathymetry_db = function( p=NULL, DS=NULL, varnames=NULL, redo=FALSE, modeldir_override=NULL, ... ) {
 
     #\\ Note inverted convention: depths are positive valued
     #\\ i.e., negative valued for above sea level and positive valued for below sea level
@@ -149,7 +149,7 @@
 
       # Michelle Greenlaw's DEM from 2014
       # range -3000 to 71.5 m; n=155,241,029 .. but mostly interpolated
-      gdem = bathymetry.db( DS="Greenlaw_DEM" )
+      gdem = bathymetry_db( DS="Greenlaw_DEM" )
       gdem$z = - gdem$z
 
       # pei = which( gdem$lon < -60.5 & gdem$lon > -65 & gdem$lat>45.5 & gdem$lat<49 )
@@ -194,7 +194,7 @@
 			# in snowcrab and groundfish convention "-" is above sea level
 			# retain postive values at this stage to help contouring near coastlines
 
-      bathy = bathymetry.db( DS="etopo1" )
+      bathy = bathymetry_db( DS="etopo1" )
 
       additional.data=c("snowcrab", "groundfish", "lobster")
 
@@ -329,7 +329,7 @@
         }
       }
 
-      M = bathymetry.db ( p=p, DS="z.lonlat.rawdata" )  # 16 GB in RAM just to store!
+      M = bathymetry_db ( p=p, DS="z.lonlat.rawdata" )  # 16 GB in RAM just to store!
 
       # p$quantile_bounds_data = c(0.0005, 0.9995)
       if (exists("quantile_bounds_data", p)) {
@@ -388,7 +388,7 @@
         return( hm )
       }
 
-      B = bathymetry.db ( p=p, DS="aggregated_data", redo=TRUE )  # 16 GB in RAM just to store!
+      B = bathymetry_db ( p=p, DS="aggregated_data", redo=TRUE )  # 16 GB in RAM just to store!
       B$lon = NULL
       B$lat = NULL
       names(B)[which(names(B) == paste(p$variabletomodel, "mean", sep="."))] = p$variabletomodel
@@ -566,7 +566,7 @@
         #   # NOTE::: snowcrab baseline == SSE baseline, except it is a subset so begin with the SSE conditions
         #   pn = spatial_parameters( p=pn, spatial_domain="SSE" )
         # }
-        Z = bathymetry.db( p=pn, DS="complete" )
+        Z = bathymetry_db( p=pn, DS="complete" )
         Z = geo_subset( spatial_domain=domain, Z=Z )
 
         # range checks
@@ -594,4 +594,4 @@
     # ------------
 
 
-  }  # end bathymetry.db
+  }  # end bathymetry_db

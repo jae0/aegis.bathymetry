@@ -1,5 +1,5 @@
 
-isobath.db = function( ip=NULL, p=NULL, depths=c(100, 200), DS="isobath", project_to=projection_proj4string("lonlat_wgs84"), data_dir=project.datadirectory( "aegis", "bathymetry" ) ) {
+isobath_db = function( ip=NULL, p=NULL, depths=c(100, 200), DS="isobath", project_to=projection_proj4string("lonlat_wgs84"), data_dir=project.datadirectory( "aegis", "bathymetry" ) ) {
   #\\ create or return isobaths and coastlines/coast polygons
   # require(stmv)
   if (DS %in% c( "isobath", "isobath.redo" )) {
@@ -23,7 +23,7 @@ isobath.db = function( ip=NULL, p=NULL, depths=c(100, 200), DS="isobath", projec
     x=seq(min(p0$corners$plon), max(p0$corners$plon), by=p0$pres)
     y=seq(min(p0$corners$plat), max(p0$corners$plat), by=p0$pres)
 
-    Z = bathymetry.db( p=p0, DS="complete", varnames=c("plon", "plat", "z") )
+    Z = bathymetry_db( p=p0, DS="complete", varnames=c("plon", "plat", "z") )
     Zi = array_map( "xy->2", Z[, c("plon", "plat")], gridparams=p0$gridparams )
     Zm = matrix( NA, ncol=p0$nplats, nrow=p0$nplons )
     Zm[Zi] = Z$z

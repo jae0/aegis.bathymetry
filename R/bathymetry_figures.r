@@ -1,7 +1,7 @@
 
-bathymetry.figures = function( p=NULL, varnames="z", logyvar=FALSE, isodepths = c( 100, 300, 500 ), savetofile="", width=1365, height=1024, pointsize=12, res=96, quality=80 ) {
+bathymetry_figures = function( p=NULL, varnames="z", logyvar=FALSE, isodepths = c( 100, 300, 500 ), savetofile="", width=1365, height=1024, pointsize=12, res=96, quality=80 ) {
 
-  b = bathymetry.db( p=p, DS="complete" )
+  b = bathymetry_db( p=p, DS="complete" )
   b = b[b$z > 0 , ]
 
   for (vn in varnames) {
@@ -30,7 +30,7 @@ bathymetry.figures = function( p=NULL, varnames="z", logyvar=FALSE, isodepths = 
       contour=FALSE, labels=FALSE, pretty=TRUE, xlab=NULL,ylab=NULL,scales=list(draw=FALSE),
       panel = function(x, y, subscripts, ...) {
         panel.levelplot (x, y, subscripts, aspect="iso", rez=c(1,1), ...)
-        sp.lines( isobath.db( p=p, DS="isobath", depths=isodepths, project_to=p$aegis_proj4string_planar_km ), col = "gray80", cex=0.1 )
+        sp.lines( isobath_db( p=p, DS="isobath", depths=isodepths, project_to=p$aegis_proj4string_planar_km ), col = "gray80", cex=0.1 )
         sp.lines( coastline_db( p=p, project_to=p$aegis_proj4string_planar_km ), col = "steelblue", cex=0.1 )
       }
     )
