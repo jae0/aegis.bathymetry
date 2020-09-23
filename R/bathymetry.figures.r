@@ -31,7 +31,7 @@ bathymetry.figures = function( p=NULL, varnames="z", logyvar=FALSE, isodepths = 
       panel = function(x, y, subscripts, ...) {
         panel.levelplot (x, y, subscripts, aspect="iso", rez=c(1,1), ...)
         sp.lines( isobath.db( p=p, DS="isobath", depths=isodepths, project_to=p$aegis_proj4string_planar_km ), col = "gray80", cex=0.1 )
-        sp.lines( coastline.db( p=p, project_to=p$aegis_proj4string_planar_km ), col = "steelblue", cex=0.1 )
+        sp.lines( coastline_db( p=p, project_to=p$aegis_proj4string_planar_km ), col = "steelblue", cex=0.1 )
       }
     )
 

@@ -218,7 +218,7 @@
         # n=13031; range = 0 to 1054
 
         warning( "Should use bottom contact estimates as a priority ?" )
-				gf = groundfish.db( DS="set.base" )[, c("lon","lat", "sdepth") ]
+				gf = groundfish_survey_db( DS="set.base" )[, c("lon","lat", "sdepth") ]
 				gf = gf[ which( is.finite(rowSums(gf) ) ) ,]
         names(gf) = c("lon", "lat", "z")
 				j = which(duplicated(gf))
@@ -235,7 +235,7 @@
       if ( "lobster" %in% additional.data ) {
         current.year = lubridate::year(lubridate::now())
         p0temp = aegis.temperature::temperature_parameters( yrs=1900:current.year )
-        lob = temperature.db( p=p0temp, DS="lobster", yr=1900:current.year ) # FSRS data ...  new additions have to be made at the rawdata level manually; yr must be passed to retrieve data ..
+        lob = temperature_db( p=p0temp, DS="lobster", yr=1900:current.year ) # FSRS data ...  new additions have to be made at the rawdata level manually; yr must be passed to retrieve data ..
         lob = lob[, c("lon","lat", "z") ]
         lob = lob[ which( is.finite(rowSums(lob) ) ) ,]
         j = which(duplicated(lob))

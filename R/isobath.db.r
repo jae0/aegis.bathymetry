@@ -48,17 +48,17 @@ isobath.db = function( ip=NULL, p=NULL, depths=c(100, 200), DS="isobath", projec
   # ------------------------
 
   if (DS %in% c( "coastLine", "coastLine.redo")) {
-    #\\ synomym for coastline.db ... left for historical compatibility .. deprecated
-    if (DS=="coastline") return( coastline.db( p=p, DS="mapdata.coastLine", project_to = project_to   ) )
-    if (DS=="coastline.redo") return( coastline.db( p=p, DS="mapdata.coastLine.redo", project_to = project_to   ) )
+    #\\ synomym for coastline_db ... left for historical compatibility .. deprecated
+    if (DS=="coastline") return( coastline_db( p=p, DS="mapdata.coastLine", project_to = project_to   ) )
+    if (DS=="coastline.redo") return( coastline_db( p=p, DS="mapdata.coastLine.redo", project_to = project_to   ) )
   }
 
   # ------------------------
 
   if (DS %in% c("coastPolygon", "coastPolygon.redo") ) {
-    #\\ synomym for coastline.db ... left for historical compatibility .. deprecated
-    if (DS=="coastPolygon") return( coastline.db( p=p, DS="mapdata.coastPolygon", project_to = project_to   ) )
-    if (DS=="coastPolygon.redo") return( coastline.db( p=p, DS="mapdata.coastPolygon.redo", project_to = project_to   ) )
+    #\\ synomym for coastline_db ... left for historical compatibility .. deprecated
+    if (DS=="coastPolygon") return( coastline_db( p=p, DS="mapdata.coastPolygon", project_to = project_to   ) )
+    if (DS=="coastPolygon.redo") return( coastline_db( p=p, DS="mapdata.coastPolygon.redo", project_to = project_to   ) )
   }
 
 
