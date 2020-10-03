@@ -22,21 +22,22 @@ interpolate_ram_required_main_process = 10 # GB twostep / fft
 interpolate_ram_required_per_process  = 8 # twostep / fft /fields vario ..
 interpolate_ncpus = min( parallel::detectCores(), floor( (ram_local()- interpolate_ram_required_main_process) / interpolate_ram_required_per_process ) )
 
-pres =0.2
+pres =0.01
+
 p = aegis.bathymetry::bathymetry_parameters(
   project_class="stmv",
   data_root = project.datadirectory( "aegis", "bathymetry" ),
   DATA = 'bathymetry_db( p=p, DS="stmv_inputs" )',
   stmv_variables = list(Y="z"),  # required as fft has no formulae
-  inputdata_spatial_discretization_planar_km = 0.2,  # 0.2==p$pres; .. 10x10 = 100 data point in each grid controls resolution of data prior to modelling (km .. ie 20 linear units smaller than the final discretization pres)
+  inputdata_spatial_discretization_planar_km = pres,  #  controls resolution of data prior to modelling (km .. ie 20 linear units smaller than the final discretization pres)
   spatial_domain = "canada.east.superhighres",
-  spatial_domain_subareas = c( "canada.east.highres", "canada.east",  "SSE", "SSE.mpa" , "snowcrab"),
+  spatial_domain_subareas = c( "canada.east.highres", "canada.east",  "SSE", "SSE.mpa" , "snowcrab"),  # this is for bathymetry_db, not stmv
   aegis_dimensionality="space",
   stmv_global_modelengine = "none",  # only marginally useful .. consider removing it and use "none",
   stmv_local_modelengine="fft",
   stmv_fft_filter = "matern tapered lowpass modelled fast_predictions", #  act as a low pass filter first before matern with taper .. depth has enough data for this. Otherwise, use:
   stmv_lowpass_nu = 0.5, # exp
-  stmv_lowpass_phi = stmv::matern_distance2phi( distance=0.2, nu=0.5, cor=0.1 ),  # note: p$pres = 0.2
+  stmv_lowpass_phi = stmv::matern_distance2phi( distance=0.1, nu=0.5, cor=0.1 ),
   stmv_autocorrelation_fft_taper = 0.9,  # benchmark from which to taper
   stmv_autocorrelation_localrange = 0.1,  # for output to stats
   stmv_autocorrelation_basis_interpolation = c(0.25, 0.1, 0.05, 0.01),
@@ -52,10 +53,10 @@ p = aegis.bathymetry::bathymetry_parameters(
   stmv_distance_scale = c( 5, 10, 20, 25, 40, 80, 150, 200), # km ... approx guesses of 95% AC range
   stmv_distance_basis_interpolation = c(  2.5 , 5, 10, 15, 20, 40, 80, 150, 200 ) , # range of permissible predictions km (i.e 1/2 stats grid to upper limit) .. in this case 5, 10, 20
   stmv_nmin = 90, # min number of data points req before attempting to model in a localized space
-  stmv_nmax = 900, # no real upper bound.. just speed /RAM
+  stmv_nmax = 1000, # no real upper bound.. just speed /RAM
   stmv_force_complete_method = "linear_interp",
   stmv_runmode = list(
-    # scale = rep("localhost", scale_ncpus),
+    scale = rep("localhost", scale_ncpus),
     interpolate = list(
       c1 = rep("localhost", interpolate_ncpus),  # ncpus for each runmode
       c2 = rep("localhost", interpolate_ncpus),  # ncpus for each runmode

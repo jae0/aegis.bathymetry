@@ -9,7 +9,7 @@
 
   if (DS=="parameters_production") {
 
-      # copy of param list for global analysis in aegis.bathymetry/inst/scripts/02.bathymetry.carstm.R
+      # default "production" / best/optimal/etc param list for global analysis in aegis.bathymetry/inst/scripts/02.bathymetry.carstm.R
       p = aegis.bathymetry::bathymetry_carstm(
         DS = "parameters",
         project_name = "bathymetry",
