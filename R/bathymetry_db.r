@@ -404,6 +404,45 @@
 
     }
 
+    # ------------------------------
+
+
+    if ( DS %in% c("stmv_inputs_highres", "stmv_inputs_highres_redo" )) {
+
+      fn = file.path( p$modeldir, paste( "bathymetry", "stmv_inputs_highres", "rdata", sep=".") )
+      if (DS %in% c("stmv_inputs_highres") ) {
+        print( "Warning: stmv_inputs_highres is loading from a saved instance ... add redo=TRUE if data needs a refresh" )
+        load( fn)
+        return( hm )
+      }
+
+      B = bathymetry_db ( p=p, DS="z.lonlat.rawdata" )  # 16 GB in RAM just to store!
+
+      # p$quantile_bounds_data = c(0.0005, 0.9995)
+      if (exists("quantile_bounds_data", p)) {
+        TR = quantile(B[,p$variabletomodel], probs=p$quantile_bounds_data, na.rm=TRUE )
+        keep = which( B[,p$variabletomodel] >=  TR[1] & B[,p$variabletomodel] <=  TR[2] )
+        if (length(keep) > 0 ) B = B[ keep, ]
+      }
+
+
+      # thin data a bit ... remove potential duplicates and robustify
+      B = lonlat2planar( B, proj.type=p$aegis_proj4string_planar_km )  # first ensure correct projection
+
+      B$lon = NULL
+      B$lat = NULL
+
+      attr( B, "proj4string_planar" ) =  p$aegis_proj4string_planar_km
+
+      hm = list( input=B, output=list( LOCS = spatial_grid(p) ) )
+      B = NULL; gc()
+      save( hm, file=fn, compress=FALSE)
+      hm = NULL
+      gc()
+      return(fn)
+
+    }
+
     # ----------------
 
     if ( DS == "landmasks.create" ) {
