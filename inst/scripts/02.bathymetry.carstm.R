@@ -55,7 +55,6 @@ if (0) {  # model testing
 }
 
 
-require(INLA)
 stmv( p=p )  # This will take from 40-70 hrs, depending upon system
 
 
