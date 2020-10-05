@@ -34,7 +34,7 @@ p = aegis.bathymetry::bathymetry_parameters(
     invers = function(x) {10^(x) - 2500}
   ), # data range is from -1667 to 5467 m: make all positive valued
   stmv_distance_statsgrid = 5, # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
-  stmv_interpolation_basis_distance = 2 * 5,   # fixed distance 2 x statsgrid
+  stmv_interpolation_basis_distance = 5,   # fixed distance 2 x statsgrid
   stmv_distance_prediction_limits =c( 3, 25 ), # range of permissible predictions km (i.e 1/2 stats grid to upper limit based upon data density)
   stmv_distance_scale = c( 5, 10, 20, 25, 40, 80, 150, 200), # km ... approx guesses of 95% AC range
   global_sppoly = NULL, # force local lattice grid of pres ... bathymetry has enough data for this
