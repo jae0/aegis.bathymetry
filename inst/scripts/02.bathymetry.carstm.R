@@ -12,7 +12,9 @@ p = aegis.bathymetry::bathymetry_parameters(
   aegis_dimensionality="space",
   stmv_global_modelengine = "none",  # only marginally useful .. consider removing it and use "none",
   stmv_local_modelengine="carstm",
-  stmv_local_modelformula = paste(
+  stmv_local_covariates_carstm = "",  # only model covariates
+  stmv_local_all_carstm = "",  # ignoring aui
+  stmv_local_modelcall = paste(
           'inla(
             formula = z ~ 1
               + f(aui, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, constr=TRUE, hyper=H$bym2),
