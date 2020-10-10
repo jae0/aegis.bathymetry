@@ -1,12 +1,17 @@
 
 
-### stmv/carstm hybrid:
 
+### map area unit problem example:
+
+  maup = map_area_unit_problem( just_return_results=TRUE )  #default is bathymetry data
+
+
+### stmv/carstm hybrid:
 
 p = aegis.bathymetry::bathymetry_parameters(
   project_class="stmv",
   data_root = project.datadirectory( "aegis", "bathymetry" ),
-  DATA = 'bathymetry_db( p=p, DS="stmv_inputs_highres" )',
+  DATA = 'bathymetry_db( p=p, DS="stmv_inputs_highres" )',  # _highres
   stmv_variables = list(Y="z"),  # required as fft has no formulae
   spatial_domain = "canada.east.superhighres",
   aegis_dimensionality="space",
@@ -24,22 +29,21 @@ p = aegis.bathymetry::bathymetry_parameters(
             control.results=list(return.marginals.random=TRUE, return.marginals.predictor=TRUE ),
             control.predictor=list(compute=FALSE, link=1 ),
             control.fixed=H$fixed,  # priors for fixed effects, generic is ok
-            control.inla = list(h=1e-4, tolerance=1e-9, cmin=0), # restart=3), # restart a few times in case posteriors are poorly defined
             verbose=TRUE
           ) '
     ),
   stmv_filter_depth_m = FALSE,  # need data above sea level to get coastline
   stmv_Y_transform =list(
-    transf = function(x) {log10(x + 2500)} ,
-    invers = function(x) {10^(x) - 2500}
+    transf = function(x) {log10(x + 3000)} ,
+    invers = function(x) {10^(x) - 3000}
   ), # data range is from -1667 to 5467 m: make all positive valued
   stmv_distance_statsgrid = 5, # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
-  stmv_interpolation_basis_distance = 5,   # fixed distance 2 x statsgrid
+#  stmv_interpolation_basis_distance = 5,   # fixed distance 2 x statsgrid
+  stmv_interpolation_basis_distance_choices = c(5),
   stmv_distance_prediction_limits =c( 3, 25 ), # range of permissible predictions km (i.e 1/2 stats grid to upper limit based upon data density)
-  stmv_distance_scale = c( 5, 10, 20, 25, 40, 80, 150, 200), # km ... approx guesses of 95% AC range
   global_sppoly = NULL, # force local lattice grid of pres ... bathymetry has enough data for this
-  stmv_nmin = 90, # min number of data points req before attempting to model in a localized space
-  stmv_nmax = 1000, # no real upper bound.. just speed /RAM
+  stmv_nmin = 100, # min number of data points req before attempting to model in a localized space
+  stmv_nmax = 5000, # no real upper bound.. just speed /RAM
   stmv_force_complete_method = "linear_interp",
   stmv_runmode = list(
     carstm = rep("localhost", 2),
@@ -121,7 +125,6 @@ bathymetry_db( p=p, DS="complete.redo", spatial_domain_subareas = c( "canada.eas
   p = aegis.bathymetry::bathymetry_carstm( DS = "parameters_production" )
     # DS = "parameters_production"; areal_units_resolution_km=5 ... takes 79 Hrs!
 
-  maup = map_area_unit_problem( just_return_results=TRUE )  #default is bathymetry data
 
   if (0) {
 
