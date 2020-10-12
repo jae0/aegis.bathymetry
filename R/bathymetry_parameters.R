@@ -1,8 +1,58 @@
-bathymetry_parameters = function( p=NULL, project_name=NULL, project_class="default", ... ) {
+bathymetry_parameters = function( p=NULL, project_name=NULL, project_class="default", DS="none", ... ) {
 
   # ---------------------
-   p = parameters_control(p, list(...), control="add") # add passed args to parameter list, priority to args
+  p = parameters_control(p, list(...), control="add") # add passed args to parameter list, priority to args
 
+  if (DS=="default") {
+
+    p = bathymetry_parameters(
+      p=p,
+      project_class="stmv",
+      data_root = project.datadirectory( "aegis", "bathymetry" ),
+      DATA = 'bathymetry_db( p=p, DS="stmv_inputs_highres" )',  # _highres
+      stmv_variables = list(Y="z"),  # required as fft has no formulae
+      spatial_domain = "canada.east.superhighres",
+      aegis_dimensionality="space",
+      stmv_global_modelengine = "none",  # only marginally useful .. consider removing it and use "none",
+      stmv_local_modelengine="carstm",
+      stmv_local_covariates_carstm = "",  # only model covariates
+      stmv_local_all_carstm = "",  # ignoring aui
+      stmv_local_modelcall = paste(
+              'inla(
+                formula = z ~ 1
+                  + f(aui, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, constr=TRUE, hyper=H$bym2),
+                family = "normal",
+                data= dat,
+                control.compute=list(dic=TRUE, waic=TRUE, cpo=FALSE, config=FALSE),  # config=TRUE if doing posterior simulations
+                control.results=list(return.marginals.random=TRUE, return.marginals.predictor=TRUE ),
+                control.predictor=list(compute=FALSE, link=1 ),
+                control.fixed=H$fixed,  # priors for fixed effects, generic is ok
+                verbose=TRUE
+              ) '
+        ),
+      stmv_filter_depth_m = FALSE,  # need data above sea level to get coastline
+      stmv_Y_transform =list(
+        transf = function(x) {log10(x + 3000)} ,
+        invers = function(x) {10^(x) - 3000}
+      ), # data range is from -1667 to 5467 m: make all positive valued
+      stmv_distance_statsgrid = 5, # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
+    #  stmv_interpolation_basis_distance = 5,   # fixed distance 2 x statsgrid
+      stmv_interpolation_basis_distance_choices = c(5),
+      stmv_distance_prediction_limits =c( 3, 25 ), # range of permissible predictions km (i.e 1/2 stats grid to upper limit based upon data density)
+      global_sppoly = NULL, # force local lattice grid of pres ... bathymetry has enough data for this
+      stmv_nmin = 100, # min number of data points req before attempting to model in a localized space
+      stmv_nmax = 5000, # no real upper bound.. just speed /RAM
+      stmv_force_complete_method = "linear_interp",
+      stmv_runmode = list(
+        carstm = rep("localhost", 2),
+        globalmodel = FALSE,
+        # restart_load = "interpolate_correlation_basis_0.01" ,  # only needed if this is restarting from some saved instance
+        save_intermediate_results = TRUE,
+        save_completed_data = TRUE
+      )  # ncpus for each runmode
+    )
+    return(p)
+  }
 
   # ---------------------
 
@@ -107,7 +157,6 @@ bathymetry_parameters = function( p=NULL, project_name=NULL, project_class="defa
         i_spatial.field = grep("spatial.field", rnm, fixed=TRUE )
         return(  s$latent[i_intercept,1] + s$latent[ i_spatial.field,1] )
       }
-
 
       p = aegis_parameters( p=p, DS="stmv" )
 

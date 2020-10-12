@@ -7,7 +7,7 @@
   # ------------------
 
 
-  if (DS=="parameters_production") {
+  if (DS=="parameters_carstm_example") {
 
       # default "production" / best/optimal/etc param list for global analysis in aegis.bathymetry/inst/scripts/02.bathymetry.carstm.R
       p = aegis.bathymetry::bathymetry_carstm(

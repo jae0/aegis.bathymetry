@@ -14,7 +14,7 @@ bathymetry_lookup = function( p, locs, vnames="z", output_data_class="points", s
   }
   } else if (source_data_class %in% "modelled_carstm" ) {
       # copy of param list for global analysis in aegis.bathymetry/inst/scripts/02.bathymetry.carstm.R
-      p_source = aegis.bathymetry::bathymetry_carstm( DS = "parameters_production" )
+      p_source = aegis.bathymetry::bathymetry_carstm( DS = "parameters_default" )
   }
 
 
