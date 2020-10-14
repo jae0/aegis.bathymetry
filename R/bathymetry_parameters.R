@@ -1,19 +1,21 @@
 
-bathymetry_parameters = function( p=NULL, project_name="bathymetry", project_class="default", project_subclass="direct_call", ... ) {
+bathymetry_parameters = function( p=list(), project_name="bathymetry", project_class="default", reset_data_location=FALSE, ... ) {
 
-  # ---------------------
 
-  if (is.null(p)) p=list()
-
-  if (project_subclass=="indirect_call" ) {
+  if (reset_data_location)  {
     # reset a few project specific params, forcing the use of defaults (below)
     p$data_root = NULL
     p$datadir  = NULL
     p$carstm_modelcall = NULL  # defaults to generic
     p$carstm_model_tag = NULL
+    p$variabletomodel = NULL
+    p$aegis_dimensionality = NULL
+    p$data_transformation = NULL
   }
 
   p = parameters_add( p, list(...) ) # add passed args to parameter list, priority to args
+
+  # ---------------------
 
   # create/update library list
   p$libs = c( p$libs, RLibrary ( "colorspace",  "fields", "geosphere", "lubridate",  "lattice",
@@ -40,6 +42,8 @@ bathymetry_parameters = function( p=NULL, project_name="bathymetry", project_cla
       inputdata_spatial_discretization_planar_km = p$pres/10  #  controls resolution of data prior to modelling (km .. ie 20 linear units smaller than the final discretization pres)
   )
 
+  # ---------------------
+
   if (project_class=="default") return(p)  # minimal specifications
 
   # ---------------------
@@ -51,22 +55,6 @@ bathymetry_parameters = function( p=NULL, project_name="bathymetry", project_cla
     #   and one that is called secondarily specific to a local project's polygons (eg. snow crab)
     p$libs = c( p$libs, project.library ( "carstm", "INLA"  ) )
 
-    if (project_subclass=="direct_call" ) {
-      # nothing to force  ...
-    }
-
-    if (project_subclass=="indirect_call" ) {
-
-      if ( p$spatial_domain == "SSE" ) {
-        p = parameters_add_without_overwriting( p, areal_units_overlay = "groundfish_strata" ) #.. additional polygon layers for subsequent analysis for now ..
-      }
-
-      if ( p$spatial_domain == "snowcrab" ) {
-        p = parameters_add_without_overwriting( p, areal_units_overlay = "snowcrab_managementareas" ) # currently: "snowcrab_managementareas",  "groundfish_strata" .. additional polygon layers for subsequent analysis for now ..
-      }
-    }
-
-
     # defaults in case not provided ...
     p = parameters_add_without_overwriting( p,
       data_transformation=list( forward=function(x){ x+2500 }, backward=function(x) {x-2500} ),
@@ -76,11 +64,10 @@ bathymetry_parameters = function( p=NULL, project_name="bathymetry", project_cla
       # areal_units_proj4string_planar_km = projection_proj4string("omerc_nova_scotia")  # coord system to use for areal estimation and gridding for carstm
       areal_units_overlay = "none",
       carstm_modelengine = "inla",  # {model engine}.{label to use to store}
+      carstm_model_label = "default",
       carstm_inputs_aggregated = FALSE
     )
 
-
-    p = parameters_add_without_overwriting( p, carstm_model_label = ifelse( exists("carstm_model_label", p), p$carstm_model_label, "default" )  )
 
     if ( !exists("carstm_modelcall", p)  ) {
       if ( grepl("inla", p$carstm_modelengine) ) {
@@ -98,13 +85,6 @@ bathymetry_parameters = function( p=NULL, project_name="bathymetry", project_cla
             verbose=TRUE
           ) ' )
       }
-      if ( grepl("glm", p$carstm_modelengine) ) {
-        p$carstm_modelcall = paste( 'glm( formula = ', p$variabletomodel, '  ~ 1 + AUID,  family = gaussian(link="log"), data= M[ which(M$tag=="observations"), ], family=gaussian(link="log")  ) ' ) # for modelengine='glm'
-      }
-      if ( grepl("gam", p$carstm_modelengine) ) {
-        p$libs = unique( c( p$libs, project.library ( "mgcv" ) ) )
-        p$carstm_modelcall = paste( 'gam( formula = ', p$variabletomodel, '  ~ 1 + AUID,  family = gaussian(link="log"), data= M[ which(M$tag=="observations"), ], family=gaussian(link="log")  ) '   )  # for modelengine='gam'
-      }
     }
 
     p = carstm_parameters( p=p )  # fill in anything missing with defaults and do some checks
@@ -113,6 +93,8 @@ bathymetry_parameters = function( p=NULL, project_name="bathymetry", project_cla
 
   }
 
+
+  # ---------------------
 
 
   if (project_class=="stmv") {
@@ -220,6 +202,9 @@ bathymetry_parameters = function( p=NULL, project_name="bathymetry", project_cla
     p = aegis_parameters( p=p, DS="stmv" )
     return(p)
   }
+
+
+  # ---------------------
 
 
   if (project_class=="production") {
