@@ -1,15 +1,7 @@
 
 
-
-### demonstration of the map area unit problem example:
-
-maup = map_area_unit_problem( just_return_results=TRUE )  #default is bathymetry data
-
-
 ### this works fine, but resolutions less than 5 km are very slow and occasionally fails to converge
 ### it is here as an example
-
-
 
 
 ### WARNING::  running carstm directly... < 5 km resokution becomes rather slow ...
@@ -23,29 +15,10 @@ maup = map_area_unit_problem( just_return_results=TRUE )  #default is bathymetry
 # and some plotting parameters (bounding box, projection, bathymetry layout, coastline)
 # --- look inside "parameters_default" and define alternates based upon it
 
-p = aegis.bathymetry::bathymetry_parameters( project_class="carstm" )  # carstm defaults
+p = aegis.bathymetry::bathymetry_parameters( project_class="carstm" )  # carstm on 25 km lattice grid
 
 
     # DS = "parameters_default"; areal_units_resolution_km=5 ... takes 79 Hrs!
-
-
-  if (0) {
-
-    x = maup$resolution
-    # x = log(  maup$n / maup$resolution^2  )  # data density
-    yrange = range( maup$min, maup$max )
-    plot(mean ~ x, maup, pch=20, ylim=yrange)
-    lines( median ~ x, maup, col="green", lwd=1)
-    lines(min ~ x, maup, col="red", lwd=4)
-    lines(max ~ x, maup, col="blue", lwd=4)
-    lines( I(mean+sd) ~ x, maup, col="gray", lwd=2)
-    lines( I(mean-sd) ~ x, maup, col="gray", lwd=2)
-    abline( v=attr(maup, "variogram")$fft$localrange ) # 380 km
-
-    plot( sd~ x, maup)
-    abline( v=attr(maup, "variogram")$fft$localrange ) # 380 km
-
-  }
 
 # example sequence to force creating of input data for modelling
   sppoly = areal_units( p=p, redo=TRUE ); plot(sppoly) # or: spplot( sppoly, "AUID", main="AUID", sp.layout=p$coastLayout )

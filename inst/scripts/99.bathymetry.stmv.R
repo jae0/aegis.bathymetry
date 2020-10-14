@@ -21,7 +21,6 @@ interpolate_ram_required_main_process = 10 # GB twostep / fft
 interpolate_ram_required_per_process  = 8 # twostep / fft /fields vario ..
 interpolate_ncpus = min( parallel::detectCores(), floor( (ram_local()- interpolate_ram_required_main_process) / interpolate_ram_required_per_process ) )
 
-pres =0.01
 
 p = aegis.bathymetry::bathymetry_parameters(
   project_class="stmv",

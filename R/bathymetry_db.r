@@ -505,7 +505,6 @@
         if (length(keep) > 0 ) B = B[ keep, ]
       }
 
-
       # thin data a bit ... remove potential duplicates and robustify
       B = lonlat2planar( B, proj.type=p$aegis_proj4string_planar_km )  # first ensure correct projection
 
