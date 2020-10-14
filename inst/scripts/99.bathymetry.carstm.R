@@ -23,7 +23,7 @@ maup = map_area_unit_problem( just_return_results=TRUE )  #default is bathymetry
 # and some plotting parameters (bounding box, projection, bathymetry layout, coastline)
 # --- look inside "parameters_default" and define alternates based upon it
 
-p = aegis.bathymetry::bathymetry_carstm( DS = "parameters_default" )
+p = aegis.bathymetry::bathymetry_parameters( project_class="carstm" )  # carstm defaults
 
 
     # DS = "parameters_default"; areal_units_resolution_km=5 ... takes 79 Hrs!
@@ -50,12 +50,12 @@ p = aegis.bathymetry::bathymetry_carstm( DS = "parameters_default" )
 # example sequence to force creating of input data for modelling
   sppoly = areal_units( p=p, redo=TRUE ); plot(sppoly) # or: spplot( sppoly, "AUID", main="AUID", sp.layout=p$coastLayout )
   M = bathymetry_db( p=p, DS="aggregated_data" , redo=TRUE )  # will redo if not found .. not used here but used for data matching/lookup in other aegis projects that use bathymetry
-  M = bathymetry_carstm( p=p, DS="carstm_inputs", redo=TRUE )  # will redo if not found
+  M = bathymetry_db( p=p, DS="carstm_inputs", redo=TRUE )  # will redo if not found
   str(M)
   M = NULL; gc()
 
 # run the model ... about 24 hrs
-  fit = carstm_model( p=p, M='bathymetry_carstm( p=p, DS="carstm_inputs" )' ) # run model and obtain predictions
+  fit = carstm_model( p=p, M='bathymetry_db( p=p, DS="carstm_inputs" )' ) # run model and obtain predictions
 
 # loading saved results
   fit = carstm_model( p=p, DS="carstm_modelled_fit" )  # extract currently saved model fit

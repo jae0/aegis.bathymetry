@@ -5,7 +5,7 @@
 ### CARSTM-based, however, run within a range of influence of dimension defined by : p$stmv_interpolation_basis_distance_choices = 5
 ### i.e., the same size as the stats grid (this is 1/2 of the window so 5 km surround each stats node )
 
-p = aegis.bathymetry::bathymetry_parameters( project_class="default" )
+p = aegis.bathymetry::bathymetry_parameters( project_class="model" )
 
 if (0)  bathymetry_db( p=p, DS="stmv_inputs_highres_redo" )  # recreate fields for .. requires 60GB+
 

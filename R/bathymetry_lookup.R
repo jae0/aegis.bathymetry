@@ -6,15 +6,15 @@ bathymetry_lookup = function( p, locs, vnames="z", output_data_class="points", s
   require(aegis.bathymetry)
 
   # set up parameters for input data
-  if ( source_data_class %in% c("rawdata", "aggregated_rawdata", "modelled_stmv" ) ) {
-    if (source_data_class=="modelled_stmv") {
+  if ( source_data_class %in% c("rawdata", "aggregated_rawdata", "stmv" ) ) {
+    if (source_data_class=="stmv") {
       p_source = bathymetry_parameters(p=p, project_class="stmv")
     } else {
-      p_source = bathymetry_parameters(p=p, project_class="default")
-  }
-  } else if (source_data_class %in% "modelled_carstm" ) {
+      p_source = bathymetry_parameters(p=p, project_class="model")
+    }
+  } else if (source_data_class %in% "carstm" ) {
       # copy of param list for global analysis in aegis.bathymetry/inst/scripts/02.bathymetry.carstm.R
-      p_source = aegis.bathymetry::bathymetry_carstm( DS = "parameters_default" )
+    p_source = aegis.bathymetry::bathymetry_parameters( p=p, project_class="carstm" )
   }
 
 
@@ -31,14 +31,14 @@ bathymetry_lookup = function( p, locs, vnames="z", output_data_class="points", s
       B$z = B$z.mean
       B$z.mean  = NULL
 
-   } else if (source_data_class=="modelled_stmv") {
+   } else if (source_data_class=="stmv") {
 
       B = bathymetry_db(p=p_source, DS="complete", varnames="all" )
     # Bnames = c( "plon", "plat", "z", "z.lb", "z.ub",
     #   "z.sdTotal", "z.rsquared", "z.ndata", "z.sdSpatial", "z.sdObs", "z.phi", "z.nu", "z.localrange" )
       zname = "z"
 
-   } else if (source_data_class=="modelled_carstm") {
+   } else if (source_data_class=="carstm") {
 
       Bcarstm = carstm_summary( p=p_source ) # to load currently saved sppoly
       B = areal_units( p=p_source )
@@ -55,7 +55,7 @@ bathymetry_lookup = function( p, locs, vnames="z", output_data_class="points", s
 
   if (output_data_class == "points ") {
 
-    if ( source_data_class %in% c("rawdata", "aggregated_rawdata", "modelled_stmv" ) )  {
+    if ( source_data_class %in% c("rawdata", "aggregated_rawdata", "stmv" ) )  {
       if ( is.null( locs_proj4string) ) locs_proj4string = attr( locs, "proj4string" )
       if ( is.null( locs_proj4string ) ) {
         # assume projection is the same as that specified by "aegis_proj4string_planar_km"
@@ -80,7 +80,7 @@ bathymetry_lookup = function( p, locs, vnames="z", output_data_class="points", s
       return( B[locs_index, vnames] )
     }
 
-    if ( source_data_class=="modelled_carstm") {
+    if ( source_data_class=="carstm") {
       # convert to raster then match
       require(raster)
       raster_template = raster(extent(locs))
@@ -106,7 +106,7 @@ bathymetry_lookup = function( p, locs, vnames="z", output_data_class="points", s
 
     # expects loc to be a spatial polygon data frame
 
-    if ( source_data_class %in% c("rawdata", "aggregated_rawdata", "modelled_stmv" ) ) {
+    if ( source_data_class %in% c("rawdata", "aggregated_rawdata", "stmv" ) ) {
       Bsf = sf::st_as_sf( B, coords=c("lon", "lat") )
       st_crs(Bsf) = CRS( projection_proj4string("lonlat_wgs84") )
       Bsf = sf::st_transform( Bsf, crs=CRS(proj4string(locs)) )
@@ -122,7 +122,7 @@ bathymetry_lookup = function( p, locs, vnames="z", output_data_class="points", s
     }
 
 
-    if ( source_data_class=="modelled_carstm") {
+    if ( source_data_class=="carstm") {
       # convert to raster then match
       require(raster)
       raster_template = raster(extent(locs)) # +1 to increase the area

@@ -379,6 +379,86 @@
 
     # ------------------------------
 
+
+    if ( DS=="carstm_inputs") {
+
+      # prediction surface
+      #\\ Note inverted convention: depths are positive valued
+      #\\ i.e., negative valued for above sea level and positive valued for below sea level
+      crs_lonlat = sp::CRS(projection_proj4string("lonlat_wgs84"))
+      sppoly = areal_units( p=p )  # will redo if not found
+      areal_units_fn = attributes(sppoly)[["areal_units_fn"]]
+
+      if (p$carstm_inputs_aggregated) {
+        fn = carstm_filenames( p=p, projectname="bathymetry", projecttype="carstm_inputs", areal_units_fn=areal_units_fn )
+      } else {
+        fn = paste( "bathymetry", "carstm_inputs", areal_units_fn, "rawdata", "rdata", sep=".")
+      }
+
+      fn = file.path( p$modeldir, fn)
+
+      if (!redo)  {
+        if (file.exists(fn)) {
+          load( fn)
+          return( M )
+        }
+      }
+
+      # reduce size
+      if (p$carstm_inputs_aggregated) {
+        M = bathymetry_db ( p=p, DS="aggregated_data"   )  # 16 GB in RAM just to store!
+        names(M)[which(names(M)==paste(p$variabletomodel, "mean", sep=".") )] = p$variabletomodel
+
+      } else {
+        M = bathymetry_db ( p=p, DS="z.lonlat.rawdata"  )  # 16 GB in RAM just to store!
+        names(M)[which(names(M)=="z") ] = p$variabletomodel
+        attr( M, "proj4string_planar" ) =  p$aegis_proj4string_planar_km
+        attr( M, "proj4string_lonlat" ) =  projection_proj4string("lonlat_wgs84")
+            # p$quantile_bounds_data = c(0.0005, 0.9995)
+        if (exists("quantile_bounds_data", p)) {
+          TR = quantile(M[,p$variabletomodel], probs=p$quantile_bounds_data, na.rm=TRUE ) # this was -1.7, 21.8 in 2015
+          keep = which( M[,p$variabletomodel] >=  TR[1] & M[,p$variabletomodel] <=  TR[2] )
+          if (length(keep) > 0 ) M = M[ keep, ]
+          # this was -1.7, 21.8 in 2015
+        }
+      }
+
+      M = M[ which( M$lon > p$corners$lon[1] & M$lon < p$corners$lon[2]  & M$lat > p$corners$lat[1] & M$lat < p$corners$lat[2] ), ]
+      M = lonlat2planar(M, p$aegis_proj4string_planar_km)  # should not be required but to make sure
+      # levelplot( eval(paste(p$variabletomodel, "mean", sep="."))~plon+plat, data=M, aspect="iso")
+
+      if( exists("spatial_domain", p)) M = geo_subset( spatial_domain=p$spatial_domain, Z=M ) # need to be careful with extrapolation ...  filter depths
+
+      M$AUID = over( SpatialPoints( M[, c("lon", "lat")], crs_lonlat ), spTransform(sppoly, crs_lonlat ) )$AUID # match each datum to an area
+      M$lon = NULL
+      M$lat = NULL
+      M$plon = NULL
+      M$plat = NULL
+      M = M[ which(!is.na(M$AUID)),]
+      M$AUID = as.character( M$AUID )  # match each datum to an area
+
+      M$tag = "observations"
+
+      sppoly_df = as.data.frame(sppoly)
+      sppoly_df[, p$variabletomodel] = NA
+      sppoly_df$AUID = as.character( sppoly_df$AUID )
+      sppoly_df$tag ="predictions"
+
+      vn = c("z", "tag", "AUID")
+
+      M = rbind( M[, vn], sppoly_df[, vn] )
+      sppoly_df = NULL
+
+      M$auid  = as.numeric( factor(M$AUID) )
+
+      save( M, file=fn, compress=TRUE )
+      return( M )
+    }
+
+
+    # ------------------------------
+
+
     if ( DS %in% c("bathymetry", "stmv_inputs", "stmv_inputs_redo" )) {
 
       fn = file.path( p$modeldir, paste( "bathymetry", "stmv_inputs", "rdata", sep=".") )
