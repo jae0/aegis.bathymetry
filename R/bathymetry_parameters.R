@@ -22,10 +22,9 @@ bathymetry_parameters = function( p=NULL, project_name="bathymetry", project_cla
 
   p = parameters_add_without_overwriting( p, project_name = project_name )
   p = parameters_add_without_overwriting( p, data_root = project.datadirectory( "aegis", p$project_name ) )
-  p = parameters_add_without_overwriting( p,
-    datadir  = file.path( p$data_root, "data" ),
-    modeldir = file.path( p$data_root, "modelled" )
-  )
+  p = parameters_add_without_overwriting( p, datadir  = file.path( p$data_root, "data" ) )
+  p = parameters_add_without_overwriting( p, modeldir = file.path( p$data_root, "modelled" ) )
+
   if ( !file.exists(p$datadir) ) dir.create( p$datadir, showWarnings=FALSE, recursive=TRUE )
   if ( !file.exists(p$modeldir) ) dir.create( p$modeldir, showWarnings=FALSE, recursive=TRUE )
 
