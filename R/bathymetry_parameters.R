@@ -1,17 +1,5 @@
 
-bathymetry_parameters = function( p=list(), project_name="bathymetry", project_class="default", reset_data_location=FALSE, ... ) {
-
-
-  if (reset_data_location)  {
-    # reset a few project specific params, forcing the use of defaults (below)
-    p$data_root = NULL
-    p$datadir  = NULL
-    p$carstm_modelcall = NULL  # defaults to generic
-    p$carstm_model_tag = NULL
-    p$variabletomodel = NULL
-    p$aegis_dimensionality = NULL
-    p$data_transformation = NULL
-  }
+bathymetry_parameters = function( p=list(), project_name="bathymetry", project_class="default", ... ) {
 
   p = parameters_add( p, list(...) ) # add passed args to parameter list, priority to args
 
@@ -69,9 +57,9 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
     )
 
 
-    if ( !exists("carstm_modelcall", p)  ) {
+    if ( !exists("carstm_model_call", p)  ) {
       if ( grepl("inla", p$carstm_modelengine) ) {
-        p$carstm_modelcall = paste(
+        p$carstm_model_call = paste(
           'inla(
             formula = ', p$variabletomodel, ' ~ 1
               + f(auid, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, constr=TRUE, hyper=H$bym2),
