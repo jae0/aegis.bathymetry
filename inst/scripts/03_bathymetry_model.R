@@ -24,14 +24,20 @@ dev.new(); surface( as.image( Z=predictions, x=locations, nx=p$nplons, ny=p$npla
 # p$statsvars = c( "sdTotal", "rsquared", "ndata", "sdSpatial", "sdObs", "phi", "nu", "localrange" )
 dev.new(); levelplot( predictions ~ locations[,1] + locations[,2], aspect="iso" )
 
+p$statsvars = dimnames(statistics)[[2]]
+
+
+dev.new(); levelplot( statistics[,match("Phi_for_aui", p$statsvars)]  ~ locations[,1] + locations[,2], aspect="iso" ) # nu
+dev.new(); levelplot( statistics[,match("rsquared", p$statsvars)]  ~ locations[,1] + locations[,2], aspect="iso" ) # nu
+
 dev.new(); levelplot( statistics[,match("nu", p$statsvars)]  ~ locations[,1] + locations[,2], aspect="iso" ) # nu
 dev.new(); levelplot( statistics[,match("sdSpatial", p$statsvars)]  ~ locations[,1] + locations[,2], aspect="iso" ) #sd total
 dev.new(); levelplot( statistics[,match("localrange", p$statsvars)]  ~ locations[,1] + locations[,2], aspect="iso" ) #localrange
 
 # water only
-o = which( predictions>0 & predictions <1000)
+o = which( predictions>5 & predictions <1000)
 #levelplot( log( statistics[o,match("sdTotal", p$statsvars)] ) ~ locations[o,1] + locations[o,2], aspect="iso" ) #sd total
-levelplot( log(predictions[o]) ~ locations[o,1] + locations[o,2], aspect="iso" )
+levelplot( (predictions[o]) ~ locations[o,1] + locations[o,2], aspect="iso" )
 
 
 # bring together stats and predictions and any other required computations: slope and curvature

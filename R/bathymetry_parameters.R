@@ -225,12 +225,12 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
         transf = function(x) {log10(x + 2500)} ,
         invers = function(x) {10^(x) - 2500}
       ), # data range is from -1667 to 5467 m: make all positive valued
-      stmv_distance_statsgrid = 5, # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
+      stmv_distance_statsgrid = 2, # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
     #  stmv_interpolation_basis_distance = 5,   # fixed distance 2 x statsgrid
-      stmv_distance_prediction_limits =c( 3, 25 ), # range of permissible predictions km (i.e 1/2 stats grid to upper limit based upon data density)
-      stmv_interpolation_basis_distance_choices = c(5),
-      stmv_nmin = 100, # min number of data points req before attempting to model in a localized space
-      stmv_nmax = 5000, # no real upper bound.. just speed /RAM
+      stmv_distance_prediction_limits =c( 2, 25 ), # range of permissible predictions km (i.e 1/2 stats grid to upper limit based upon data density)
+      stmv_interpolation_basis_distance_choices = c(2, 4, 8),
+      stmv_nmin = 10, # min number of data points req before attempting to model in a localized space
+      stmv_nmax = 10000, # no real upper bound.. just speed /RAM
       stmv_force_complete_method = "linear_interp",
       stmv_runmode = list(
         carstm = rep("localhost", 2),
