@@ -210,7 +210,7 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
       stmv_local_modelcall = paste(
         'inla(
           formula = z ~ 1
-            + f(aui, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, constr=TRUE, hyper=H$bym2),
+            + f(auid, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, constr=TRUE, hyper=H$bym2),
           family = "normal",
           data= dat,
           control.compute=list(dic=TRUE, waic=TRUE, cpo=FALSE, config=FALSE),  # config=TRUE if doing posterior simulations
