@@ -412,14 +412,14 @@
       } else {
         M = bathymetry_db ( p=p, DS="z.lonlat.rawdata"  )  # 16 GB in RAM just to store!
         names(M)[which(names(M)=="z") ] = p$variabletomodel
+        M = M[ which( !duplicated(M)), ]
         attr( M, "proj4string_planar" ) =  p$aegis_proj4string_planar_km
         attr( M, "proj4string_lonlat" ) =  projection_proj4string("lonlat_wgs84")
             # p$quantile_bounds_data = c(0.0005, 0.9995)
         if (exists("quantile_bounds_data", p)) {
-          TR = quantile(M[,p$variabletomodel], probs=p$quantile_bounds_data, na.rm=TRUE ) # this was -1.7, 21.8 in 2015
+          TR = quantile(M[,p$variabletomodel], probs=p$quantile_bounds_data, na.rm=TRUE )
           keep = which( M[,p$variabletomodel] >=  TR[1] & M[,p$variabletomodel] <=  TR[2] )
           if (length(keep) > 0 ) M = M[ keep, ]
-          # this was -1.7, 21.8 in 2015
         }
       }
 
@@ -429,7 +429,9 @@
       if ( exists("spatial_domain", p)) M = geo_subset( spatial_domain=p$spatial_domain, Z=M ) # need to be careful with extrapolation ...  filter depths
       M$plon = NULL
       M$plat = NULL
-      M = M[ sample(1:nrow(M), 5000),]
+
+      eps = .Machine$double.eps
+      M$z = M$z + runif( nrow(M), min=-eps, max=eps )
 
       M$AUID = st_points_in_polygons(
         pts=st_as_sf( M, coords=c("lon","lat"), crs=crs_lonlat ),
@@ -444,7 +446,7 @@
 
       M$tag = "observations"
 
-      sppoly_df = as.data.frame(sppoly)
+      sppoly_df = st_drop_geometry(sppoly)
       sppoly_df[, p$variabletomodel] = NA
       sppoly_df$AUID = as.character( sppoly_df$AUID )
       sppoly_df$tag ="predictions"
