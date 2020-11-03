@@ -126,7 +126,7 @@ bathymetry_lookup = function( p, locs, vnames="z", output_data_class="points", s
        # transfer the coordinate system to the raster
       B = sf::st_transform( as(B, "sf"), crs=CRS(proj4string(locs)) )  # B is a carstm sppoly
       for (vn in Bnames) {
-        Bsf = fasterize::fasterize( B, raster_template, field=vn ).. then extract
+        Bsf = fasterize::fasterize( B, raster_template, field=vn )
         vn2 = paste(vn, "sd", sep="." )
         locs[,vn] = sp::over( locs, Bsf[,vn], fn=mean, na.rm=TRUE )
         locs[,vn2] = sp::over( locs, Bsf[,vn], fn=sd, na.rm=TRUE )
