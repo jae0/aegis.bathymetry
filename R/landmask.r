@@ -5,6 +5,8 @@
     #\\ return.value determines what is returned: "coast.lonat", "coast.polygon" (sp),
     #\\ or indices of"not.land", "land"
 
+    message( "defunct ... here for posterity")
+
     if (is.null(crs)) stop("crs is required")
 
     require(maps)
@@ -30,6 +32,7 @@
       #\\ found in bio.data/bathymetry/landmask/ ...
       land = NULL
       if (file.exists( fn)) load(fn)
+
       if ( return.value=="test" )     return( land)
       if ( return.value=="not.land")  return( which ( is.na(land)) )
       if ( return.value=="land")      return( which ( !is.na(land)) )
@@ -45,5 +48,18 @@
     land = sp::over( SpatialPoints( lonlat, crs ), coastlineSp )
     save( land, file=fn, compress=TRUE )
     return(fn)
+
+    if (0) {
+
+        coastline_source="eastcoast_gadm"
+        crs_lonlat = st_crs(projection_proj4string("lonlat_wgs84"))
+        coast = st_transform( coastline_db( p=p, DS=coastline_source ), crs_lonlat )
+        coast$inside = TRUE
+        inside = st_points_in_polygons(
+          pts = st_as_sf( set[, c("lon", "lat")], coords=c("lon","lat"), crs=crs_lonlat ),
+          polys = coast,
+          varname = "inside"
+        )
+    }
 
   }

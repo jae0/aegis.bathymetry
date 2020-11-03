@@ -385,8 +385,10 @@
       # prediction surface
       #\\ Note inverted convention: depths are positive valued
       #\\ i.e., negative valued for above sea level and positive valued for below sea level
-      crs_lonlat = sp::CRS(projection_proj4string("lonlat_wgs84"))
+      crs_lonlat = st_crs(projection_proj4string("lonlat_wgs84"))
       sppoly = areal_units( p=p )  # will redo if not found
+      sppoly = st_transform(sppoly, crs=crs_lonlat )
+
       areal_units_fn = attributes(sppoly)[["areal_units_fn"]]
 
       if (p$carstm_inputs_aggregated) {
@@ -434,8 +436,8 @@
       M$z = M$z + runif( nrow(M), min=-eps, max=eps )
 
       M$AUID = st_points_in_polygons(
-        pts=st_as_sf( M, coords=c("lon","lat"), crs=crs_lonlat ),
-        polys=st_transform(sppoly, crs=crs_lonlat )[, "AUID"],
+        pts = st_as_sf( M, coords=c("lon","lat"), crs=crs_lonlat ),
+        polys = sppoly[, "AUID"],
         varname="AUID"
       )
 
@@ -446,17 +448,21 @@
 
       M$tag = "observations"
 
-      sppoly_df = st_drop_geometry(sppoly)
-      sppoly_df[, p$variabletomodel] = NA
-      sppoly_df$AUID = as.character( sppoly_df$AUID )
-      sppoly_df$tag ="predictions"
+      region.id = slot( slot(sppoly, "nb"), "region.id" )
+      APS = st_drop_geometry(sppoly)
+      sppoly = NULL
+      gc()
+
+      APS[, p$variabletomodel] = NA
+      APS$AUID = as.character( APS$AUID )
+      APS$tag ="predictions"
 
       vn = c("z", "tag", "AUID")
 
-      M = rbind( M[, vn], sppoly_df[, vn] )
-      sppoly_df = NULL
+      M = rbind( M[, vn], APS[, vn] )
+      APS = NULL
 
-      M$auid = match( M$AUID, slot( slot(sppoly, "nb"), "region.id" ) )
+      M$auid = match( M$AUID, region.id )
 
       save( M, file=fn, compress=TRUE )
       return( M )

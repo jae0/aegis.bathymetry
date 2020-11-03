@@ -107,14 +107,12 @@ bathymetry_lookup = function( p, locs, vnames="z", output_data_class="points", s
     # expects loc to be a spatial polygon data frame
 
     if ( source_data_class %in% c("rawdata", "aggregated_rawdata", "stmv" ) ) {
-      Bsf = sf::st_as_sf( B, coords=c("lon", "lat") )
-      st_crs(Bsf) = CRS( projection_proj4string("lonlat_wgs84") )
-      Bsf = sf::st_transform( Bsf, crs=CRS(proj4string(locs)) )
-      Boo = as(Bsf, "Spatial")
+      Bsf = sf::st_as_sf( B, coords=c("lon", "lat"), st_crs( projection_proj4string("lonlat_wgs84") ) )
+      Bsf = sf::st_transform( Bsf, crs=st_crs(proj4string(locs)) )
       for (vn in Bnames) {
         vn2 = paste(vn, "sd", sep="." )
-        slot(locs,"data")[,vn] = sp::over( locs, Boo, fn=mean, na.rm=TRUE )[,vn]
-        slot(locs,"data")[,vn2] = sp::over( locs, Boo, fn=sd, na.rm=TRUE )[,vn]
+        locs[,vn] = aggregate( Bsf[,vn], locs, mean, na.rm=TRUE )
+        locs[,vn2] = aggregate( Bsf[,vn], locs, sd, na.rm=TRUE )
       }
       vnames = intersect( names(B), vnames )
       if ( length(vnames) ==0 ) vnames=names(B) # no match returns all
@@ -124,24 +122,21 @@ bathymetry_lookup = function( p, locs, vnames="z", output_data_class="points", s
 
     if ( source_data_class=="carstm") {
       # convert to raster then match
-      require(raster)
-      raster_template = raster(extent(locs)) # +1 to increase the area
-      res(raster_template) = p_source$areal_units_resolution_km  # crs usually in meters, but aegis's crs is in km
-      crs(raster_template) = projection(locs) # transfer the coordinate system to the raster
-      Bsf = sf::st_transform( as(B, "sf"), crs=CRS(proj4string(locs)) )  # B is a carstm sppoly
-      Boo = as(B, "SpatialPolygonsDataFrame")
+      raster_template = raster(locs, res=p_source$areal_units_resolution_km, crs=crs(raster_template) = projection(locs) ) # +1 to increase the area
+       # transfer the coordinate system to the raster
+      B = sf::st_transform( as(B, "sf"), crs=CRS(proj4string(locs)) )  # B is a carstm sppoly
       for (vn in Bnames) {
-        # Bf = fasterize::fasterize( Bsf, raster_template, field=vn ).. then extract
-stop("must choose between: over vs fasterize/extract")
+        Bsf = fasterize::fasterize( B, raster_template, field=vn ).. then extract
         vn2 = paste(vn, "sd", sep="." )
-        slot(locs,"data")[,vn] = sp::over( locs, Boo, fn=mean, na.rm=TRUE )[,vn]
-        slot(locs,"data")[,vn2] = sp::over( locs, Boo, fn=sd, na.rm=TRUE )[,vn]
+        locs[,vn] = sp::over( locs, Bsf[,vn], fn=mean, na.rm=TRUE )
+        locs[,vn2] = sp::over( locs, Bsf[,vn], fn=sd, na.rm=TRUE )
      }
       vnames = intersect( names(B), vnames )
       if ( length(vnames) ==0 ) vnames=names(B) # no match returns all
       return(locs[,vnames])
    }
   }
+
 
 }
 
