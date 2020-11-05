@@ -5,7 +5,7 @@ bathymetry_db( p=p, DS="z.lonlat.rawdata.redo" ) # needs about 42 GB RAM, JC 201
 
 for (g in c("canada.east.superhighres", "canada.east.highres", "canada.east", "SSE", "SSE.mpa", "snowcrab")) {
   print(g)
-  pb = aegis.bathymetry::bathymetry_parameters( spatial_domain=g )
+  pb = bathymetry_parameters( spatial_domain=g )
   Z = NULL; gc()
   Z = bathymetry_db( p=pb, DS="aggregated_data", redo=TRUE )  # resolution defined by: (p$inputdata_spatial_discretization_planar_km)
   Z = NULL; gc()

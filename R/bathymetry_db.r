@@ -345,7 +345,7 @@
       M$plon = aegis_floor(M$plon / p$inputdata_spatial_discretization_planar_km + 1 ) * p$inputdata_spatial_discretization_planar_km
       M$plat = aegis_floor(M$plat / p$inputdata_spatial_discretization_planar_km + 1 ) * p$inputdata_spatial_discretization_planar_km
 
-      M = M[ which( M$plon > p0$corners$plon[1] & M$plon < p0$corners$plon[2]  & M$plat > p0$corners$plat[1] & M$plat < p0$corners$plat[2] ), ]
+      M = M[ which( M$plon > p$corners$plon[1] & M$plon < p$corners$plon[2]  & M$plat > p$corners$plat[1] & M$plat < p$corners$plat[2] ), ]
 
       gc()
 
@@ -394,9 +394,9 @@
         }
       }
 
-      Z = bathymetry_db( p=p0, DS="aggregated_data" )
-      Zi = array_map( "xy->2", Z[, c("plon", "plat")], gridparams=p0$gridparams )
-      Zm = matrix( NA, ncol=p0$nplats, nrow=p0$nplons )
+      Z = bathymetry_db( p=p, DS="aggregated_data" )
+      Zi = array_map( "xy->2", Z[, c("plon", "plat")], gridparams=p$gridparams )
+      Zm = matrix( NA, ncol=p$nplats, nrow=p$nplons )
       Zm[Zi] = Z$z.mean
       save(Z, file=fn, compress=TRUE)
 
