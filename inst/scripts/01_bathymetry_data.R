@@ -1,6 +1,7 @@
 
 # Bathymetry base data
 p = aegis.bathymetry::bathymetry_parameters()  # default params
+
 bathymetry_db( p=p, DS="z.lonlat.rawdata.redo" ) # needs about 42 GB RAM, JC 2015
 
 for (g in c("canada.east.superhighres", "canada.east.highres", "canada.east", "SSE", "SSE.mpa", "snowcrab")) {
@@ -27,13 +28,14 @@ if( bathyclines.redo ) {
   # options(max.contour.segments=1000) # might be required if superhighres is being used
   for (g in c("canada.east.superhighres", "canada.east.highres", "canada.east", "SSE", "SSE.mpa", "snowcrab")) {
     print(g)
-    pb = aegis.bathymetry::bathymetry_parameters( project_class="stmv", spatial_domain=g )
+    pb = bathymetry_parameters( spatial_domain=g )
     if( g=="snowcrab") depths = c( 10, 20, 50, 75, 100, 200, 250, 300, 350 )  # by definition .. in geo_subset
     if( g=="SSE") depths = depthsall[ depthsall < 801] # by definition
     if( g=="SSE.mpa") depths = depthsall[depthsall<2001]  # by definition
     if( grepl( "canada.east", g)) depths = depthsall
     plygn = isobath_db( p=pb, DS="isobath.redo", depths=depths  )
   }
+
 }
 
 
@@ -42,7 +44,7 @@ if (0) {
     # some test plots
     RLibrary( "aegis.bathymetry" , "aegis.coastline", "aegis.polygons")
 
-    pb = aegis.bathymetry::bathymetry_parameters( project_class="stmv", spatial_domain="canada.east" ) # reset to lower resolution
+    pb = bathymetry_parameters( spatial_domain="canada.east" ) # reset to lower resolution
     depths = c( 100, 200, 300, 500, 1000)
     plygn = isobath_db( p=pb, DS="isobath", depths=depths  )
 

@@ -390,7 +390,7 @@
       if (!redo)  {
         if (file.exists(fn)) {
           load( fn)
-          return( M )
+          return( Zm )
         }
       }
 
@@ -398,9 +398,9 @@
       Zi = array_map( "xy->2", Z[, c("plon", "plat")], gridparams=p$gridparams )
       Zm = matrix( NA, ncol=p$nplats, nrow=p$nplons )
       Zm[Zi] = Z$z.mean
-      save(Z, file=fn, compress=TRUE)
+      save(Zm, file=fn, compress=TRUE)
 
-      return(Z)
+      return(Zm)
     }
     # ------------------------------
 
