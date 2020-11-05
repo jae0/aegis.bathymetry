@@ -102,58 +102,6 @@ bathymetry_db( p=p, DS="baseline.redo" )  # coords of areas of interest ..filter
 
 
 
-### -----------------------------------------------------------------
-# to update/recreate new polygons, run the following:
-bathyclines.redo = FALSE
-# bathyclines.redo = TRUE
-depthsall = c( 0, 10, 20, 50, 75, 100, 200, 250, 300, 350, 400, 450, 500, 550, 600, 700, 750, 800, 900,
-             1000, 1200, 1250, 1400, 1500, 1750, 2000, 2500, 3000, 4000, 5000 )
-if( bathyclines.redo ) {
-  # note these polygons are created at the resolution specified in p$spatial_domain ..
-  # which by default is very high ("canada.east.highres" = 0.5 km .. p$pres ).
-  # For lower one specify an appropriate p$spatial_domain
-  # options(max.contour.segments=1000) # might be required if superhighres is being used
-  for (g in c("canada.east.superhighres", "canada.east.highres", "canada.east", "SSE", "SSE.mpa", "snowcrab")) {
-    print(g)
-    pb = aegis.bathymetry::bathymetry_parameters( project_class="stmv", spatial_domain=g )
-    if( g=="snowcrab") depths = c( 10, 20, 50, 75, 100, 200, 250, 300, 350 )  # by definition .. in geo_subset
-    if( g=="SSE") depths = depthsall[ depthsall < 801] # by definition
-    if( g=="SSE.mpa") depths = depthsall[depthsall<2001]  # by definition
-    if( grepl( "canada.east", g)) depths = depthsall
-    plygn = isobath_db( p=pb, DS="isobath.redo", depths=depths  )
-  }
-}
-
-
-if (0) {
-    ### -----------------------------------------------------------------
-    # some test plots
-    RLibrary( "aegis.bathymetry" , "aegis.coastline", "aegis.polygons")
-
-    pb = aegis.bathymetry::bathymetry_parameters( project_class="stmv", spatial_domain="canada.east" ) # reset to lower resolution
-    depths = c( 100, 200, 300, 500, 1000)
-    plygn = isobath_db( p=pb, DS="isobath", depths=depths  )
-
-    coast = coastline_db( xlim=c(-75,-52), ylim=c(41,50), no.clip=TRUE )  # no.clip is an option for maptools::getRgshhsMap
-    plot( coast, col="transparent", border="steelblue2" , xlim=c(-68,-52), ylim=c(41,50),  xaxs="i", yaxs="i", axes=TRUE )  # ie. coastline
-    lines( plygn[ as.character(c( 100, 200, 300 ))], col="gray90" ) # for multiple polygons
-    lines( plygn[ as.character(c( 500, 1000))], col="gray80" ) # for multiple polygons
-    # plot( plygn, xlim=c(-68,-52), ylim=c(41,50))  # all isobaths commented as it is slow ..
-
-
-    # or to get in projected (planar) coords as defined by p$spatial_domain
-    plygn = isobath_db( p=pb, DS="isobath", depths=c(100) , project_to=pb$aegis_proj4string_planar_km ) # as SpatialLines
-    plot(plygn)
-
-    plygn_aslist = coordinates( plygn)
-    plot( 0,0, type="n", xlim=c(-200,200), ylim=c(-200,200)  )
-    lapply( plygn_aslist[[1]], points, pch="." )
-
-    plygn_as_xypoints = coordinates( as( plygn, "SpatialPoints") )# ... etc...
-    plot(plygn_as_xypoints, pch=".",  xaxs="i", yaxs="i", axes=TRUE)
-}
-
-
 
 # a few plots :
 pb = aegis.bathymetry::bathymetry_parameters( project_class="stmv", spatial_domain="canada.east.highres" )

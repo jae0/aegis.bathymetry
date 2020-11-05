@@ -72,8 +72,8 @@ bathymetry_lookup = function( p, locs, vnames="z", output_data_class="points", s
         locs = lonlat2planar( locs[, c("lon", "lat")], proj.type=p_source$aegis_proj4string_planar_km )
         locs_proj4string = p_source$aegis_proj4string_planar_km
       }
-      B_map = stmv::array_map( "xy->1", B[,c("plon","plat")], gridparams=p_source$gridparams )
-      locs_map = stmv::array_map( "xy->1", locs[,c("plon","plat")], gridparams=p_source$gridparams )
+      B_map = array_map( "xy->1", B[,c("plon","plat")], gridparams=p_source$gridparams )
+      locs_map = array_map( "xy->1", locs[,c("plon","plat")], gridparams=p_source$gridparams )
       locs_index = match( locs_map, B_map )
       vnames = intersect( names(B), vnames )
       if ( length(vnames) ==0 ) vnames=names(B) # no match returns all

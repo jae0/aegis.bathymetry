@@ -321,7 +321,7 @@
 
       if (!exists("inputdata_spatial_discretization_planar_km", p) )  p$inputdata_spatial_discretization_planar_km = 1
 
-      fn = file.path( p$datadir, paste( "bathymetry", "aggregated_data", round(p$inputdata_spatial_discretization_planar_km, 6) , "rdata", sep=".") )
+      fn = file.path( p$datadir, paste( "bathymetry", "aggregated_data", p$spatial_domain,  round(p$inputdata_spatial_discretization_planar_km, 6) , "rdata", sep=".") )
       if (!redo)  {
         if (file.exists(fn)) {
           load( fn)
@@ -344,6 +344,8 @@
 
       M$plon = aegis_floor(M$plon / p$inputdata_spatial_discretization_planar_km + 1 ) * p$inputdata_spatial_discretization_planar_km
       M$plat = aegis_floor(M$plat / p$inputdata_spatial_discretization_planar_km + 1 ) * p$inputdata_spatial_discretization_planar_km
+
+      M = M[ which( M$plon > p0$corners$plon[1] & M$plon < p0$corners$plon[2]  & M$plat > p0$corners$plat[1] & M$plat < p0$corners$plat[2] ), ]
 
       gc()
 
@@ -377,6 +379,29 @@
       return( M )
     }
 
+
+    # ------------------------------
+
+    if ( DS=="aggregated_data_as_matrix") {
+
+      if (!exists("inputdata_spatial_discretization_planar_km", p) )  p$inputdata_spatial_discretization_planar_km = 1
+
+      fn = file.path( p$datadir, paste( "bathymetry", "aggregated_data_as_matrix", p$spatial_domain, round(p$inputdata_spatial_discretization_planar_km, 6) , "rdata", sep=".") )
+      if (!redo)  {
+        if (file.exists(fn)) {
+          load( fn)
+          return( M )
+        }
+      }
+
+      Z = bathymetry_db( p=p0, DS="aggregated_data" )
+      Zi = array_map( "xy->2", Z[, c("plon", "plat")], gridparams=p0$gridparams )
+      Zm = matrix( NA, ncol=p0$nplats, nrow=p0$nplons )
+      Zm[Zi] = Z$z.mean
+      save(Z, file=fn, compress=TRUE)
+
+      return(Z)
+    }
     # ------------------------------
 
 

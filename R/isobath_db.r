@@ -1,10 +1,17 @@
 
-isobath_db = function( ip=NULL, p=NULL, depths=c(100, 200), DS="isobath", project_to=projection_proj4string("lonlat_wgs84"), data_dir=project.datadirectory( "aegis", "bathymetry" ) ) {
+isobath_db = function( ip=NULL, p=NULL,
+  spatial_domain="canada.east.superhighres",
+  depths=c( 0, 10, 20, 50, 75, 100, 200, 250, 300, 350, 400, 450, 500, 550, 600, 700, 750, 800, 900,
+             1000, 1200, 1250, 1400, 1500, 1750, 2000, 2500, 3000, 4000, 5000 ),
+  DS="isobath",
+  project_to=projection_proj4string("lonlat_wgs84"),
+  data_dir=project.datadirectory( "aegis", "bathymetry" ) ) {
+
   #\\ create or return isobaths and coastlines/coast polygons
   # require(stmv)
   if (DS %in% c( "isobath", "isobath.redo" )) {
 
-    fn.iso = file.path( data_dir, "isobaths", paste("isobaths", p$spatial_domain, "rdata", sep=".") )  # in case there is an alternate project
+    fn.iso = file.path( data_dir, "isobaths", paste("isobaths", spatial_domain, "rdata", sep=".") )  # in case there is an alternate project
 
     isobaths = NULL
     notfound = NULL
@@ -13,35 +20,29 @@ isobath_db = function( ip=NULL, p=NULL, depths=c(100, 200), DS="isobath", projec
       load(fn.iso)
       notfound = setdiff( as.character(depths), names(isobaths) )
       if (length( notfound)==0) {
-        if ( proj4string( isobaths ) != as.character(project_to) ) isobaths = spTransform( isobaths, sp::CRS( project_to ) )
-        return( isobaths[ as.character(depths) ] )
+        if ( st_crs( isobaths ) != st_crs(project_to) ) isobaths = st_transform( isobaths, st_crs( project_to ) )
+        return( isobaths[ which(isobaths$level %in% as.character(depths)), ] )
       }
     }
 
-    p0 = spatial_parameters( spatial_domain=p$spatial_domain )
-    depths = sort( unique(c(depths, notfound) ))
+    p0 = bathymetry_parameters( spatial_domain=spatial_domain  )  # default params
+    # p0 = spatial_parameters( spatial_domain=spatial_domain )
+    depths = sort( unique( depths ) )
     x=seq(min(p0$corners$plon), max(p0$corners$plon), by=p0$pres)
     y=seq(min(p0$corners$plat), max(p0$corners$plat), by=p0$pres)
 
-    Z = bathymetry_db( p=p0, DS="complete", varnames=c("plon", "plat", "z") )
-    Zi = array_map( "xy->2", Z[, c("plon", "plat")], gridparams=p0$gridparams )
-    Zm = matrix( NA, ncol=p0$nplats, nrow=p0$nplons )
-    Zm[Zi] = Z$z
-    rm(Z); gc()
-
+    Zm = bathymetry_db( p=p0, DS="aggregated_data_as_matrix" )
     # Zm = fields::image.smooth( Zm, theta=p0$pres, dx=p0$pres, dy=p0$pres ) # a little smoothed to make contours cleaner     .. too slow
-
     cl = contourLines( x=x, y=y, Zm, levels=depths )
 
     isobaths = maptools::ContourLines2SLDF(cl, proj4string=sp::CRS( p$aegis_proj4string_planar_km ) )
-    row.names(slot(isobaths, "data")) = as.character(depths)
-    for (i in 1:length(depths)) slot( slot(isobaths, "lines")[[i]], "ID") = as.character(depths[i])
-    isobaths = as.SpatialLines.SLDF( isobaths )
-    sp::proj4string( isobaths ) =  p$aegis_proj4string_planar_km   # project_to gets reset .. not sure why
-    isobaths = spTransform( isobaths, sp::CRS(projection_proj4string("lonlat_wgs84")) )  ## longlat  as storage format
+    isobaths = st_transform( as( isobaths, "sf"), st_crs(projection_proj4string("lonlat_wgs84")) )  ## longlat  as storage format
+    row.names(isobaths) = as.character(depths)
 
-    save( isobaths, file=fn.iso, compress=TRUE) # save spherical
-    if ( ! proj4string( isobaths ) == as.character( project_to) ) isobaths = spTransform( isobaths, sp::CRS( project_to   ) )
+    save( isobaths, file=fn.iso, compress=TRUE)
+
+    if ( ! st_crs( isobaths ) == st_crs( project_to) ) isobaths = st_transform( isobaths, st_crs( project_to ) )
+
     return( isobaths )
   }
 
@@ -49,16 +50,16 @@ isobath_db = function( ip=NULL, p=NULL, depths=c(100, 200), DS="isobath", projec
 
   if (DS %in% c( "coastLine", "coastLine.redo")) {
     #\\ synomym for coastline_db ... left for historical compatibility .. deprecated
-    if (DS=="coastline") return( coastline_db( p=p, DS="mapdata.coastLine", project_to = project_to   ) )
-    if (DS=="coastline.redo") return( coastline_db( p=p, DS="mapdata.coastLine.redo", project_to = project_to   ) )
+    if (DS=="coastline") return( coastline_db( project_to = project_to   ) )
+    # if (DS=="coastline.redo") return( coastline_db( p=p, DS="mapdata.coastLine.redo", project_to = project_to   ) )
   }
 
   # ------------------------
 
   if (DS %in% c("coastPolygon", "coastPolygon.redo") ) {
     #\\ synomym for coastline_db ... left for historical compatibility .. deprecated
-    if (DS=="coastPolygon") return( coastline_db( p=p, DS="mapdata.coastPolygon", project_to = project_to   ) )
-    if (DS=="coastPolygon.redo") return( coastline_db( p=p, DS="mapdata.coastPolygon.redo", project_to = project_to   ) )
+    if (DS=="coastPolygon") return( coastline_db( project_to = project_to   ) )
+    # if (DS=="coastPolygon.redo") return( coastline_db( p=p, DS="mapdata.coastPolygon.redo", project_to = project_to   ) )
   }
 
 
