@@ -455,7 +455,7 @@
       M = M[ which( M$lon > p$corners$lon[1] & M$lon < p$corners$lon[2]  & M$lat > p$corners$lat[1] & M$lat < p$corners$lat[2] ), ]
       M = lonlat2planar(M, p$aegis_proj4string_planar_km)  # should not be required but to make sure
       # levelplot( eval(paste(p$variabletomodel, "mean", sep="."))~plon+plat, data=M, aspect="iso")
-      if ( exists("spatial_domain", p)) M = geo_subset( spatial_domain=p$spatial_domain, Z=M ) # need to be careful with extrapolation ...  filter depths
+      if ( exists("spatial_domain", p)) M = M[ geo_subset( spatial_domain=p$spatial_domain, Z=M ), ] # need to be careful with extrapolation ...  filter depths
       M$plon = NULL
       M$plat = NULL
 
@@ -725,7 +725,7 @@
         #   pn = spatial_parameters( p=pn, spatial_domain="SSE" )
         # }
         Z = bathymetry_db( p=pn, DS="complete" )
-        Z = geo_subset( spatial_domain=domain, Z=Z )
+        Z = Z[ geo_subset( spatial_domain=domain, Z=Z ), ]
 
         # range checks
         ii = which( Z$dZ < exp(-6))
