@@ -47,8 +47,7 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
       data_transformation=list( forward=function(x){ x+2500 }, backward=function(x) {x-2500} ),
       areal_units_source = "lattice", # "stmv_fields" to use ageis fields instead of carstm fields ... note variables are not the same
       areal_units_resolution_km = 5, # default in case not provided ... 25 km dim of lattice ~ 1 hr; 5km = 79hrs; 2km = ?? hrs
-      areal_units_proj4string_planar_km = aegis::projection_proj4string("utm20"),  # coord system to use for areal estimation and gridding for carstm
-      # areal_units_proj4string_planar_km = projection_proj4string("omerc_nova_scotia")  # coord system to use for areal estimation and gridding for carstm
+      areal_units_proj4string_planar_km = ifelse( exists("aegis_proj4string_planar_km", p), p$aegis_proj4string_planar_km, projection_proj4string("utm20") ),  # coord system to use for areal estimation and gridding for carstm
       areal_units_overlay = "none",
       carstm_modelengine = "inla",  # {model engine}.{label to use to store}
       carstm_model_label = "default",
