@@ -17,6 +17,16 @@ predictions = stmv_db( p=p, DS="stmv.prediction", ret="mean" )
 statistics  = stmv_db( p=p, DS="stmv.stats" )
 locations   = spatial_grid( p )
 
+# bring together stats and predictions and any other required computations: slope and curvature
+# and then regrid/warp as the interpolation process is so expensive, regrid/upscale/downscale based off the above run
+# .. still uses about 30-40 GB as the base layer is "superhighres" ..
+# if parallelizing .. use different servers than local nodes
+
+bathymetry_db( p=p, DS="complete.redo", spatial_domain_subareas = c( "canada.east.highres", "canada.east",  "SSE", "SSE.mpa" , "snowcrab") ) # finalise at diff resolutions 15 min ..
+
+
+# some plots
+
 # comparisons
 dev.new(); surface( as.image( Z=predictions, x=locations, nx=p$nplons, ny=p$nplats, na.rm=TRUE) )
 
@@ -40,13 +50,6 @@ o = which( predictions>5 & predictions <1000)
 levelplot( (predictions[o]) ~ locations[o,1] + locations[o,2], aspect="iso" )
 
 
-# bring together stats and predictions and any other required computations: slope and curvature
-# and then regrid/warp as the interpolation process is so expensive, regrid/upscale/downscale based off the above run
-# .. still uses about 30-40 GB as the base layer is "superhighres" ..
-# if parallelizing .. use different servers than local nodes
-
-
-bathymetry_db( p=p, DS="complete.redo", spatial_domain_subareas = c( "canada.east.highres", "canada.east",  "SSE", "SSE.mpa" , "snowcrab") ) # finalise at diff resolutions 15 min ..
 
 
 # end

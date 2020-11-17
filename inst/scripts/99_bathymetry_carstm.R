@@ -21,7 +21,7 @@ p = aegis.bathymetry::bathymetry_parameters( project_class="carstm" )  # carstm 
     # DS = "parameters_default"; areal_units_resolution_km=5 ... takes 79 Hrs!
 
 # example sequence to force creating of input data for modelling
-  sppoly = areal_units( p=p, redo=TRUE ); plot(sppoly) # or: spplot( sppoly, "AUID", main="AUID", sp.layout=p$coastLayout )
+  sppoly = areal_units( p=p, redo=TRUE ); plot(sppoly[, "AUID"]) # or: spplot( sppoly, "AUID", main="AUID", sp.layout=p$coastLayout )
   M = bathymetry_db( p=p, DS="aggregated_data" , redo=TRUE )  # will redo if not found .. not used here but used for data matching/lookup in other aegis projects that use bathymetry
   M = bathymetry_db( p=p, DS="carstm_inputs", redo=TRUE )  # will redo if not found
   str(M)
