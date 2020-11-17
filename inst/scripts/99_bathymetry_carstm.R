@@ -37,6 +37,7 @@ p = aegis.bathymetry::bathymetry_parameters( project_class="carstm" )  # carstm 
   plot(fit)
   plot(fit, plot.prior=TRUE, plot.hyperparameters=TRUE, plot.fixed.effects=FALSE )
   s = summary(fit)
+
   s$dic$dic # 1404489
   s$dic$p.eff # 151412
 
@@ -54,3 +55,5 @@ p = aegis.bathymetry::bathymetry_parameters( project_class="carstm" )  # carstm 
   carstm_plot( p=p, res=res, vn=vn )
 
 # end
+
+
