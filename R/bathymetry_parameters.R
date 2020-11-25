@@ -88,7 +88,7 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
     p = parameters_add_without_overwriting( p,
       project_class="stmv",
       DATA = 'bathymetry_db( p=p, DS="stmv_inputs" )',
-      stmv_variables = list(Y="z"),  # required as fft has no formulae
+      stmv_variables = list(Y="z", LOCS = c("plon", "plat")),  # required as fft has no formulae
       stmv_global_modelengine = "none",  # only marginally useful .. consider removing it and use "none",
       stmv_local_modelengine="fft",
       stmv_fft_filter = "matern tapered lowpass modelled fast_predictions", #  act as a low pass filter first before matern with taper .. depth has enough data for this. Otherwise, use:
@@ -112,7 +112,7 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
       stmv_nmax = 1000, # no real upper bound.. just speed /RAM
       stmv_force_complete_method = "linear_interp"
     )
-    p$stmv_variables = parameters_add_without_overwriting( p$stmv_variables, LOCS = c("plon", "plat") )
+
     p$libs = c( p$libs, project.library ( "stmv" ) )
 
 
@@ -201,7 +201,7 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
     p = parameters_add_without_overwriting( p,
       project_class="stmv",
       DATA = 'bathymetry_db( p=p, DS="stmv_inputs_highres" )',  # _highres
-      stmv_variables = list(Y="z"),  # required as fft has no formulae
+      stmv_variables = list(Y="z", LOCS = c("plon", "plat")),  # required as fft has no formulae
       stmv_global_modelengine = "none",  # only marginally useful .. consider removing it and use "none",
       stmv_local_modelengine="carstm",
       stmv_local_covariates_carstm = "",  # only model covariates
