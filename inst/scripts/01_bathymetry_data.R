@@ -73,14 +73,14 @@ require(carstm)
 require(aegis)
 require(aegis.bathymetry)
 
-for ( areal_units_resolution_km in c(25, 20, 15, 10, 5, 1) ) {
+for ( areal_units_resolution_km in c(100, 50, 25, 20, 15, 10, 5, 1) ) {
   # for ( spatial_domain in c("snowcrab", "SSE")) {
    for ( spatial_domain in c( "SSE", "snowcrab", "canada.east.superhighres", "canada.east.highres", "canada.east" )) {
     p = bathymetry_parameters(
       spatial_domain = spatial_domain,  # defines spatial area, currenty: "snowcrab" or "SSE"
-      areal_units_resolution_km = areal_units_resolution_km, # km dim of lattice ~ 1 hr
+      areal_units_resolution_km = areal_units_resolution_km # km dim of lattice ~ 1 hr
       # areal_units_proj4string_planar_km = projection_proj4string("utm20"),  # coord system to use for areal estimation and gridding for carstm  --  uses p$aegis_proj4string_planar_km if not set ..
-      carstm_inputs_aggregated = TRUE
+
     )
     sppoly = areal_units( p=p, redo=TRUE )  # this has already been done in aegis.polygons::01 polygons.R .. should nto have to redo
     M = bathymetry_db( p=p, DS="carstm_inputs", redo=TRUE )  # will redo if not found

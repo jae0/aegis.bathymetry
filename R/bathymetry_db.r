@@ -186,7 +186,7 @@
       # if (length(u)>0) gdem0_1000 = gdem0_1000[-u,]
       save ( gdem0_1000, file=fn0g )
       rm( gdem0_1000 )
-      rm( gdem) ;gc()
+      rm( gdem)
       gc()
 
 
@@ -490,6 +490,7 @@
       APS = NULL
 
       M$auid = match( M$AUID, region.id )
+      M$uid = 1:nrow(M)  # seems to require an iid model for eachobs for stability
 
       save( M, file=fn, compress=TRUE )
       return( M )

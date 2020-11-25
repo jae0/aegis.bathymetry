@@ -51,7 +51,7 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
       areal_units_overlay = "none",
       carstm_modelengine = "inla",  # {model engine}.{label to use to store}
       carstm_model_label = "default",
-      carstm_inputs_aggregated = FALSE
+      carstm_inputs_aggregated = TRUE
     )
 
 
@@ -60,6 +60,7 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
         p$carstm_model_call = paste(
           'inla(
             formula = ', p$variabletomodel, ' ~ 1
+              + f(uid, model="iid" )
               + f(auid, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, constr=TRUE, hyper=H$bym2),
             family = "lognormal",
             data= M,
@@ -238,6 +239,7 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
         save_completed_data = TRUE
       )  # ncpus for each runmode
     )
+    p = aegis_parameters( p=p, DS="stmv" )
 
     return(p)
   }

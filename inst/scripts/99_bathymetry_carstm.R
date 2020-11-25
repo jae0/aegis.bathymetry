@@ -15,17 +15,30 @@
 # and some plotting parameters (bounding box, projection, bathymetry layout, coastline)
 # --- look inside "parameters_default" and define alternates based upon it
 
-p = aegis.bathymetry::bathymetry_parameters( project_class="carstm" )  # carstm on 25 km lattice grid
+p = aegis.bathymetry::bathymetry_parameters( project_class="carstm", areal_units_resolution_km=100, carstm_inputs_aggregated = TRUE )  # carstm on 25 km lattice grid
 
 
     # DS = "parameters_default"; areal_units_resolution_km=5 ... takes 79 Hrs!
 
 # example sequence to force creating of input data for modelling
-  sppoly = areal_units( p=p, redo=TRUE ); plot(sppoly[, "AUID"]) # or: spplot( sppoly, "AUID", main="AUID", sp.layout=p$coastLayout )
-  M = bathymetry_db( p=p, DS="aggregated_data" , redo=TRUE )  # will redo if not found .. not used here but used for data matching/lookup in other aegis projects that use bathymetry
-  M = bathymetry_db( p=p, DS="carstm_inputs", redo=TRUE )  # will redo if not found
-  str(M)
-  M = NULL; gc()
+  if (0) {
+    sppoly = areal_units( p=p, redo=TRUE );
+    plot(sppoly[, "AUID"])
+    for( i in 1:3) plot( as(p$coastLayout[[i]][[2]], "sf"), add=TRUE )
+
+  # set up default map projection
+  oo = aegis.coastline::coastline_layout( p=p )
+  p = parameters_add_without_overwriting( p,
+    coastLayout = oo[["coastLayout"]],
+    bounding_domain = oo[["bounding_domain"]]
+  )
+  oo = NULL
+
+    M = bathymetry_db( p=p, DS="aggregated_data" , redo=TRUE )  # will redo if not found .. not used here but used for data matching/lookup in other aegis projects that use bathymetry
+    M = bathymetry_db( p=p, DS="carstm_inputs", redo=TRUE )  # will redo if not found
+    str(M)
+    M = NULL; gc()
+  }
 
 # run the model ... about 24 hrs
   fit = carstm_model( p=p, M='bathymetry_db( p=p, DS="carstm_inputs" )' ) # run model and obtain predictions
