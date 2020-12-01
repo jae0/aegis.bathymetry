@@ -76,6 +76,11 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
 
     p = carstm_parameters( p=p )  # fill in anything missing with defaults and do some checks
 
+    if ( p$inputdata_spatial_discretization_planar_km >= p$areal_units_resolution_km ) {
+      warning( "p$inputdata_spatial_discretization_planar_km >= p$areal_units_resolution_km " )
+    }
+    message ("p$areal_units_resolution_km: ", p$areal_units_resolution_km)
+
     return(p)
 
   }
@@ -187,6 +192,12 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
       )
     }
     p = aegis_parameters( p=p, DS="stmv" )
+
+    if ( p$inputdata_spatial_discretization_planar_km >= p$pres ) {
+      warning( "p$inputdata_spatial_discretization_planar_km >= p$pres " )
+    }
+    message ("p$stmv_distance_statsgrid: ", p$stmv_distance_statsgrid)
+
     return(p)
   }
 
@@ -205,7 +216,7 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
       stmv_global_modelengine = "none",  # only marginally useful .. consider removing it and use "none",
       stmv_local_modelengine="carstm",
       stmv_local_covariates_carstm = "",  # only model covariates
-      stmv_local_all_carstm = "",  # ignoring aui
+      stmv_local_all_carstm = "",  # ignoring au
       stmv_local_modelcall = paste(
         'inla(
           formula = z ~ 1
@@ -216,7 +227,7 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
           control.results=list(return.marginals.random=TRUE, return.marginals.predictor=TRUE ),
           control.predictor=list(compute=FALSE, link=1 ),
           control.fixed=H$fixed,  # priors for fixed effects, generic is ok
-          verbose=TRUE
+          verbose=FALSE
         ) '
       ),   # NOTE:: this is a local model call
       stmv_filter_depth_m = FALSE,  # need data above sea level to get coastline
@@ -224,22 +235,27 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
         transf = function(x) {log10(x + 2500)} ,
         invers = function(x) {10^(x) - 2500}
       ), # data range is from -1667 to 5467 m: make all positive valued
-      stmv_distance_statsgrid = 2, # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
+      stmv_distance_statsgrid = 5, # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
     #  stmv_interpolation_basis_distance = 5,   # fixed distance 2 x statsgrid
-      stmv_distance_prediction_limits =c( 2, 25 ), # range of permissible predictions km (i.e 1/2 stats grid to upper limit based upon data density)
-      stmv_interpolation_basis_distance_choices = c(2, 4, 8),
+      stmv_distance_prediction_limits =c( 5, 25 ), # range of permissible predictions km (i.e 1/2 stats grid to upper limit based upon data density)
+      stmv_interpolation_basis_distance_choices = c(5, 10),
       stmv_nmin = 10, # min number of data points req before attempting to model in a localized space
-      stmv_nmax = 10000, # no real upper bound.. just speed /RAM
+      stmv_nmax = 1000, # no real upper bound.. just speed /RAM
       stmv_force_complete_method = "linear_interp",
       stmv_runmode = list(
-        carstm = rep("localhost", 2),
+        carstm = rep("localhost", 1),
         globalmodel = FALSE,
         # restart_load = "interpolate_correlation_basis_0.01" ,  # only needed if this is restarting from some saved instance
         save_intermediate_results = TRUE,
         save_completed_data = TRUE
       )  # ncpus for each runmode
     )
-    p = aegis_parameters( p=p, DS="stmv" )
+    p = aegis_parameters( p=p, DS="stmv" )  # get defaults
+
+    if ( p$inputdata_spatial_discretization_planar_km >= p$pres ) {
+      warning( "p$inputdata_spatial_discretization_planar_km >= p$pres " )
+    }
+    message ("p$stmv_distance_statsgrid: ", p$stmv_distance_statsgrid)
 
     return(p)
   }
