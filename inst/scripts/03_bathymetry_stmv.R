@@ -1,30 +1,32 @@
 
-# Bathymetry
+  # Bathymetry
 
-# Spatial interpolation using stmv on a lattice grid .. continuous form
+  # Spatial interpolation using stmv on a lattice grid .. continuous form
 
-# Total "superhighres": 2-5 GB/process and 4 GB in parent for fft
-# gam method requires more ~ 2X
-# boundary def takes too long .. too much data to process -- skip
-# "highres": ~ 20 hr with 8, 3.2 Ghz cpus on thoth using fft method jc: 2016 or 2~ 6 hr on hyperion
-# "superhighres" fft: looks to be the best in performance/quality; req ~5 GB per process req
-# FFT is the method of choice for speed and ability to capture the variability
-# krige method is a bit too oversmoothed, especially where rapid changes are occuring
+  # Total "superhighres": 2-5 GB/process and 4 GB in parent for fft
+  # gam method requires more ~ 2X
+  # boundary def takes too long .. too much data to process -- skip
+  # "highres": ~ 20 hr with 8, 3.2 Ghz cpus on thoth using fft method jc: 2016 or 2~ 6 hr on hyperion
+  # "superhighres" fft: looks to be the best in performance/quality; req ~5 GB per process req
+  # FFT is the method of choice for speed and ability to capture the variability
+  # krige method is a bit too oversmoothed, especially where rapid changes are occuring
 
-#  ~40 hrs to scale
-scale_ram_required_main_process = 20 # GB twostep / fft
-scale_ram_required_per_process  = 6 # twostep / fft /fields vario ..  (mostly 0.5 GB, but up to 5 GB)
-scale_ncpus = min( parallel::detectCores(), floor( (ram_local()- scale_ram_required_main_process) / scale_ram_required_per_process ) )
+  #  ~40 hrs to scale
+  scale_ram_required_main_process = 20 # GB twostep / fft
+  scale_ram_required_per_process  = 6 # twostep / fft /fields vario ..  (mostly 0.5 GB, but up to 5 GB)
+  scale_ncpus = min( parallel::detectCores(), floor( (ram_local()- scale_ram_required_main_process) / scale_ram_required_per_process ) )
 
-# ~96 hrs
-interpolate_ram_required_main_process = 10 # GB twostep / fft
-interpolate_ram_required_per_process  = 8 # twostep / fft /fields vario ..
-interpolate_ncpus = min( parallel::detectCores(), floor( (ram_local()- interpolate_ram_required_main_process) / interpolate_ram_required_per_process ) )
+  # ~96 hrs
+  interpolate_ram_required_main_process = 10 # GB twostep / fft
+  interpolate_ram_required_per_process  = 8 # twostep / fft /fields vario ..
+  interpolate_ncpus = min( parallel::detectCores(), floor( (ram_local()- interpolate_ram_required_main_process) / interpolate_ram_required_per_process ) )
 
 
-p = aegis.bathymetry::bathymetry_parameters(
-  project_class="stmv",
-  stmv_runmode = list(
+  p = aegis.bathymetry::bathymetry_parameters( project_class="stmv" )
+
+  # p$DATA = 'bathymetry_db( p=p, DS="stmv_inputs" )'   # if using lower resolution data
+  # p$stmv_distance_statsgrid = 25     # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
+  p$stmv_runmode = list(
     scale = rep("localhost", scale_ncpus),
     interpolate = list(
       c1 = rep("localhost", interpolate_ncpus),  # ncpus for each runmode
@@ -57,18 +59,16 @@ p = aegis.bathymetry::bathymetry_parameters(
     save_completed_data = TRUE
 
   )  # ncpus for each runmode
-)
 
 
 
-if (0) {  # model testing
-  # if resetting data for input to stmv run this or if altering discretization resolution
-  bathymetry_db( p=p, DS="stmv_inputs_redo" )  # recreate fields for .. requires 60GB+
-  # p$restart_load = paste("interpolate_correlation_basis_", p$stmv_autocorrelation_basis_interpolation[length(p$stmv_autocorrelation_basis_interpolation)], sep="")  # to choose the last save
-}
+  if (redo_inputs) {
+      # only if inputs have changed
+      bathymetry_db( p=p, DS="stmv_inputs_redo" )  # recreate fields for .. requires 60GB+
+  }
 
-stmv( p=p )  # This will take from 40-70 hrs, depending upon system
 
+  stmv( p=p )  # This will take from 40-70 hrs, depending upon system
 
 # quick view
   predictions = stmv_db( p=p, DS="stmv.prediction", ret="mean" )
@@ -88,10 +88,10 @@ stmv( p=p )  # This will take from 40-70 hrs, depending upon system
   dev.new(); levelplot( statistics[,match("sdSpatial", statsvars)]  ~ locations[,1] + locations[,2], aspect="iso" ) #sd total
   dev.new(); levelplot( statistics[,match("localrange", statsvars)]  ~ locations[,1] + locations[,2], aspect="iso" ) #localrange
 
-# water only
-o = which( predictions>0 & predictions <1000)
-#levelplot( log( statistics[o,match("sdTotal", statsvars)] ) ~ locations[o,1] + locations[o,2], aspect="iso" ) #sd total
-levelplot( log(predictions[o]) ~ locations[o,1] + locations[o,2], aspect="iso" )
+  # water only
+  o = which( predictions>0 & predictions <1000)
+  #levelplot( log( statistics[o,match("sdTotal", statsvars)] ) ~ locations[o,1] + locations[o,2], aspect="iso" ) #sd total
+  levelplot( log(predictions[o]) ~ locations[o,1] + locations[o,2], aspect="iso" )
 
 
 

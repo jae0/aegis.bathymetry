@@ -17,12 +17,11 @@ p = aegis.bathymetry::bathymetry_parameters( project_class="hybrid" )  # "hybrid
   # stmv_nmax = 600, # no real upper bound.. just speed /RAM
 
 
-# quick look of data
-#  dev.new(); surface( as.image( Z=DATA$input$z, x=DATA$input[, c("plon", "plat")], nx=p$nplons, ny=p$nplats, na.rm=TRUE) )
 
-
-
-if (0)  bathymetry_db( p=p, DS="stmv_inputs_highres_redo" )  # recreate fields for .. requires 60GB+
+if (redo_inouts) {
+    bathymetry_db( p=p, DS="stmv_inputs_redo" )  # recreate fields for .. requires 60GB+
+    bathymetry_db( p=p, DS="stmv_inputs_highres_redo" )  # recreate fields for .. requires 60GB+
+}
 
 stmv( p=p )  # This will take from 40-70 hrs, depending upon system
 # stmv_db( p=p, DS="cleanup.all" )

@@ -1,6 +1,7 @@
 
 
 ### demonstration of the map area unit problem example:
+require(aegis.bathymetry)
 
 maup = map_area_unit_problem( just_return_results=TRUE )  #default is bathymetry data
 
