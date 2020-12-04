@@ -1,22 +1,31 @@
 
-bathymetry_parameters = function( p=list(), project_name="bathymetry", project_class="default", ... ) {
+bathymetry_parameters = function( p=list(), project_name="bathymetry", project_class="core", workflow_decentralized=FALSE, ... ) {
+   # if workflow_decentralized then alt aegis data file structures, vs crentalized
 
   p = parameters_add( p, list(...) ) # add passed args to parameter list, priority to args
 
   # ---------------------
 
   # create/update library list
-  p$libs = c( p$libs, RLibrary ( "colorspace",  "fields", "geosphere", "lubridate",  "lattice",
-    "maps", "mapdata", "maptools", "parallel",  "rgdal", "rgeos",  "sp", "spdep", "splancs", "GADMTools", "INLA" ) )
+  # p$libs = c( p$libs, RLibrary ( "colorspace",  "fields", "geosphere", "lubridate",  "lattice",
+  #   "maps", "mapdata", "maptools", "parallel",  "rgdal", "rgeos",  "sp", "spdep", "splancs", "GADMTools", "INLA" ) )
+  p$libs = c( p$libs, RLibrary ( "colorspace",  "lubridate",  "lattice",
+    "parallel", "sf", "GADMTools", "INLA" ) )
   p$libs = c( p$libs, project.library ( "aegis", "aegis.bathymetry",  "aegis.polygons", "aegis.coastline" ) )
 
   p = parameters_add_without_overwriting( p, project_name = project_name )
   p = parameters_add_without_overwriting( p, data_root = project.datadirectory( "aegis", p$project_name ) )
-  p = parameters_add_without_overwriting( p, datadir  = file.path( p$data_root, "data" ) )
-  p = parameters_add_without_overwriting( p, modeldir = file.path( p$data_root, "modelled" ) )
+  p = parameters_add_without_overwriting( p, datadir  = file.path( p$data_root, "data" ) )  # all unprocessed inputs (and simple manipulations)
+  p = parameters_add_without_overwriting( p, modeldir = file.path( p$data_root, "modelled" ) )  # all outputs
+
+  # for projects that require access to default data and local data, a switch is needed to force use of default data
+  if ( p$workflow_decentralized )  {
+    if (exists( "modeldir_override", p)) p$modeldir = p$modeldir_override  # must also specify p$workflow_decentralized =TRUE  for override to work
+  }
 
   if ( !file.exists(p$datadir) ) dir.create( p$datadir, showWarnings=FALSE, recursive=TRUE )
   if ( !file.exists(p$modeldir) ) dir.create( p$modeldir, showWarnings=FALSE, recursive=TRUE )
+
 
   p = parameters_add_without_overwriting( p,
     variabletomodel = "z",
@@ -24,6 +33,7 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
     spatial_domain_subareas = c( "canada.east",  "SSE", "SSE.mpa" , "snowcrab"),  # this is for bathymetry_db, not stmv
     aegis_dimensionality="space"
   )
+
   p = spatial_parameters( p=p )  # default (= only supported resolution of 0.2 km discretization)  .. do NOT change
 
   p = parameters_add_without_overwriting( p, inputdata_spatial_discretization_planar_km = p$pres/2 ) #  controls resolution of data prior to modelling (km .. ie 20 linear units smaller than the final discretization pres)
@@ -31,12 +41,12 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
 
   # ---------------------
 
-  if (project_class=="default") return(p)  # minimal specifications
+  if (project_class=="core") return(p)  # minimal specifications
 
   # ---------------------
 
 
-  if (project_class=="carstm") {
+  if (project_class %in% c("carstm") ) {
     # simple run of carstm. There are two types:
     #   one global, run directly from  polygons defined in aegis.bathymetry/inst/scripts/99.bathymetry.carstm.R
     #   and one that is called secondarily specific to a local project's polygons (eg. snow crab)
@@ -89,10 +99,11 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
   # ---------------------
 
 
-  if (project_class=="stmv") {
+  if (project_class %in% c("stmv") ) {
     p = parameters_add_without_overwriting( p,
       project_class="stmv",
       DATA = 'bathymetry_db( p=p, DS="stmv_inputs" )',
+      stmv_model_label="default",
       stmv_variables = list(Y="z"),  # required as fft has no formulae
       stmv_global_modelengine = "none",  # only marginally useful .. consider removing it and use "none",
       stmv_local_modelengine="fft",
@@ -205,14 +216,13 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
   # ---------------------
 
 
-  if (project_class=="production") {
-
-    # "best" interpolation method .. in this case, due to data density ... stmv_carstm hybrid
+  if (project_class %in% c("hybrid", "default")  ) {
 
     p = parameters_add_without_overwriting( p,
       project_class="stmv",
       DATA = 'bathymetry_db( p=p, DS="stmv_inputs_highres" )',  # _highres
       stmv_variables = list(Y="z"),  # required as fft has no formulae
+      stmv_model_label="default",
       stmv_global_modelengine = "none",  # only marginally useful .. consider removing it and use "none",
       stmv_local_modelengine="carstm",
       stmv_local_covariates_carstm = "",  # only model covariates
@@ -235,13 +245,12 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
         transf = function(x) {log10(x + 2500)} ,
         invers = function(x) {10^(x) - 2500}
       ), # data range is from -1667 to 5467 m: make all positive valued
-      stmv_distance_statsgrid = 5, # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
+      stmv_distance_statsgrid = 1, # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
     #  stmv_interpolation_basis_distance = 5,   # fixed distance 2 x statsgrid
       stmv_distance_prediction_limits =c( 5, 25 ), # range of permissible predictions km (i.e 1/2 stats grid to upper limit based upon data density)
       stmv_interpolation_basis_distance_choices = c(5, 10),
       stmv_nmin = 10, # min number of data points req before attempting to model in a localized space
       stmv_nmax = 1000, # no real upper bound.. just speed /RAM
-      stmv_force_complete_method = "linear_interp",
       stmv_runmode = list(
         carstm = rep("localhost", 1),
         globalmodel = FALSE,

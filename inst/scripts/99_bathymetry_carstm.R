@@ -15,7 +15,11 @@
 # and some plotting parameters (bounding box, projection, bathymetry layout, coastline)
 # --- look inside "parameters_default" and define alternates based upon it
 
-p = aegis.bathymetry::bathymetry_parameters( project_class="carstm", areal_units_resolution_km=100, carstm_inputs_aggregated = TRUE )  # carstm on 25 km lattice grid
+p = aegis.bathymetry::bathymetry_parameters(
+  project_class="carstm",
+  areal_units_resolution_km=100,
+  carstm_inputs_aggregated = TRUE
+)  # carstm on 25 km lattice grid
 
 
     # DS = "parameters_default"; areal_units_resolution_km=5 ... takes 79 Hrs!

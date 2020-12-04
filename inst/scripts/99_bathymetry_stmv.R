@@ -11,7 +11,7 @@
 # FFT is the method of choice for speed and ability to capture the variability
 # krige method is a bit too oversmoothed, especially where rapid changes are occuring
 
-#  ~40 hrs
+#  ~40 hrs to scale
 scale_ram_required_main_process = 20 # GB twostep / fft
 scale_ram_required_per_process  = 6 # twostep / fft /fields vario ..  (mostly 0.5 GB, but up to 5 GB)
 scale_ncpus = min( parallel::detectCores(), floor( (ram_local()- scale_ram_required_main_process) / scale_ram_required_per_process ) )

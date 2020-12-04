@@ -1,5 +1,5 @@
 
-  bathymetry_db = function( p=NULL, DS=NULL, varnames=NULL, redo=FALSE, modeldir_override=NULL, ... ) {
+  bathymetry_db = function( p=NULL, DS=NULL, varnames=NULL, redo=FALSE, ... ) {
 
     #\\ Note inverted convention: depths are positive valued
     #\\ i.e., negative valued for above sea level and positive valued for below sea level
@@ -9,20 +9,6 @@
         p = bathymetry_parameters(...)
       } else {
         p = bathymetry_parameters()
-      }
-    }
-
-    if ( !exists("project_name", p)) p$project_name = "bathymetry"
-    if ( !exists("data_root", p) ) p$data_root = project.datadirectory( "aegis", p$project_name )
-    if ( !exists("datadir", p) )   p$datadir  = file.path( p$data_root, "data" )
-    if ( !exists("modeldir", p) )  p$modeldir = file.path( p$data_root, "modelled" )
-
-    if ( !is.null(modeldir_override) ) {
-      # for projects that require access to default data and local data, a switch is needed to force use of default data
-      if ( is.logical(modeldir_override) )  {
-        p$modeldir = file.path( p$data_root, "modelled" )
-      } else if (is.character(modeldir_override)) {
-        p$modeldir = modeldir_override
       }
     }
 
@@ -587,8 +573,9 @@
 
     if ( DS %in% c("complete", "complete.redo" )) {
       #// merge all stmv results and compute stats and warp to different grids
+      outdir = file.path( p$modeldir, p$stmv_model_label, p$project_class, paste(  p$stmv_global_modelengine, stmv_local_modelengine, sep="_") )
 
-      fn = file.path( p$modeldir, paste( "bathymetry", "complete", p$spatial_domain, "rdata", sep=".") )
+      fn = file.path( outdir, paste( "bathymetry", "complete", p$spatial_domain, "rdata", sep=".") )
 
       if ( DS %in% c( "complete") ) {
         Z = NULL
@@ -679,7 +666,8 @@
             Z[,vn] = spatial_warp( Z0[,vn], L0, L1, p0, p1, "fast", L0i, L1i )
           }
         Z = Z[ , names(Z0) ]
-        fn = file.path( p$modeldir, paste( "bathymetry", "complete", p1$spatial_domain, "rdata", sep=".") )
+
+        fn = file.path( outdir, paste( "bathymetry", "complete", p1$spatial_domain, "rdata", sep=".") )
         save (Z, file=fn, compress=TRUE)
       }
 
@@ -702,13 +690,12 @@
 
     if (DS %in% c("baseline", "baseline.redo") ) {
       # form prediction surface in planar coords over the ocean
+      outdir = file.path( p$modeldir, p$stmv_model_label, p$project_class, paste(  p$stmv_global_modelengine, stmv_local_modelengine, sep="_") )
 
       if ( DS=="baseline" ) {
-        #  used to obtain coordinates .. modeldir is "bathymetry/modelled" but in case there is a variation, test for file presence
+        #  used to obtain coordinates
         fn = paste( "bathymetry", "baseline", p$spatial_domain, "rdata" , sep=".")
-        defaultdir = project.datadirectory( "aegis", "bathymetry", "modelled" )
-        outfile =  file.path( p$modeldir, fn )
-        if (!file.exists(outfile)) outfile =  file.path( defaultdir, fn )
+        outfile =  file.path( outdir, fn )
         Z = NULL
         load( outfile )
         Znames = names(Z)
@@ -741,7 +728,8 @@
         ii = which( Z$ddZ > 20 )
         if (length(ii) > 0) Z$ddZ[ii] = 20
 
-        outfile =  file.path( p$modeldir, paste( "bathymetry", "baseline", domain, "rdata" , sep=".") )
+        fn = paste( "bathymetry", "baseline", domain, "rdata" , sep="." )
+        outfile =  file.path( outdir, fn )
 
         save (Z, file=outfile, compress=T )
         print( outfile )

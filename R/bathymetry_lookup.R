@@ -10,7 +10,7 @@ bathymetry_lookup = function( p, locs, vnames="z", output_data_class="points", s
     if (source_data_class=="stmv") {
       p_source = bathymetry_parameters(p=p, project_class="stmv")
     } else {
-      p_source = bathymetry_parameters(p=p, project_class="model")
+      p_source = bathymetry_parameters(p=p, project_class="hybrid")
     }
   } else if (source_data_class %in% "carstm" ) {
       # copy of param list for global analysis in aegis.bathymetry/inst/scripts/02.bathymetry.carstm.R
