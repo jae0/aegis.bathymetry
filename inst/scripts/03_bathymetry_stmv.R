@@ -45,14 +45,13 @@
     #   d6 = rep("localhost", max(1, interpolate_ncpus-2))
     # ),
     interpolate_predictions = list(
-      c1 = rep("localhost", max(1, interpolate_ncpus-1)),  # ncpus for each runmode
-      c2 = rep("localhost", max(1, interpolate_ncpus-1)),  # ncpus for each runmode
-      c3 = rep("localhost", max(1, interpolate_ncpus-2)),
-      c4 = rep("localhost", max(1, interpolate_ncpus-3)),
-      c5 = rep("localhost", max(1, interpolate_ncpus-4)),
-      c6 = rep("localhost", max(1, interpolate_ncpus-4)),
-      c7 = rep("localhost", max(1, interpolate_ncpus-5))
-     ),
+      c1 = "localhost",   # ncpus for each runmode
+      c2 = "localhost",   # ncpus for each runmode
+      c3 = "localhost",
+      c4 = "localhost",
+      c5 = "localhost",
+      c6 = "localhost",
+      c7 = "localhost" ),
     globalmodel = FALSE,
     # restart_load = "interpolate_correlation_basis_0.01" ,  # only needed if this is restarting from some saved instance
     save_intermediate_results = TRUE,
@@ -60,6 +59,7 @@
 
   )  # ncpus for each runmode
 
+p$stmv_distance_scale =  5  10  20  25  40  80
 
 
   if (redo_inputs) {
@@ -89,7 +89,7 @@
   dev.new(); levelplot( statistics[,match("localrange", statsvars)]  ~ locations[,1] + locations[,2], aspect="iso" ) #localrange
 
   # water only
-  o = which( predictions>0 & predictions <1000)
+  o = which( predictions>0 & predictions <500)
   #levelplot( log( statistics[o,match("sdTotal", statsvars)] ) ~ locations[o,1] + locations[o,2], aspect="iso" ) #sd total
   levelplot( log(predictions[o]) ~ locations[o,1] + locations[o,2], aspect="iso" )
 

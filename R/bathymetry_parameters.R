@@ -1,6 +1,5 @@
 
-bathymetry_parameters = function( p=list(), project_name="bathymetry", project_class="core", workflow_decentralized=FALSE, ... ) {
-   # if workflow_decentralized then alt aegis data file structures, vs crentalized
+bathymetry_parameters = function( p=list(), project_name="bathymetry", project_class="core", ... ) {
 
   p = parameters_add( p, list(...) ) # add passed args to parameter list, priority to args
 
@@ -13,15 +12,12 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
     "parallel", "sf", "GADMTools", "INLA" ) )
   p$libs = c( p$libs, project.library ( "aegis", "aegis.bathymetry",  "aegis.polygons", "aegis.coastline" ) )
 
+  p$project_class = project_class
+
   p = parameters_add_without_overwriting( p, project_name = project_name )
   p = parameters_add_without_overwriting( p, data_root = project.datadirectory( "aegis", p$project_name ) )
   p = parameters_add_without_overwriting( p, datadir  = file.path( p$data_root, "data" ) )  # all unprocessed inputs (and simple manipulations)
   p = parameters_add_without_overwriting( p, modeldir = file.path( p$data_root, "modelled" ) )  # all outputs
-
-  # for projects that require access to default data and local data, a switch is needed to force use of default data
-  if ( p$workflow_decentralized )  {
-    if (exists( "modeldir_override", p)) p$modeldir = p$modeldir_override  # must also specify p$workflow_decentralized =TRUE  for override to work
-  }
 
   if ( !file.exists(p$datadir) ) dir.create( p$datadir, showWarnings=FALSE, recursive=TRUE )
   if ( !file.exists(p$modeldir) ) dir.create( p$modeldir, showWarnings=FALSE, recursive=TRUE )
@@ -54,6 +50,7 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
 
     # defaults in case not provided ...
     p = parameters_add_without_overwriting( p,
+      project_class = "carstm",
       data_transformation=list( forward=function(x){ x+2500 }, backward=function(x) {x-2500} ),
       areal_units_source = "lattice", # "stmv_fields" to use ageis fields instead of carstm fields ... note variables are not the same
       areal_units_resolution_km = 25, # default in case not provided ... 25 km dim of lattice ~ 1 hr; 5km = 79hrs; 2km = ?? hrs
@@ -101,7 +98,6 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
 
   if (project_class %in% c("stmv") ) {
     p = parameters_add_without_overwriting( p,
-      project_class="stmv",
       DATA = 'bathymetry_db( p=p, DS="stmv_inputs" )',
       stmv_model_label="default",
       stmv_variables = list(Y="z"),  # required as fft has no formulae
@@ -122,8 +118,9 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
       stmv_rsquared_threshold = 0.01, # lower threshold  .. ignore
       stmv_distance_statsgrid = 5, # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
       stmv_distance_prediction_limits =c( 3, 25 ), # range of permissible predictions km (i.e 1/2 stats grid to upper limit based upon data density)
-      stmv_distance_scale = c( 5, 10, 20, 25, 40, 80, 150, 200), # km ... approx guesses of 95% AC range
-      stmv_distance_basis_interpolation = c(  2.5 , 5, 10, 15, 20, 40, 80, 150, 200 ) , # range of permissible predictions km (i.e 1/2 stats grid to upper limit) .. in this case 5, 10, 20
+      stmv_distance_scale = c( 5, 10, 20, 25, 40, 80, 120), # km ... approx guesses of 95% AC range
+      stmv_distance_basis_interpolation = c(  2.5 , 5, 10, 15, 20, 40, 80 ) , # range of permissible predictions km (i.e 1/2 stats grid to upper limit) .. in this case 5, 10, 20
+      stmv_distance_interpolate_predictions = c(  2.5 , 5, 10, 15, 20, 40 ), # finalizing preds using linear interpolation
       stmv_nmin = 90, # min number of data points req before attempting to model in a localized space
       stmv_nmax = 1000, # no real upper bound.. just speed /RAM
       stmv_force_complete_method = "linear_interp"
@@ -219,7 +216,6 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
   if (project_class %in% c("hybrid", "default")  ) {
 
     p = parameters_add_without_overwriting( p,
-      project_class="stmv",
       DATA = 'bathymetry_db( p=p, DS="stmv_inputs_highres" )',  # _highres
       stmv_variables = list(Y="z"),  # required as fft has no formulae
       stmv_model_label="default",
