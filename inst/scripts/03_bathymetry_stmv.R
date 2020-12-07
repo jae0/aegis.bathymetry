@@ -59,7 +59,6 @@
 
   )  # ncpus for each runmode
 
-p$stmv_distance_scale =  5  10  20  25  40  80
 
 
   if (redo_inputs) {
@@ -106,21 +105,21 @@ bathymetry_db( p=p, DS="baseline.redo" )  # coords of areas of interest ..filter
 
 
 # a few plots :
-pb = aegis.bathymetry::bathymetry_parameters( project_class="stmv", spatial_domain="canada.east.highres" )
+pb = spatial_parameters( p=p, spatial_domain="canada.east" )
 bathymetry_figures( p=pb, varnames=c("z", "dZ", "ddZ", "b.localrange"), logyvar=TRUE, savetofile="png" )
 bathymetry_figures( p=pb, varnames=c("b.sdTotal", "b.sdSpatial", "b.sdObs"), logyvar=FALSE, savetofile="png" )
 
-pb = aegis.bathymetry::bathymetry_parameters( project_class="stmv", spatial_domain="canada.east.superhighres" )
-bathymetry_figures( p=pb, varnames=c("z", "dZ", "ddZ", "b.localrange"), logyvar=TRUE, savetofile="png" )
-bathymetry_figures( p=pb, varnames=c("b.sdTotal", "b.sdSpatial", "b.sdObs"), logyvar=FALSE, savetofile="png" )
-
-
-pb = aegis.bathymetry::bathymetry_parameters( project_class="stmv", spatial_domain="snowcrab" )
+pb = spatial_parameters( p=p, spatial_domain="canada.east.superhighres" )
 bathymetry_figures( p=pb, varnames=c("z", "dZ", "ddZ", "b.localrange"), logyvar=TRUE, savetofile="png" )
 bathymetry_figures( p=pb, varnames=c("b.sdTotal", "b.sdSpatial", "b.sdObs"), logyvar=FALSE, savetofile="png" )
 
 
-pb = aegis.bathymetry::bathymetry_parameters( project_class="stmv", spatial_domain="SSE" )
+pb = spatial_parameters( p=p, spatial_domain="snowcrab" )
+bathymetry_figures( p=pb, varnames=c("z", "dZ", "ddZ", "b.localrange"), logyvar=TRUE, savetofile="png" )
+bathymetry_figures( p=pb, varnames=c("b.sdTotal", "b.sdSpatial", "b.sdObs"), logyvar=FALSE, savetofile="png" )
+
+
+pb = spatial_parameters( p=p, spatial_domain="SSE" )
 bathymetry_figures( p=pb, varnames=c("z", "dZ", "ddZ", "b.localrange"), logyvar=TRUE, savetofile="png" )
 bathymetry_figures( p=pb, varnames=c("b.sdTotal", "b.sdSpatial", "b.sdObs"), logyvar=FALSE, savetofile="png" )
 

@@ -118,7 +118,7 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
       stmv_rsquared_threshold = 0.01, # lower threshold  .. ignore
       stmv_distance_statsgrid = 5, # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
       stmv_distance_prediction_limits =c( 3, 25 ), # range of permissible predictions km (i.e 1/2 stats grid to upper limit based upon data density)
-      stmv_distance_scale = c( 5, 10, 20, 25, 40, 80, 120), # km ... approx guesses of 95% AC range
+      stmv_distance_scale = c( 5, 10, 20, 25, 40, 80), # km ... approx guesses of 95% AC range
       stmv_distance_basis_interpolation = c(  2.5 , 5, 10, 15, 20, 40, 80 ) , # range of permissible predictions km (i.e 1/2 stats grid to upper limit) .. in this case 5, 10, 20
       stmv_distance_interpolate_predictions = c(  2.5 , 5, 10, 15, 20, 40 ), # finalizing preds using linear interpolation
       stmv_nmin = 90, # min number of data points req before attempting to model in a localized space

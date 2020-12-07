@@ -36,7 +36,10 @@ bathymetry_figures = function( p=NULL, varnames="z", logyvar=FALSE, isodepths = 
     )
 
     if ( savetofile != "" ) {
-      outdir = file.path(p$data_root, "maps", p$spatial_domain )
+
+      outdir = file.path( p$modeldir, p$stmv_model_label, p$project_class, paste(  p$stmv_global_modelengine, p$stmv_local_modelengine, sep="_"), p$stmv_variables$Y, "maps", p$spatial_domain )
+      dir.create( outdir, showWarnings = TRUE, recursive = TRUE )
+
       for (i in 1:length(savetofile)){
         devtype = savetofile[i]
         if (devtype =="jpeg") devtype="jpg"

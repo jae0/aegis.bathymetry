@@ -573,7 +573,7 @@
 
     if ( DS %in% c("complete", "complete.redo" )) {
       #// merge all stmv results and compute stats and warp to different grids
-      outdir = file.path( p$modeldir, p$stmv_model_label, p$project_class, paste(  p$stmv_global_modelengine, stmv_local_modelengine, sep="_") )
+      outdir = file.path( p$modeldir, p$stmv_model_label, p$project_class, paste(  p$stmv_global_modelengine, p$stmv_local_modelengine, sep="_") )
 
       fn = file.path( outdir, paste( "bathymetry", "complete", p$spatial_domain, "rdata", sep=".") )
 
@@ -690,7 +690,7 @@
 
     if (DS %in% c("baseline", "baseline.redo") ) {
       # form prediction surface in planar coords over the ocean
-      outdir = file.path( p$modeldir, p$stmv_model_label, p$project_class, paste(  p$stmv_global_modelengine, stmv_local_modelengine, sep="_") )
+      outdir = file.path( p$modeldir, p$stmv_model_label, p$project_class, paste(  p$stmv_global_modelengine, p$stmv_local_modelengine, sep="_") )
 
       if ( DS=="baseline" ) {
         #  used to obtain coordinates
@@ -707,7 +707,7 @@
       }
 
       for (domain in unique( c(p$spatial_domain_subareas, p$spatial_domain ) ) ) {
-        pn = spatial_parameters( spatial_domain=domain )
+        pn = spatial_parameters( p=p, spatial_domain=domain )
         # if ( pn$spatial_domain == "snowcrab" ) {
         #   # NOTE::: snowcrab baseline == SSE baseline, except it is a subset so begin with the SSE conditions
         #   pn = spatial_parameters( p=pn, spatial_domain="SSE" )
