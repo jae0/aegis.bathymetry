@@ -254,9 +254,10 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
       )  # ncpus for each runmode
     )
  
+    # range of permissible predictions km (i.e 1/2 stats grid to upper limit based upon data density)
     p = parameters_add_without_overwriting( p,
-      stmv_distance_prediction_limits =c( p$stmv_distance_statsgrid, 25 ), # range of permissible predictions km (i.e 1/2 stats grid to upper limit based upon data density)
-      stmv_interpolation_basis_distance_choices = c(p$stmv_distance_statsgrid, 10),
+      stmv_distance_prediction_limits =c( p$stmv_distance_statsgrid, 25 ), 
+      stmv_interpolation_basis_distance_choices = c(p$stmv_distance_statsgrid, 10)
     )
   
     p = aegis_parameters( p=p, DS="stmv" )  # get defaults
