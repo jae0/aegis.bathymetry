@@ -243,8 +243,6 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
       ), # data range is from -1667 to 5467 m: make all positive valued
       stmv_distance_statsgrid = 1, # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
     #  stmv_interpolation_basis_distance = 5,   # fixed distance 2 x statsgrid
-      stmv_distance_prediction_limits =c( 5, 25 ), # range of permissible predictions km (i.e 1/2 stats grid to upper limit based upon data density)
-      stmv_interpolation_basis_distance_choices = c(5, 10),
       stmv_nmin = 10, # min number of data points req before attempting to model in a localized space
       stmv_nmax = 1000, # no real upper bound.. just speed /RAM
       stmv_runmode = list(
@@ -255,6 +253,12 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
         save_completed_data = TRUE
       )  # ncpus for each runmode
     )
+ 
+    p = parameters_add_without_overwriting( p,
+      stmv_distance_prediction_limits =c( p$stmv_distance_statsgrid, 25 ), # range of permissible predictions km (i.e 1/2 stats grid to upper limit based upon data density)
+      stmv_interpolation_basis_distance_choices = c(p$stmv_distance_statsgrid, 10),
+    )
+  
     p = aegis_parameters( p=p, DS="stmv" )  # get defaults
 
     if ( p$inputdata_spatial_discretization_planar_km >= p$pres ) {

@@ -17,6 +17,7 @@
     # stmv_nmax = 600, # no real upper bound.. just speed /RAM
 
 
+  p$stmv_runmode$carstm = rep("localhost", 12)
 
   if (redo_inouts) {
       bathymetry_db( p=p, DS="stmv_inputs_redo" )  # recreate fields for .. requires 60GB+
@@ -25,7 +26,7 @@
 
   stmv( p=p )  # This will take from 40-70 hrs, depending upon system
   # stmv_db( p=p, DS="cleanup.all" )
-
+      
   # quick view
   predictions = stmv_db( p=p, DS="stmv.prediction", ret="mean" )
   statistics  = stmv_db( p=p, DS="stmv.stats" )
