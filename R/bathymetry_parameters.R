@@ -107,7 +107,7 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
       stmv_lowpass_nu = 0.5, # exp
       stmv_lowpass_phi = stmv::matern_distance2phi( distance=0.1, nu=0.5, cor=0.1 ),
       stmv_autocorrelation_fft_taper = 0.9,  # benchmark from which to taper
-      stmv_autocorrelation_localrange = 0.1,  # for output to stats
+      stmv_autocorrelation_localrange = 0.1,  # correlation at which to call effective range 
       stmv_autocorrelation_interpolation = c(0.25, 0.1, 0.05, 0.01),
       stmv_variogram_method = "fft",
       stmv_filter_depth_m = FALSE,  # need data above sea level to get coastline

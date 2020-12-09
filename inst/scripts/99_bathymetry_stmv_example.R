@@ -3,6 +3,8 @@
 
 
 # testing "stmv" on a coarse grid and lower res data
+require(stmv)
+require(sf)
 
 # model testing
 p0 = aegis::spatial_parameters(
@@ -41,9 +43,17 @@ p = bathymetry_parameters(
   stmv_global_modelengine = "none",  # too much data to use glm as an entry into link space ... use a direct transformation
   stmv_local_modelengine="fft",
   stmv_fft_filter = "matern tapered lowpass modelled fast_predictions", #  matern with taper, fast predictions are sufficient as data density is high
+  stmv_lowpass_nu = 0.5, # exp
+  stmv_lowpass_phi = stmv::matern_distance2phi( distance=0.1, nu=0.5, cor=0.1 ),
+  stmv_autocorrelation_fft_taper = 0.75,  # benchmark from which to taper
+  stmv_autocorrelation_localrange = 0.1,  # # correlation at which to call effective range 
+  stmv_autocorrelation_interpolation = c(0.25, 0.1, 0.05, 0.01),
+  stmv_nmin = 50, # min number of data points req before attempting to model in a localized space
+  stmv_nmax = 5000, # no real upper bound.. just speed /RAM
+  stmv_variogram_method = "fft",
   stmv_distance_statsgrid = 10, # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
-  stmv_distance_scale = c( 5, 10, 20, 25, 40, 80), # km ... distances to try for data selection (approx AC range)
-  stmv_distance_prediction_limits =c( 3, 25 ), # range of permissible predictions km (i.e 1/2 stats grid to upper
+  stmv_distance_scale = c( 5, 10, 20, 25, 40 ), # km ... distances to try for data selection (approx AC range)
+  stmv_distance_prediction_limits =c( 5, 25 ), # range of permissible predictions km (i.e 1/2 stats grid to upper
   stmv_runmode = list(
     scale = rep("localhost", 1),
     interpolate = list(
@@ -52,15 +62,6 @@ p = bathymetry_parameters(
       c3 = rep("localhost", 1),
       c4 = rep("localhost", 1),
       c5 = rep("localhost", 1)
-    ),
-    interpolate_predictions = list(
-      c1 = rep("localhost", 1),
-      c2 = rep("localhost", 1),
-      c3 = rep("localhost", 1),
-      c4 = rep("localhost", 1),
-      c5 = rep("localhost", 1),
-      c6 = rep("localhost", 1),
-      c7 = rep("localhost", 1) 
     ),
     globalmodel = FALSE,
     save_intermediate_results = TRUE,
@@ -71,6 +72,8 @@ p = bathymetry_parameters(
 
 if (0) {
   # to force parallel mode
+  scale_ncpus = 12
+  interpolate_ncpus=12
    stmv_runmode = list(
     scale = rep("localhost", scale_ncpus),
     interpolate = list(
@@ -80,15 +83,6 @@ if (0) {
       c4 = rep("localhost", max(1, interpolate_ncpus-1)),
       c5 = rep("localhost", max(1, interpolate_ncpus-2))
     ),
-    interpolate_predictions = list(
-      c1 = rep("localhost", max(1, interpolate_ncpus-1)),  # ncpus for each runmode
-      c2 = rep("localhost", max(1, interpolate_ncpus-1)),  # ncpus for each runmode
-      c3 = rep("localhost", max(1, interpolate_ncpus-2)),
-      c4 = rep("localhost", max(1, interpolate_ncpus-3)),
-      c5 = rep("localhost", max(1, interpolate_ncpus-4)),
-      c6 = rep("localhost", max(1, interpolate_ncpus-4)),
-      c7 = rep("localhost", max(1, interpolate_ncpus-5))
-    ),
     globalmodel = FALSE,
     # restart_load = "interpolate_correlation_basis_0.01" ,  # only needed if this is restarting from some saved instance
     save_intermediate_results = TRUE,
@@ -96,6 +90,15 @@ if (0) {
 
   )  # ncpus for each runmode
 }
+
+
+# quick look of data
+  dev.new(); surface( as.image( Z=DATA$input$z, x=DATA$input[, c("plon", "plat")], nx=p$nplons, ny=p$nplats, na.rm=TRUE) )
+
+
+
+stmv( p=p  )  # This will take from a few minutes, depending upon system
+# stmv_db( p=p, DS="cleanup.all" )
 
 
 # quick view
@@ -118,6 +121,6 @@ statsvars = dimnames(statistics)[[2]]
 
 # statsvars = c( "sdTotal", "rsquared", "ndata", "sdSpatial", "sdObs", "phi", "nu", "localrange" )
 dev.new(); levelplot( predictions[] ~ locations[,1] + locations[,2], aspect="iso" )
-dev.new(); levelplot( statistics[,match("Phi_for_auid", statsvars)]  ~ locations[,1] + locations[,2], aspect="iso" ) # nu
+dev.new(); levelplot( statistics[,match("localrange", statsvars)]  ~ locations[,1] + locations[,2], aspect="iso" ) # nu
 dev.new(); levelplot( statistics[,match("sdTotal", statsvars)]  ~ locations[,1] + locations[,2], aspect="iso" ) #sd total
 dev.new(); levelplot( statistics[,match("rsquared", statsvars)]  ~ locations[,1] + locations[,2], aspect="iso" ) #localrange

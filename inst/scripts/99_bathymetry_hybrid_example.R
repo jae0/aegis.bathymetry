@@ -8,7 +8,7 @@ require(aegis)
 require(aegis.bathymetry)
 require(sf)
 require(stmv)
-
+require(INLA)
 inla.setOption(mkl=FALSE) 
 
 ## :: main difference is:  project_class="hybrid"  (vs "stmv" above)
@@ -76,7 +76,7 @@ p = bathymetry_parameters(
     invers = function(x) {10^(x) - 2500}
   ), # data range is from -1667 to 5467 m: make all positive valued
   stmv_rsquared_threshold = 0.01, # lower threshold  .. i.e., ignore ... there is no timeseries model, nor a fixed effect spatial "model"
-  stmv_distance_statsgrid = 5, # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
+  stmv_distance_statsgrid = 10, # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
   stmv_nmin = 50,  # min number of data points req before attempting to model in a localized space
   stmv_nmax = 5000, # no real upper bound.. just speed /RAM
   stmv_force_complete_method = "linear_interp",
