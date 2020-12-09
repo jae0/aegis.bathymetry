@@ -51,7 +51,7 @@ p = bathymetry_parameters(
   DATA = DATA,
   spatial_domain = p0$spatial_domain,
   spatial_domain_subareas =NULL,
-  inputdata_spatial_discretization_planar_km = p0$pres/2,  # pres = 0.5 and used for prediction so inputs should be smaller
+  inputdata_spatial_discretization_planar_km = p0$pres/5,  # pres = 0.5 and used for prediction so inputs should be smaller
   aegis_dimensionality="space",
   stmv_variables = list(Y="z"),  # required as fft has no formulae
   stmv_global_modelengine = "none",  # too much data to use glm as an entry into link space ... use a direct transformation
@@ -69,7 +69,8 @@ p = bathymetry_parameters(
     ) '
   ),   # NOTE:: this is a local model call
   # stmv_au_distance_reference="completely_inside_boundary",
-  # stmv_au_buffer_links=1,
+  # stmv_au_distance_reference = "none", 
+  # stmv_au_buffer_links = 1, # number of additional neighbours to extend beyond initial solution
   stmv_filter_depth_m = FALSE,  # need data above sea level to get coastline
   stmv_Y_transform =list(
     transf = function(x) {log10(x + 2500)} ,
@@ -88,7 +89,7 @@ p = bathymetry_parameters(
   )
 )
 
-p$stmv_distance_prediction_limits = p$stmv_distance_statsgrid * c(1, 1.5 ) # range of permissible predictions km (i.e 1/2 stats grid to upper limit based upon data density)
+# p$stmv_distance_prediction_limits = p$stmv_distance_statsgrid * c(1, 1.5 ) # range of permissible predictions km (i.e 1/2 stats grid to upper limit based upon data density)
 
 # NOTE:
 (p$stmv_distance_interpolation )
