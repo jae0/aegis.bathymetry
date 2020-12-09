@@ -48,7 +48,7 @@ p = bathymetry_parameters(
   DATA = DATA,
   spatial_domain = p0$spatial_domain,
   spatial_domain_subareas =NULL,
-  inputdata_spatial_discretization_planar_km = p0$pres,  # pres = 0.5
+  inputdata_spatial_discretization_planar_km = p0$pres/2,  # pres = 0.5 and used for prediction so inputs should be smaller
   aegis_dimensionality="space",
   stmv_variables = list(Y="z"),  # required as fft has no formulae
   stmv_global_modelengine = "none",  # too much data to use glm as an entry into link space ... use a direct transformation
@@ -61,29 +61,29 @@ p = bathymetry_parameters(
     invers = function(x) {10^(x) - 2500}
   ), # data range is from -1667 to 5467 m: make all positive valued
   stmv_rsquared_threshold = 0.01, # lower threshold  .. i.e., ignore ... there is no timeseries model, nor a fixed effect spatial "model"
-  stmv_distance_statsgrid = 10, # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
-  # stmv_distance_scale = c( 2.5, 5, 10, 20, 40, 60, 80 ), # km ... approx guesses of 95% AC range
-  stmv_distance_prediction_limits =c( 5, 10 ), # range of permissible predictions km (i.e 1/2 stats grid to upper limit based upon data density)
-  stmv_nmin = 50,  # min number of data points req before attempting to model in a localized space
-  stmv_nmax = 600, # no real upper bound.. just speed /RAM
+  stmv_distance_statsgrid = 5, # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
+  stmv_nmin = 10,  # min number of data points req before attempting to model in a localized space
+  stmv_nmax = 5000, # no real upper bound.. just speed /RAM
   stmv_force_complete_method = "linear_interp",
   stmv_runmode = list(
-    carstm = rep("localhost", scale_ncpus),
+    carstm = rep("localhost", 1), # serial mode
     globalmodel = FALSE,
     restart_load = FALSE,
     save_completed_data = TRUE # just a dummy variable with the correct name
   )
 )
+p$stmv_interpolation_basis_distance_choices
+p$stmv_distance_prediction_limits = p$stmv_distance_statsgrid * c(1, 1.5 ) # range of permissible predictions km (i.e 1/2 stats grid to upper limit based upon data density)
+p$stmv_interpolation_basis_distance XX
+p$pres  # defines lattice resolution
 
 
 if (0) {
-  # to force serial mode
+  # to force parallel mode
    p$stmv_runmode = list(
-    scale=rep("localhost", scale_ncpus),
-    interpolate = rep("localhost", 1),
-    interpolate_predictions = TRUE,
+    carstm = rep("localhost", scale_ncpus),
     globalmodel = FALSE,
-    save_intermediate_results = FALSE,
+    restart_load = FALSE,
     save_completed_data = TRUE # just a dummy variable with the correct name
    )
 
@@ -91,7 +91,6 @@ if (0) {
 
 # quick look of data
   dev.new(); surface( as.image( Z=DATA$input$z, x=DATA$input[, c("plon", "plat")], nx=p$nplons, ny=p$nplats, na.rm=TRUE) )
-
 
 
 

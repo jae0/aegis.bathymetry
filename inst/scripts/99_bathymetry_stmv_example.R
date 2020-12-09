@@ -44,6 +44,33 @@ p = bathymetry_parameters(
   stmv_distance_statsgrid = 10, # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
   stmv_distance_prediction_limits =c( 3, 25 ), # range of permissible predictions km (i.e 1/2 stats grid to upper
   stmv_runmode = list(
+    scale = rep("localhost", 1),
+    interpolate = list(
+      c1 = rep("localhost", 1),
+      c2 = rep("localhost", 1),
+      c3 = rep("localhost", 1),
+      c4 = rep("localhost", 1),
+      c5 = rep("localhost", 1)
+    ),
+    interpolate_predictions = list(
+      c1 = rep("localhost", 1),
+      c2 = rep("localhost", 1),
+      c3 = rep("localhost", 1),
+      c4 = rep("localhost", 1),
+      c5 = rep("localhost", 1),
+      c6 = rep("localhost", 1),
+      c7 = rep("localhost", 1) 
+    ),
+    globalmodel = FALSE,
+    save_intermediate_results = TRUE,
+    save_completed_data = TRUE
+  ) 
+)
+
+
+if (0) {
+  # to force parallel mode
+   stmv_runmode = list(
     scale = rep("localhost", scale_ncpus),
     interpolate = list(
       c1 = rep("localhost", interpolate_ncpus),  # ncpus for each runmode
@@ -52,15 +79,6 @@ p = bathymetry_parameters(
       c4 = rep("localhost", max(1, interpolate_ncpus-1)),
       c5 = rep("localhost", max(1, interpolate_ncpus-2))
     ),
-    # if a good idea of autocorrelation is missing, forcing via explicit distance limits is an option
-    # interpolate_distance_basis = list(
-    #   d1 = rep("localhost", interpolate_ncpus),
-    #   d2 = rep("localhost", interpolate_ncpus),
-    #   d3 = rep("localhost", max(1, interpolate_ncpus-1)),
-    #   d4 = rep("localhost", max(1, interpolate_ncpus-1)),
-    #   d5 = rep("localhost", max(1, interpolate_ncpus-2)),
-    #   d6 = rep("localhost", max(1, interpolate_ncpus-2))
-    # ),
     interpolate_predictions = list(
       c1 = rep("localhost", max(1, interpolate_ncpus-1)),  # ncpus for each runmode
       c2 = rep("localhost", max(1, interpolate_ncpus-1)),  # ncpus for each runmode
@@ -76,7 +94,8 @@ p = bathymetry_parameters(
     save_completed_data = TRUE
 
   )  # ncpus for each runmode
-)
+}
+
 
 # quick view
 predictions = stmv_db( p=p, DS="stmv.prediction", ret="mean" )
