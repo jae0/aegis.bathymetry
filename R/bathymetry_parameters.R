@@ -26,7 +26,7 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
   p = parameters_add_without_overwriting( p,
     variabletomodel = "z",
     spatial_domain = "canada.east.superhighres",
-    spatial_domain_subareas = c( "canada.east",  "SSE", "SSE.mpa" , "snowcrab"),  # this is for bathymetry_db, not stmv
+    spatial_domain_subareas = c( "canada.east", "canada.east.highres", "SSE", "SSE.mpa" , "snowcrab"),  # this is for bathymetry_db, not stmv
     aegis_dimensionality="space"
   )
 
@@ -226,13 +226,12 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
       stmv_local_modelcall = paste(
         'inla(
           formula = z ~ 1
-            + f(auid, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, constr=TRUE, hyper=H$bym2),
+            + f(auid, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, constr=TRUE),
           family = "normal",
-          data= dat,
+          data = dat,
           control.compute=list(dic=TRUE, waic=TRUE, cpo=FALSE, config=FALSE),  # config=TRUE if doing posterior simulations
           control.results=list(return.marginals.random=TRUE, return.marginals.predictor=TRUE ),
           control.predictor=list(compute=FALSE, link=1 ),
-          control.fixed=H$fixed,  # priors for fixed effects, generic is ok
           verbose=FALSE
         ) '
       ),   # NOTE:: this is a local model call
@@ -272,7 +271,5 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
 
     return(p)
   }
-
-
 
 }
