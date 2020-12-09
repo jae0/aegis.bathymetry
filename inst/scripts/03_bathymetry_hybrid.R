@@ -3,7 +3,7 @@
   ### stmv/carstm hybrid:  seems to be the "best" interpolation method .. in this case, due to data density
 
   ### generate a modelled surface using areal units placed on a lattice system (1km x 1 km grid)
-  ### CARSTM-based, however, run within a range of influence of dimension defined by : p$stmv_interpolation_basis_distance_choices = 5
+  ### CARSTM-based, however, run within a range of influence of dimension defined by : p$stmv_distance_interpolation = 5
   ### i.e., the same size as the stats grid (this is 1/2 of the window so 5 km surround each stats node )
 
   p = aegis.bathymetry::bathymetry_parameters( project_class="hybrid" )  # "hybrid" uses the "best" interpolation method given data constraints

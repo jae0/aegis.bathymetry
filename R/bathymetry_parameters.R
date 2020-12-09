@@ -108,7 +108,7 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
       stmv_lowpass_phi = stmv::matern_distance2phi( distance=0.1, nu=0.5, cor=0.1 ),
       stmv_autocorrelation_fft_taper = 0.9,  # benchmark from which to taper
       stmv_autocorrelation_localrange = 0.1,  # for output to stats
-      stmv_autocorrelation_basis_interpolation = c(0.25, 0.1, 0.05, 0.01),
+      stmv_autocorrelation_interpolation = c(0.25, 0.1, 0.05, 0.01),
       stmv_variogram_method = "fft",
       stmv_filter_depth_m = FALSE,  # need data above sea level to get coastline
       stmv_Y_transform =list(
@@ -119,7 +119,7 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
       stmv_distance_statsgrid = 5, # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
       stmv_distance_prediction_limits =c( 3, 25 ), # range of permissible predictions km (i.e 1/2 stats grid to upper limit based upon data density)
       stmv_distance_scale = c( 5, 10, 20, 25, 40, 80), # km ... approx guesses of 95% AC range
-      stmv_distance_basis_interpolation = c(  2.5 , 5, 10, 15, 20, 40, 80 ) , # range of permissible predictions km (i.e 1/2 stats grid to upper limit) .. in this case 5, 10, 20
+      stmv_distance_interpolation = c(  2.5 , 5, 10, 15, 20, 40, 80 ) , # range of permissible predictions km (i.e 1/2 stats grid to upper limit) .. in this case 5, 10, 20
       stmv_distance_interpolate_predictions = c(  2.5 , 5, 10, 15, 20, 40 ), # finalizing preds using linear interpolation
       stmv_nmin = 90, # min number of data points req before attempting to model in a localized space
       stmv_nmax = 1000, # no real upper bound.. just speed /RAM
@@ -241,7 +241,7 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
         invers = function(x) {10^(x) - 2500}
       ), # data range is from -1667 to 5467 m: make all positive valued
       stmv_distance_statsgrid = 5, # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
-      stmv_interpolation_basis_distance_choices = 5 * c( 1, 1.5, 2 ) ,  # the "5" is for the stats grid .. recall  that pres=0.5 controls the lattice for predictions, so 5 = 5/.5 = 10 x 10 = 100 grids 
+      stmv_distance_interpolation = 5 * c( 1, 1.5, 2 ) ,  # the "5" is for the stats grid .. recall  that pres=0.5 controls the lattice for predictions, so 5 = 5/.5 = 10 x 10 = 100 grids 
       stmv_au_distance_reference = "none", # additional filters upon polygons relative to windowsize: "centroid", "inside_or_touches_boundary", completely_inside_boundary"
       stmv_au_buffer_links = 0, # number of additional neighbours to extend beyond initial solution
 #      pres = 1  # this governs resolution of lattice predictions
@@ -259,7 +259,7 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
     # range of permissible predictions km (i.e 1/2 stats grid to upper limit based upon data density)
     p = parameters_add_without_overwriting( p,
       stmv_distance_prediction_limits =c( p$stmv_distance_statsgrid, 25 ), 
-      stmv_interpolation_basis_distance_choices = p$stmv_distance_statsgrid * c(1, 1.5, 2 )
+      stmv_distance_interpolation = p$stmv_distance_statsgrid * c(1, 1.5, 2 )
     )
   
     p = aegis_parameters( p=p, DS="stmv" )  # get defaults

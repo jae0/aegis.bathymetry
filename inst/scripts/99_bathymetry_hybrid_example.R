@@ -7,6 +7,9 @@
 require(aegis)
 require(aegis.bathymetry)
 require(sf)
+require(stmv)
+
+inla.setOption(mkl=FALSE) 
 
 ## :: main difference is:  project_class="hybrid"  (vs "stmv" above)
 
@@ -88,7 +91,7 @@ p = bathymetry_parameters(
 p$stmv_distance_prediction_limits = p$stmv_distance_statsgrid * c(1, 1.5 ) # range of permissible predictions km (i.e 1/2 stats grid to upper limit based upon data density)
 
 # NOTE:
-(p$stmv_interpolation_basis_distance_choices )
+(p$stmv_distance_interpolation )
 (p$pres)  # grid size
 
 if (0) {
