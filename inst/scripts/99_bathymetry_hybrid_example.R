@@ -25,7 +25,7 @@ interpolate_ncpus = min( parallel::detectCores(), floor( (ram_local()- interpola
 
 p0 = aegis::spatial_parameters( spatial_domain="bathymetry_example",
   aegis_proj4string_planar_km="+proj=utm +ellps=WGS84 +zone=20 +units=km",
-  dres=1/60/4, pres=0.5, lon0=-64, lon1=-62, lat0=44, lat1=45, psignif=2 )
+  dres=1/60/4, pres=1, lon0=-64, lon1=-62, lat0=44, lat1=45, psignif=2 )
 
 # or:
 p0 = stmv_test_data( "aegis.test.parameters")
@@ -51,6 +51,7 @@ p = bathymetry_parameters(
   DATA = DATA,
   spatial_domain = p0$spatial_domain,
   spatial_domain_subareas =NULL,
+  pres=1,
   inputdata_spatial_discretization_planar_km = p0$pres/5,  # pres = 0.5 and used for prediction so inputs should be smaller
   aegis_dimensionality="space",
   stmv_variables = list(Y="z"),  # required as fft has no formulae
@@ -71,15 +72,16 @@ p = bathymetry_parameters(
   # stmv_au_distance_reference="completely_inside_boundary",
   # stmv_au_distance_reference = "none", 
   # stmv_au_buffer_links = 1, # number of additional neighbours to extend beyond initial solution
+  stmv_distance_interpolation=c(2, 4, 6),
   stmv_filter_depth_m = FALSE,  # need data above sea level to get coastline
   stmv_Y_transform =list(
     transf = function(x) {log10(x + 2500)} ,
     invers = function(x) {10^(x) - 2500}
   ), # data range is from -1667 to 5467 m: make all positive valued
   stmv_rsquared_threshold = 0.01, # lower threshold  .. i.e., ignore ... there is no timeseries model, nor a fixed effect spatial "model"
-  stmv_distance_statsgrid = 10, # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
-  stmv_nmin = 50,  # min number of data points req before attempting to model in a localized space
-  stmv_nmax = 5000, # no real upper bound.. just speed /RAM
+  stmv_distance_statsgrid = 2, # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
+  stmv_nmin = 10,  # min number of data points req before attempting to model in a localized space
+  stmv_nmax = 1000, # no real upper bound.. just speed /RAM
   stmv_force_complete_method = "linear_interp",
   stmv_runmode = list(
     carstm = rep("localhost", 1), # serial mode

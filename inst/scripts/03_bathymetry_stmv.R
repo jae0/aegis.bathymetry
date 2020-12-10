@@ -1,7 +1,7 @@
 
   # Bathymetry
 
-  # Spatial interpolation using stmv on a lattice grid .. continuous form
+  # Spatial interpolation using stmv on a lattice grid .. continuous form  -- fastest and best performing 
 
   # Total "superhighres": 2-5 GB/process and 4 GB in parent for fft
   # gam method requires more ~ 2X

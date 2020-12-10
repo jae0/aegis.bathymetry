@@ -12,7 +12,6 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
     "parallel", "sf", "GADMTools", "INLA" ) )
   p$libs = c( p$libs, project.library ( "aegis", "aegis.bathymetry",  "aegis.polygons", "aegis.coastline" ) )
 
-  p$project_class = project_class
 
   p = parameters_add_without_overwriting( p, project_name = project_name )
   p = parameters_add_without_overwriting( p, data_root = project.datadirectory( "aegis", p$project_name ) )
@@ -37,7 +36,10 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
 
   # ---------------------
 
-  if (project_class=="core") return(p)  # minimal specifications
+  if (project_class=="core") {
+    p$project_class = "core"
+    return(p)  # minimal specifications
+  }
 
   # ---------------------
 
@@ -47,10 +49,10 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
     #   one global, run directly from  polygons defined in aegis.bathymetry/inst/scripts/99.bathymetry.carstm.R
     #   and one that is called secondarily specific to a local project's polygons (eg. snow crab)
     p$libs = c( p$libs, project.library ( "carstm", "INLA"  ) )
+    p$project_class = "carstm"
 
     # defaults in case not provided ...
     p = parameters_add_without_overwriting( p,
-      project_class = "carstm",
       data_transformation=list( forward=function(x){ x+2500 }, backward=function(x) {x-2500} ),
       areal_units_source = "lattice", # "stmv_fields" to use ageis fields instead of carstm fields ... note variables are not the same
       areal_units_resolution_km = 25, # default in case not provided ... 25 km dim of lattice ~ 1 hr; 5km = 79hrs; 2km = ?? hrs
@@ -60,7 +62,6 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
       carstm_model_label = "default",
       carstm_inputs_aggregated = TRUE
     )
-
 
     if ( !exists("carstm_model_call", p)  ) {
       if ( grepl("inla", p$carstm_modelengine) ) {
@@ -96,7 +97,8 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
   # ---------------------
 
 
-  if (project_class %in% c("stmv") ) {
+  if (project_class %in% c("stmv", "default") ) {
+    p$project_class = "stmv"
     p = parameters_add_without_overwriting( p,
       DATA = 'bathymetry_db( p=p, DS="stmv_inputs" )',
       stmv_model_label="default",
@@ -213,7 +215,8 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
   # ---------------------
 
 
-  if (project_class %in% c("hybrid", "default")  ) {
+  if (project_class %in% c("hybrid")  ) {
+    p$project_class = "hybrid"
 
     p = parameters_add_without_overwriting( p,
       DATA = 'bathymetry_db( p=p, DS="stmv_inputs_highres" )',  # _highres
