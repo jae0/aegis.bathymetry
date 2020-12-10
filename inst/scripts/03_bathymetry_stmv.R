@@ -109,6 +109,11 @@ pb = spatial_parameters( p=p, spatial_domain="canada.east" )
 bathymetry_figures( p=pb, varnames=c("z", "dZ", "ddZ", "b.localrange"), logyvar=TRUE, savetofile="png" )
 bathymetry_figures( p=pb, varnames=c("b.sdTotal", "b.sdSpatial", "b.sdObs"), logyvar=FALSE, savetofile="png" )
 
+# a few plots :
+pb = spatial_parameters( p=p, spatial_domain="canada.east.highres" )
+bathymetry_figures( p=pb, varnames=c("z", "dZ", "ddZ", "b.localrange"), logyvar=TRUE, savetofile="png" )
+bathymetry_figures( p=pb, varnames=c("b.sdTotal", "b.sdSpatial", "b.sdObs"), logyvar=FALSE, savetofile="png" )
+
 pb = spatial_parameters( p=p, spatial_domain="canada.east.superhighres" )
 bathymetry_figures( p=pb, varnames=c("z", "dZ", "ddZ", "b.localrange"), logyvar=TRUE, savetofile="png" )
 bathymetry_figures( p=pb, varnames=c("b.sdTotal", "b.sdSpatial", "b.sdObs"), logyvar=FALSE, savetofile="png" )
