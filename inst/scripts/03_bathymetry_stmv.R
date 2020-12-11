@@ -12,60 +12,51 @@
   # krige method is a bit too oversmoothed, especially where rapid changes are occuring
 
   #  ~40 hrs to scale
-  scale_ram_required_main_process = 20 # GB twostep / fft
-  scale_ram_required_per_process  = 6 # twostep / fft /fields vario ..  (mostly 0.5 GB, but up to 5 GB)
-  scale_ncpus = min( parallel::detectCores(), floor( (ram_local()- scale_ram_required_main_process) / scale_ram_required_per_process ) )
-
-  # ~96 hrs
-  interpolate_ram_required_main_process = 10 # GB twostep / fft
-  interpolate_ram_required_per_process  = 8 # twostep / fft /fields vario ..
-  interpolate_ncpus = min( parallel::detectCores(), floor( (ram_local()- interpolate_ram_required_main_process) / interpolate_ram_required_per_process ) )
-
+  # ~96 hrs to interpolate
+  scale_ncpus = ram_local( "ncores", ram_main=20, ram_process=6 ) # in GB; 
+  interpolate_ncpus = ram_local( "ncores", ram_main=10, ram_process=8 ) # in GB
 
   p = aegis.bathymetry::bathymetry_parameters( project_class="stmv" )
 
   # p$DATA = 'bathymetry_db( p=p, DS="stmv_inputs" )'   # if using lower resolution data
   # p$stmv_distance_statsgrid = 25     # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
-  p$stmv_runmode = list(
-    scale = rep("localhost", scale_ncpus),
-    interpolate = list(
-      c1 = rep("localhost", interpolate_ncpus),  # ncpus for each runmode
-      c2 = rep("localhost", interpolate_ncpus),  # ncpus for each runmode
-      c3 = rep("localhost", max(1, interpolate_ncpus-1)),
-      c4 = rep("localhost", max(1, interpolate_ncpus-1)),
-      c5 = rep("localhost", max(1, interpolate_ncpus-2))
-    ),
-    # if a good idea of autocorrelation is missing, forcing via explicit distance limits is an option
-    # interpolate_distance_basis = list(
-    #   d1 = rep("localhost", interpolate_ncpus),
-    #   d2 = rep("localhost", interpolate_ncpus),
-    #   d3 = rep("localhost", max(1, interpolate_ncpus-1)),
-    #   d4 = rep("localhost", max(1, interpolate_ncpus-1)),
-    #   d5 = rep("localhost", max(1, interpolate_ncpus-2)),
-    #   d6 = rep("localhost", max(1, interpolate_ncpus-2))
-    # ),
-    interpolate_predictions = list(
-      c1 = "localhost",   # ncpus for each runmode
-      c2 = "localhost",   # ncpus for each runmode
-      c3 = "localhost",
-      c4 = "localhost",
-      c5 = "localhost",
-      c6 = "localhost",
-      c7 = "localhost" ),
-    globalmodel = FALSE,
-    # restart_load = "interpolate_correlation_basis_0.01" ,  # only needed if this is restarting from some saved instance
-    save_intermediate_results = TRUE,
-    save_completed_data = TRUE
+  if (0) {
+    # to run in parallel:
+      p$stmv_runmode = list(
+        scale = rep("localhost", scale_ncpus),
+        interpolate = list(
+          c1 = rep("localhost", interpolate_ncpus),  # ncpus for each runmode
+          c2 = rep("localhost", interpolate_ncpus),  # ncpus for each runmode
+          c3 = rep("localhost", max(1, interpolate_ncpus-1)),
+          c4 = rep("localhost", max(1, interpolate_ncpus-1)),
+          c5 = rep("localhost", max(1, interpolate_ncpus-2))
+        ),
+        # if a good idea of autocorrelation is missing, forcing via explicit distance limits is an option
+        # interpolate_distance_basis = list(
+        #   d1 = rep("localhost", interpolate_ncpus),
+        #   d2 = rep("localhost", interpolate_ncpus),
+        #   d3 = rep("localhost", max(1, interpolate_ncpus-1)),
+        #   d4 = rep("localhost", max(1, interpolate_ncpus-1)),
+        #   d5 = rep("localhost", max(1, interpolate_ncpus-2)),
+        #   d6 = rep("localhost", max(1, interpolate_ncpus-2))
+        # ),
+        interpolate_predictions = list(
+          c1 = "localhost",   # ncpus for each runmode
+          c2 = "localhost",   # ncpus for each runmode
+          c3 = "localhost",
+          c4 = "localhost",
+          c5 = "localhost",
+          c6 = "localhost",
+          c7 = "localhost" ),
+        globalmodel = FALSE,
+        # restart_load = "interpolate_correlation_basis_0.01" ,  # only needed if this is restarting from some saved instance
+        save_intermediate_results = TRUE,
+        save_completed_data = TRUE
 
-  )  # ncpus for each runmode
-
-
-
-  if (redo_inputs) {
-      # only if inputs have changed
-      bathymetry_db( p=p, DS="stmv_inputs_redo" )  # recreate fields for .. requires 60GB+
+      )  # ncpus for each runmode
   }
 
+  # DATA inputs area created on-the-fly
 
   stmv( p=p )  # This will take from 40-70 hrs, depending upon system
 

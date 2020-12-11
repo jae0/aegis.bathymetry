@@ -490,7 +490,6 @@
 
       fn = file.path( p$modeldir, paste( "bathymetry", "stmv_inputs", "rdata", sep=".") )
       if (DS %in% c("bathymetry", "stmv_inputs") ) {
-        print( "Warning: stmv_inputs is loading from a saved instance ... add redo=TRUE if data needs a refresh" )
         load( fn)
         return( hm )
       }
@@ -518,7 +517,6 @@
 
       fn = file.path( p$modeldir, paste( "bathymetry", "stmv_inputs_highres", "rdata", sep=".") )
       if (DS %in% c("stmv_inputs_highres") ) {
-        print( "Warning: stmv_inputs_highres is loading from a saved instance ... add redo=TRUE if data needs a refresh" )
         load( fn)
         return( hm )
       }

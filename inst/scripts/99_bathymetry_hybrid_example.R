@@ -13,16 +13,6 @@ inla.setOption(mkl=FALSE)
 
 ## :: main difference is:  project_class="hybrid"  (vs "stmv" above)
 
-scale_ram_required_main_process = 1 # GB twostep / fft ---
-scale_ram_required_per_process  = 1 # twostep / fft /fields vario ..  (mostly 0.5 GB, but up to 5 GB)
-scale_ncpus = min( parallel::detectCores(), floor( (ram_local()- scale_ram_required_main_process) / scale_ram_required_per_process ) )
-
-# 5 mins
-interpolate_ram_required_main_process = 1 # GB twostep / fft
-interpolate_ram_required_per_process  = 1.5 # twostep / fft /fields vario ..
-interpolate_ncpus = min( parallel::detectCores(), floor( (ram_local()- interpolate_ram_required_main_process) / interpolate_ram_required_per_process ) )
-
-
 p0 = aegis::spatial_parameters( spatial_domain="bathymetry_example",
   aegis_proj4string_planar_km="+proj=utm +ellps=WGS84 +zone=20 +units=km",
   dres=1/60/4, pres=1, lon0=-64, lon1=-62, lat0=44, lat1=45, psignif=2 )
@@ -72,14 +62,14 @@ p = bathymetry_parameters(
   # stmv_au_distance_reference="completely_inside_boundary",
   # stmv_au_distance_reference = "none", 
   # stmv_au_buffer_links = 1, # number of additional neighbours to extend beyond initial solution
-  stmv_distance_interpolation=c(2, 4, 6),
+  stmv_distance_interpolation=c(5),
   stmv_filter_depth_m = FALSE,  # need data above sea level to get coastline
   stmv_Y_transform =list(
     transf = function(x) {log10(x + 2500)} ,
     invers = function(x) {10^(x) - 2500}
   ), # data range is from -1667 to 5467 m: make all positive valued
   stmv_rsquared_threshold = 0.01, # lower threshold  .. i.e., ignore ... there is no timeseries model, nor a fixed effect spatial "model"
-  stmv_distance_statsgrid = 2, # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
+  stmv_distance_statsgrid = 5, # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
   stmv_nmin = 10,  # min number of data points req before attempting to model in a localized space
   stmv_nmax = 1000, # no real upper bound.. just speed /RAM
   stmv_force_complete_method = "linear_interp",
@@ -91,6 +81,11 @@ p = bathymetry_parameters(
   )
 )
 
+
+  ncores = ram_local( "ncores", ram_main=?, ram_process=? ) # in GB; 
+
+  p$stmv_runmode$carstm = rep("localhost", ncores)
+
 # p$stmv_distance_prediction_limits = p$stmv_distance_statsgrid * c(1, 1.5 ) # range of permissible predictions km (i.e 1/2 stats grid to upper limit based upon data density)
 
 # NOTE:
@@ -99,8 +94,9 @@ p = bathymetry_parameters(
 
 if (0) {
   # to force parallel mode
+   ncores = ram_local( "ncores", ram_main=1, ram_process=1 ) # about 24 hr
    p$stmv_runmode = list(
-    carstm = rep("localhost", scale_ncpus),
+    carstm = rep("localhost", ncores),
     globalmodel = FALSE,
     restart_load = FALSE,
     save_completed_data = TRUE # just a dummy variable with the correct name

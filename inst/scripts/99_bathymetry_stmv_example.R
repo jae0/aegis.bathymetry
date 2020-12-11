@@ -72,8 +72,8 @@ p = bathymetry_parameters(
 
 if (0) {
   # to force parallel mode
-  scale_ncpus = 12
-  interpolate_ncpus=12
+  scale_ncpus = ram_local( "ncores", ram_main=2, ram_process=1 ) # in GB about 24 hr
+  interpolate_ncpus = ram_local( "ncores", ram_main=2, ram_process=2 ) # nn hrs
    stmv_runmode = list(
     scale = rep("localhost", scale_ncpus),
     interpolate = list(
@@ -87,7 +87,6 @@ if (0) {
     # restart_load = "interpolate_correlation_basis_0.01" ,  # only needed if this is restarting from some saved instance
     save_intermediate_results = TRUE,
     save_completed_data = TRUE
-
   )  # ncpus for each runmode
 }
 

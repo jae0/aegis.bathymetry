@@ -17,7 +17,9 @@
     # stmv_nmax = 600, # no real upper bound.. just speed /RAM
 
 
-  p$stmv_runmode$carstm = rep("localhost", 4)
+  ncores = ram_local( "ncores", ram_main=?, ram_process=? ) # in GB; 
+
+  p$stmv_runmode$carstm = rep("localhost", ncores)
 
   if (redo_inouts) {
       bathymetry_db( p=p, DS="stmv_inputs_redo" )  # recreate fields for .. requires 60GB+

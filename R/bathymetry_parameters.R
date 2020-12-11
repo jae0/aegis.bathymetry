@@ -10,6 +10,7 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
   #   "maps", "mapdata", "maptools", "parallel",  "rgdal", "rgeos",  "sp", "spdep", "splancs", "GADMTools", "INLA" ) )
   p$libs = c( p$libs, RLibrary ( "colorspace",  "lubridate",  "lattice",
     "parallel", "sf", "GADMTools", "INLA" ) )
+  
   p$libs = c( p$libs, project.library ( "aegis", "aegis.bathymetry",  "aegis.polygons", "aegis.coastline" ) )
 
 
@@ -25,7 +26,7 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
   p = parameters_add_without_overwriting( p,
     variabletomodel = "z",
     spatial_domain = "canada.east.superhighres",
-    spatial_domain_subareas = c( "canada.east", "canada.east.highres", "SSE", "SSE.mpa" , "snowcrab"),  # this is for bathymetry_db, not stmv
+    spatial_domain_subareas = c( "canada.east.highres", "canada.east", "SSE", "SSE.mpa" , "snowcrab"),  # this is for bathymetry_db, not stmv
     aegis_dimensionality="space"
   )
 
@@ -55,7 +56,7 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
     p = parameters_add_without_overwriting( p,
       data_transformation=list( forward=function(x){ x+2500 }, backward=function(x) {x-2500} ),
       areal_units_source = "lattice", # "stmv_fields" to use ageis fields instead of carstm fields ... note variables are not the same
-      areal_units_resolution_km = 25, # default in case not provided ... 25 km dim of lattice ~ 1 hr; 5km = 79hrs; 2km = ?? hrs
+      areal_units_resolution_km = 5, # default in case not provided ... 25 km dim of lattice ~ 1 hr; 5km = 79hrs; 2km = ?? hrs
       areal_units_proj4string_planar_km = p$aegis_proj4string_planar_km,  # coord system to use for areal estimation and gridding for carstm
       areal_units_overlay = "none",
       carstm_modelengine = "inla",  # {model engine}.{label to use to store}
@@ -72,11 +73,11 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
               + f(auid, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, constr=TRUE, hyper=H$bym2),
             family = "lognormal",
             data= M,
-            control.compute=list(dic=TRUE, waic=TRUE, config=TRUE),  # config=TRUE if doing posterior simulations
+            control.compute=list(dic=TRUE, waic=TRUE, config=FALSE),  # config=TRUE if doing posterior simulations
             control.results=list(return.marginals.random=TRUE, return.marginals.predictor=TRUE ),
             control.predictor=list(compute=FALSE, link=1 ),
             control.fixed=H$fixed,  # priors for fixed effects, generic is ok
-            control.inla = list(h=1e-4, tolerance=1e-9, cmin=0), # restart=3), # restart a few times in case posteriors are poorly defined
+            control.inla = list(h=1e-3, tolerance=1e-9, cmin=0), # restart=3), # restart a few times in case posteriors are poorly defined
             verbose=TRUE
           ) ' )
       }
@@ -98,19 +99,16 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
 
 
   if (project_class %in% c("stmv", "default") ) {
+
+    p$libs = c( p$libs, project.library ( "stmv" ) )
     p$project_class = "stmv"
+
     p = parameters_add_without_overwriting( p,
       DATA = 'bathymetry_db( p=p, DS="stmv_inputs" )',
       stmv_model_label="default",
       stmv_variables = list(Y="z"),  # required as fft has no formulae
       stmv_global_modelengine = "none",  # only marginally useful .. consider removing it and use "none",
       stmv_local_modelengine="fft",
-      stmv_fft_filter = "matern tapered lowpass modelled fast_predictions", #  act as a low pass filter first before matern with taper .. depth has enough data for this. Otherwise, use:
-      stmv_lowpass_nu = 0.5, # exp
-      stmv_lowpass_phi = stmv::matern_distance2phi( distance=0.1, nu=0.5, cor=0.1 ),
-      stmv_autocorrelation_fft_taper = 0.9,  # benchmark from which to taper
-      stmv_autocorrelation_localrange = 0.1,  # correlation at which to call effective range 
-      stmv_autocorrelation_interpolation = c(0.25, 0.1, 0.05, 0.01),
       stmv_variogram_method = "fft",
       stmv_filter_depth_m = FALSE,  # need data above sea level to get coastline
       stmv_Y_transform =list(
@@ -119,24 +117,28 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
       ), # data range is from -1667 to 5467 m: make all positive valued
       stmv_rsquared_threshold = 0.01, # lower threshold  .. ignore
       stmv_distance_statsgrid = 5, # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
-      stmv_distance_prediction_limits =c( 3, 25 ), # range of permissible predictions km (i.e 1/2 stats grid to upper limit based upon data density)
-      stmv_distance_scale = c( 5, 10, 20, 25, 40, 80), # km ... approx guesses of 95% AC range
-      stmv_distance_interpolation = c(  2.5 , 5, 10, 15, 20, 40, 80 ) , # range of permissible predictions km (i.e 1/2 stats grid to upper limit) .. in this case 5, 10, 20
-      stmv_distance_interpolate_predictions = c(  2.5 , 5, 10, 15, 20, 40 ), # finalizing preds using linear interpolation
       stmv_nmin = 90, # min number of data points req before attempting to model in a localized space
       stmv_nmax = 1000, # no real upper bound.. just speed /RAM
       stmv_force_complete_method = "linear_interp"
     )
 
-    p$libs = c( p$libs, project.library ( "stmv" ) )
 
+    
+    p = parameters_add_without_overwriting( p,
+      stmv_distance_prediction_limits = p$stmv_distance_statsgrid * c( 1/2, 5 ), # range of permissible predictions km (i.e 1/2 stats grid to upper limit based upon data density)
+      stmv_distance_scale = p$stmv_distance_statsgrid * c( 1, 2, 3, 4, 5, 10, 15), # km ... approx guesses of 95% AC range
+      stmv_distance_interpolation = p$stmv_distance_statsgrid * c( 1/2, 1, 2, 3, 4, 5, 10, 15 ),  # range of permissible predictions km (i.e 1/2 stats grid to upper limit) .. in this case 5, 10, 20
+      stmv_distance_interpolate_predictions = p$stmv_distance_statsgrid * c( 1/2, 1, 2, 3, 4, 8) # finalizing preds using linear interpolation
+    )
 
+ 
     # tweaked override the defaults of aegis_parameters( p=p, DS="stmv") :
     if ( p$stmv_local_modelengine %in% c("krige" )) {
       # nothing to do  .. this is faster than "gstat" .. do not use for bathymetry as it is oversmoothed
     }
 
     if ( p$stmv_local_modelengine =="gaussianprocess2Dt" ) {
+      p$libs = unique( c( p$libs, RLibrary ("fields")) )
       # too slow to use right now
       if (!exists("fields.cov.function", p)) p$fields.cov.function = "stationary.taper.cov"  # Wendland tapering; also "stationary.cov"  #
       if (!exists("fields.Covariance", p)) p$fields.Covariance="Exponential" # note that "Rad.cov" is TPS
@@ -147,16 +149,15 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
     }
 
     if (p$stmv_local_modelengine == "fft") {
-      # ~ 3.25 days hr with 68, 3 Ghz cpus on beowulf using fft method, bigmemory-filebacked jc: 2016
-      # ~ 14 hrs with 8, 3.2 Ghz cpus on thoth; 1 GB per process and a total of 6 GB usage;  method RAM based jc: 2016
-      # 12 hrs to complete stage 1 on hyperion
-      # ~ 5.5 hr on hyperion
-      # definitely a cleaner (not overly smoothed) image than a GAM
-      # NOTE that  p$stmv_lowpass_phi and  p$stmv_lowpass_nu are very critical choices
+      nu = 0.5  # exponential smoothing
+      ac_local = 0.1  # ac at which to designate "effective range"
       p = parameters_add_without_overwriting( p,
-        stmv_fft_filter = "matern_tapered_modelled", # only act as a low pass filter .. depth has enough data for this. Otherwise, use:
-        stmv_lowpass_phi = 0.5, # low pass FFT filter range .. 0.5 seems to be optimal (by visual inspection)
-        stmv_lowpass_nu = 0.5 # this is exponential covar
+        stmv_fft_filter = "matern tapered lowpass modelled fast_predictions", #  act as a low pass filter first before matern with taper  
+        stmv_autocorrelation_fft_taper = 0.9,  # benchmark from which to taper
+        stmv_autocorrelation_localrange = ac_local,  # for output to stats
+        stmv_autocorrelation_interpolation = c(0.25, 0.1, 0.05, 0.01),
+        stmv_lowpass_nu = nu, # exp
+        stmv_lowpass_phi = stmv::matern_distance2phi( distance=p$pres/2, nu=nu, cor=ac_local )
       )
     }
 
@@ -165,6 +166,7 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
       # timings:
       # 14 hrs on hyperion with 100 knots
       ## data range is from -1667 to 5467 m .. 2000 shifts all to positive valued by one order of magnitude
+      p$libs = unique( c( p$libs, RLibrary ("mgcv")))
       p = parameters_add_without_overwriting( p,
         stmv_local_modelformula = formula( paste(
           p$variabletomodel, ' ~ s(plon,k=3, bs="ts") + s(plat, k=3, bs="ts") + s(plon, plat, k=200, bs="ts")') ),
@@ -175,6 +177,7 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
 
     if ( p$stmv_local_modelengine == "bayesx" ) {
       ## data range is from -1667 to 5467 m .. 2000 shifts all to positive valued by one order of magnitude
+      p$libs = unique( c( p$libs, RLibrary ("bayesx")) )
       p = parameters_add_without_overwriting( p,
         stmv_local_model_bayesxmethod="MCMC",  # REML actually seems to be the same speed ... i.e., most of the time is spent in thhe prediction step ..
         stmv_local_model_distanceweighted = TRUE,
@@ -183,9 +186,11 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
       )
     }
 
-    if (p$stmv_local_modelengine == "inla" ){
+    if (p$stmv_local_modelengine == "inla" ) {
       # old method .. took a month to finish .. results look good but very slow
       ## data range is from -1667 to 5467 m .. 2000 shifts all to positive valued by one order of magnitude
+      p$libs = unique( c( p$libs, RLibrary ("INLA")) )
+ 
       p = parameters_add_without_overwriting( p,
         inla.alpha = 0.5, # bessel function curviness .. ie "nu"
         stmv_local_modelformula = formula( paste(
@@ -201,6 +206,32 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
         }
       )
     }
+
+    # default to serial mode
+    p = parameters_add_without_overwriting( p,
+      stmv_runmode = list(
+        globalmodel = FALSE,
+        scale = rep("localhost", 1),
+        interpolate = list(
+          cor_0.25 = rep("localhost", 1),
+          cor_0.1  = rep("localhost", 1),
+          cor_0.05 = rep("localhost", 1),
+          cor_0.01 = rep("localhost", 1)
+        ),
+        interpolate_predictions = list(
+          c1 = rep("localhost", 1),  
+          c2 = rep("localhost", 1),  
+          c3 = rep("localhost", 1),
+          c4 = rep("localhost", 1),
+          c5 = rep("localhost", 1),
+          c6 = rep("localhost", 1),
+          c7 = rep("localhost", 1)
+        ),
+        save_intermediate_results = TRUE,
+        save_completed_data = TRUE # just a dummy variable with the correct name
+      )
+    )
+
     p = aegis_parameters( p=p, DS="stmv" )
 
     if ( p$inputdata_spatial_discretization_planar_km >= p$pres ) {
@@ -244,27 +275,30 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
         invers = function(x) {10^(x) - 2500}
       ), # data range is from -1667 to 5467 m: make all positive valued
       stmv_distance_statsgrid = 5, # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
-      stmv_distance_interpolation = 5 * c( 1, 1.5, 2 ) ,  # the "5" is for the stats grid .. recall  that pres=0.5 controls the lattice for predictions, so 5 = 5/.5 = 10 x 10 = 100 grids 
       stmv_au_distance_reference = "none", # additional filters upon polygons relative to windowsize: "centroid", "inside_or_touches_boundary", completely_inside_boundary"
       stmv_au_buffer_links = 0, # number of additional neighbours to extend beyond initial solution
 #      pres = 1  # this governs resolution of lattice predictions
-      stmv_nmin = 10, # min number of data points req before attempting to model in a localized space
-      stmv_nmax = 1000, # no real upper bound.. just speed /RAM
+      stmv_nmin = 100, # min number of data points req before attempting to model in a localized space
+      stmv_nmax = 1000 # no real upper bound.. just speed /RAM
+    )
+ 
+ 
+    p = parameters_add_without_overwriting( p,
+      stmv_distance_prediction_limits = p$stmv_distance_statsgrid * c( 1, 2 ), # range of permissible predictions km (i.e  stats grid to upper limit based upon data density)
+      stmv_distance_interpolation = p$stmv_distance_statsgrid * c( 1/2, 1, 2 ),  # range of permissible predictions km (i.e 1/2 stats grid to upper limit) .. in this case 5, 10, 20
+      stmv_distance_interpolate_predictions = p$stmv_distance_statsgrid * c( 1/2, 1, 2) # finalizing preds using linear interpolation
+    )
+
+ 
+    p = parameters_add_without_overwriting( p,
       stmv_runmode = list(
         carstm = rep("localhost", 1),
         globalmodel = FALSE,
-        # restart_load = "interpolate_correlation_basis_0.01" ,  # only needed if this is restarting from some saved instance
         save_intermediate_results = TRUE,
         save_completed_data = TRUE
-      )  # ncpus for each runmode
+      )  
     )
- 
-    # range of permissible predictions km (i.e 1/2 stats grid to upper limit based upon data density)
-    p = parameters_add_without_overwriting( p,
-      stmv_distance_prediction_limits =c( p$stmv_distance_statsgrid, 25 ), 
-      stmv_distance_interpolation = p$stmv_distance_statsgrid * c(1, 1.5, 2 )
-    )
-  
+
     p = aegis_parameters( p=p, DS="stmv" )  # get defaults
 
     if ( p$inputdata_spatial_discretization_planar_km >= p$pres ) {
