@@ -21,6 +21,7 @@
 
   p$stmv_runmode$carstm = rep("localhost", ncores)
 
+
   if (redo_inouts) {
       bathymetry_db( p=p, DS="stmv_inputs_redo" )  # recreate fields for .. requires 60GB+
       bathymetry_db( p=p, DS="stmv_inputs_highres_redo" )  # recreate fields for .. requires 60GB+

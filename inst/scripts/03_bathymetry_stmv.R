@@ -20,41 +20,56 @@
 
   # p$DATA = 'bathymetry_db( p=p, DS="stmv_inputs" )'   # if using lower resolution data
   # p$stmv_distance_statsgrid = 25     # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
-  if (0) {
-    # to run in parallel:
-      p$stmv_runmode = list(
-        scale = rep("localhost", scale_ncpus),
-        interpolate = list(
-          c1 = rep("localhost", interpolate_ncpus),  # ncpus for each runmode
-          c2 = rep("localhost", interpolate_ncpus),  # ncpus for each runmode
-          c3 = rep("localhost", max(1, interpolate_ncpus-1)),
-          c4 = rep("localhost", max(1, interpolate_ncpus-1)),
-          c5 = rep("localhost", max(1, interpolate_ncpus-2))
-        ),
-        # if a good idea of autocorrelation is missing, forcing via explicit distance limits is an option
-        # interpolate_distance_basis = list(
-        #   d1 = rep("localhost", interpolate_ncpus),
-        #   d2 = rep("localhost", interpolate_ncpus),
-        #   d3 = rep("localhost", max(1, interpolate_ncpus-1)),
-        #   d4 = rep("localhost", max(1, interpolate_ncpus-1)),
-        #   d5 = rep("localhost", max(1, interpolate_ncpus-2)),
-        #   d6 = rep("localhost", max(1, interpolate_ncpus-2))
-        # ),
-        interpolate_predictions = list(
-          c1 = "localhost",   # ncpus for each runmode
-          c2 = "localhost",   # ncpus for each runmode
-          c3 = "localhost",
-          c4 = "localhost",
-          c5 = "localhost",
-          c6 = "localhost",
-          c7 = "localhost" ),
-        globalmodel = FALSE,
-        # restart_load = "interpolate_correlation_basis_0.01" ,  # only needed if this is restarting from some saved instance
-        save_intermediate_results = TRUE,
-        save_completed_data = TRUE
+  
+    
+  use_parallel_mode = FALSE
+  if (use_parallel_mode) {
+      # default is serial mode .. to enable parallel processing, pick and choose:
+      scale_ncpus = ram_local( "ncores", ram_main=10, ram_process=4 ) # in GB; about 24  hr
+      interpolate_ncpus = ram_local( "ncores", ram_main=2, ram_process=2 ) # nn hrs
 
-      )  # ncpus for each runmode
+      if (!exists("stmv_runmode", p)) p$stmv_runmode = list()
+      
+      p$stmv_runmode$globalmodel = FALSE
+      
+      p$stmv_runmode$scale = rep("localhost", scale_ncpus)
+
+      p$stmv_runmode$interpolate = list(
+        cor_0.25 = rep("localhost", interpolate_ncpus),
+        cor_0.1  = rep("localhost", interpolate_ncpus),
+        cor_0.05 = rep("localhost", interpolate_ncpus),
+        cor_0.01 = rep("localhost", interpolate_ncpus)
+      ) 
+      
+      # p$stmv_runmode$restart_load = "interpolate_correlation_basis"   # only needed if this is restarting from some saved instance
+
+      # if a good idea of autocorrelation is missing, forcing via explicit distance limits is an option
+      if (0) {
+        p$stmv_runmode$interpolate_distance_basis = list(
+          d1 = rep("localhost", interpolate_ncpus),
+          d2 = rep("localhost", interpolate_ncpus),
+          d3 = rep("localhost", interpolate_ncpus),
+          d4 = rep("localhost", interpolate_ncpus),
+          d5 = rep("localhost", interpolate_ncpus),
+          d6 = rep("localhost", interpolate_ncpus)
+        )
+      }
+      
+      p$stmv_runmode$interpolate_predictions = list(
+        c1 = rep("localhost", interpolate_ncpus),  
+        c2 = rep("localhost", interpolate_ncpus),  
+        c3 = rep("localhost", interpolate_ncpus),
+        c4 = rep("localhost", interpolate_ncpus),
+        c5 = rep("localhost", interpolate_ncpus),
+        c6 = rep("localhost", interpolate_ncpus),
+        c7 = rep("localhost", interpolate_ncpus)
+      )
+
+      p$stmv_runmode$save_intermediate_results = TRUE
+      p$stmv_runmode$save_completed_data = TRUE      
+
   }
+
 
   # DATA inputs area created on-the-fly
 
