@@ -11,7 +11,7 @@
   # FFT is the method of choice for speed and ability to capture the variability
   # krige method is a bit too oversmoothed, especially where rapid changes are occuring
 
-  #  ~40 hrs to scale
+  #  ~24 hrs to scale
   # ~96 hrs to interpolate
   scale_ncpus = ram_local( "ncores", ram_main=20, ram_process=6 ) # in GB; 
   interpolate_ncpus = ram_local( "ncores", ram_main=10, ram_process=8 ) # in GB
