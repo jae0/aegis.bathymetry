@@ -212,7 +212,7 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
       stmv_runmode = list(
         globalmodel = FALSE,
         scale = rep("localhost", 1),
-        interpolate = list(
+        interpolate_correlation_basis = list(
           cor_0.25 = rep("localhost", 1),
           cor_0.1  = rep("localhost", 1),
           cor_0.05 = rep("localhost", 1),

@@ -76,7 +76,7 @@ if (0) {
   interpolate_ncpus = ram_local( "ncores", ram_main=2, ram_process=2 ) # nn hrs
    stmv_runmode = list(
     scale = rep("localhost", scale_ncpus),
-    interpolate = list(
+    interpolate_correlation_basis = list(
       c1 = rep("localhost", interpolate_ncpus),  # ncpus for each runmode
       c2 = rep("localhost", interpolate_ncpus),  # ncpus for each runmode
       c3 = rep("localhost", max(1, interpolate_ncpus-1)),
@@ -84,7 +84,7 @@ if (0) {
       c5 = rep("localhost", max(1, interpolate_ncpus-2))
     ),
     globalmodel = FALSE,
-    # restart_load = "interpolate_correlation_basis_0.01" ,  # only needed if this is restarting from some saved instance
+    # restart_load = "interpolate_correlation_basis" ,  # only needed if this is restarting from some saved instance
     save_intermediate_results = TRUE,
     save_completed_data = TRUE
   )  # ncpus for each runmode

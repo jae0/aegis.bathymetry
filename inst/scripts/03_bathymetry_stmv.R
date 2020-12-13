@@ -12,7 +12,7 @@
   # krige method is a bit too oversmoothed, especially where rapid changes are occuring
 
   #  ~24 hrs to scale
-  # ~96 hrs to interpolate
+  # ~27 + xxx + xxx =  hrs to interpolate
   scale_ncpus = ram_local( "ncores", ram_main=20, ram_process=6 ) # in GB; 
   interpolate_ncpus = ram_local( "ncores", ram_main=10, ram_process=8 ) # in GB
 
@@ -34,7 +34,7 @@
       
       p$stmv_runmode$scale = rep("localhost", scale_ncpus)
 
-      p$stmv_runmode$interpolate = list(
+      p$stmv_runmode$interpolate_correlation_basis = list(
         cor_0.25 = rep("localhost", interpolate_ncpus),
         cor_0.1  = rep("localhost", interpolate_ncpus),
         cor_0.05 = rep("localhost", interpolate_ncpus),
