@@ -157,7 +157,7 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
         stmv_autocorrelation_localrange = ac_local,  # for output to stats
         stmv_autocorrelation_interpolation = c(0.25, 0.1, 0.05, 0.01),
         stmv_lowpass_nu = nu, # exp
-        stmv_lowpass_phi = stmv::matern_distance2phi( distance=p$pres/2, nu=nu, cor=ac_local )
+        stmv_lowpass_phi = stmv::matern_distance2phi( distance=p$pres, nu=nu, cor=ac_local )
       )
     }
 

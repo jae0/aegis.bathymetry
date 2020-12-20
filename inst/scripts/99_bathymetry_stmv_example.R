@@ -3,8 +3,12 @@
 
 
 # testing "stmv" on a coarse grid and lower res data
+require(aegis)
+require(aegis.bathymetry)
 require(stmv)
 require(sf)
+
+
 
 # model testing
 p0 = aegis::spatial_parameters(
@@ -13,7 +17,7 @@ p0 = aegis::spatial_parameters(
   dres=1/60/4, pres=0.5, lon0=-64, lon1=-62, lat0=44, lat1=45, psignif=2
 )
 # or:
-p0 = stmv_test_data( "aegis.test.parameters")
+# p0 = stmv_test_data( "aegis.test.parameters")
 
 
 input = stmv::stmv_test_data( datasource="aegis.space", p=p0)
@@ -44,7 +48,7 @@ p = bathymetry_parameters(
   stmv_local_modelengine="fft",
   stmv_fft_filter = "matern tapered lowpass modelled fast_predictions", #  matern with taper, fast predictions are sufficient as data density is high
   stmv_lowpass_nu = 0.5, # exp
-  stmv_lowpass_phi = stmv::matern_distance2phi( distance=0.1, nu=0.5, cor=0.1 ),
+  stmv_lowpass_phi = stmv::matern_distance2phi( distance=0.5, nu=0.5, cor=0.1 ),
   stmv_autocorrelation_fft_taper = 0.9,  # benchmark from which to taper
   stmv_autocorrelation_localrange = 0.1,  # # correlation at which to call effective range 
   stmv_autocorrelation_interpolation = c(0.25, 0.1, 0.05, 0.01),
@@ -75,7 +79,14 @@ if (0) {
   scale_ncpus = ram_local( "ncores", ram_main=2, ram_process=1 ) # in GB about 24 hr
   interpolate_ncpus = ram_local( "ncores", ram_main=2, ram_process=2 ) # nn hrs
    stmv_runmode = list(
-    scale = rep("localhost", scale_ncpus),
+    scale = list( 
+      c1 = rep("localhost", scale_ncpus),
+      c2 = rep("localhost", scale_ncpus),
+      c3 = rep("localhost", scale_ncpus),
+      c4 = rep("localhost", scale_ncpus),
+      c5 = rep("localhost", scale_ncpus),
+      c6 = rep("localhost", scale_ncpus)
+    ),
     interpolate_correlation_basis = list(
       c1 = rep("localhost", interpolate_ncpus),  # ncpus for each runmode
       c2 = rep("localhost", interpolate_ncpus),  # ncpus for each runmode
@@ -88,6 +99,7 @@ if (0) {
     save_intermediate_results = TRUE,
     save_completed_data = TRUE
   )  # ncpus for each runmode
+
 }
 
 
