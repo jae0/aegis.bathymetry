@@ -30,11 +30,11 @@
       
       p$stmv_runmode$globalmodel = FALSE
       
-      p$stmv_runmode$scale = = list(
-        cor_0.25 = rep("localhost", interpolate_ncpus),
-        cor_0.1  = rep("localhost", interpolate_ncpus),
-        cor_0.05 = rep("localhost", interpolate_ncpus),
-        cor_0.01 = rep("localhost", interpolate_ncpus)
+      p$stmv_runmode$scale = list(
+        cor_0.25 = rep("localhost", scale_ncpus),
+        cor_0.1  = rep("localhost", scale_ncpus),
+        cor_0.05 = rep("localhost", scale_ncpus),
+        cor_0.01 = rep("localhost", scale_ncpus)
       ) 
       
       p$stmv_runmode$interpolate_correlation_basis = list(
