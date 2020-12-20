@@ -211,7 +211,12 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
     p = parameters_add_without_overwriting( p,
       stmv_runmode = list(
         globalmodel = FALSE,
-        scale = rep("localhost", 1),
+        scale = list(
+          cor_0.25 = rep("localhost", 1),
+          cor_0.1  = rep("localhost", 1),
+          cor_0.05 = rep("localhost", 1),
+          cor_0.01 = rep("localhost", 1)
+        ),
         interpolate_correlation_basis = list(
           cor_0.25 = rep("localhost", 1),
           cor_0.1  = rep("localhost", 1),
@@ -292,7 +297,12 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
  
     p = parameters_add_without_overwriting( p,
       stmv_runmode = list(
-        carstm = rep("localhost", 1),
+        carstm = list(
+          car1 = rep("localhost", 1),
+          car2 = rep("localhost", 1),
+          car3 = rep("localhost", 1),
+          car4 = rep("localhost", 1)
+        ),
         globalmodel = FALSE,
         save_intermediate_results = TRUE,
         save_completed_data = TRUE
