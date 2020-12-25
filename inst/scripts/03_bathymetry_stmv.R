@@ -21,6 +21,7 @@
   
     
   use_parallel_mode = FALSE
+  # use_parallel_mode = TRUE
   if (use_parallel_mode) {
       # default is serial mode .. to enable parallel processing, pick and choose:
       scale_ncpus = ram_local( "ncores", ram_main=10, ram_process=4 ) # in GB; about 24  hr
