@@ -12,7 +12,7 @@
   # krige method is a bit too oversmoothed, especially where rapid changes are occuring
 
   #  ~24 hrs to scale
-  # ~27 + xxx + xxx =  hrs to interpolate
+  # ~18 + 10 + xxx =  hrs to interpolate
   
   p = aegis.bathymetry::bathymetry_parameters( project_class="stmv" )
 
@@ -100,7 +100,7 @@
   # water only
   o = which( predictions>0 & predictions <500)
   #levelplot( log( statistics[o,match("sdTotal", statsvars)] ) ~ locations[o,1] + locations[o,2], aspect="iso" ) #sd total
-  levelplot( log(predictions[o]) ~ locations[o,1] + locations[o,2], aspect="iso" )
+   dev.new(); levelplot( log(predictions[o]) ~ locations[o,1] + locations[o,2], aspect="iso" )
 
 
 
