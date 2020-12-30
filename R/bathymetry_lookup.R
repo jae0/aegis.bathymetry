@@ -1,5 +1,7 @@
 
-bathymetry_lookup = function( p, locs, vnames="z", output_data_class="points", source_data_class="aggregated_rawdata", locs_proj4string=NULL) {
+bathymetry_lookup = function( p, locs, vnames="z", output_data_class="points", source_data_class="aggregated_rawdata", locs_proj4string="lonlat") {
+
+  # deprecated ... just an example as it is slow to reload bathy data repeatedly, and needless sp transforms
 
   # if locs is points, then need to send info on projection as an attribute proj4string"
 
@@ -58,12 +60,7 @@ bathymetry_lookup = function( p, locs, vnames="z", output_data_class="points", s
   if (output_data_class == "points") {
 
     if ( source_data_class %in% c("rawdata", "aggregated_rawdata", "stmv" ) )  {
-      if ( is.null( locs_proj4string) ) locs_proj4string = attr( locs, "proj4string" )
-      if ( is.null( locs_proj4string ) ) {
-        # assume projection is the same as that specified by "aegis_proj4string_planar_km"
-        locs_proj4string = p$aegis_proj4string_planar_km
-        names( locs) = c("plon", "plat")
-      }
+      if ( !is.null( attr( locs, "proj4string" )) ) locs_proj4string = attr( locs, "proj4string" )
       if ( locs_proj4string =="lonlat" ) {
         names( locs) = c("lon", "lat")
         locs = lonlat2planar( locs[, c("lon", "lat")], proj.type=p$aegis_proj4string_planar_km )
@@ -82,7 +79,7 @@ bathymetry_lookup = function( p, locs, vnames="z", output_data_class="points", s
       return( B[locs_index, vnames] )
     }
 
-    if ( source_data_class=="carstm") {
+    if ( source_data_class=="carstm" ) {
       # convert to raster then match
       require(raster)
       raster_template = raster(extent(locs))
