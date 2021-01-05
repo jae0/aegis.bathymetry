@@ -1,6 +1,6 @@
 Package: aegis.bathymetry
 Title: Bathymetry processing
-Version: 1.2
+Version: 2021.1
 Authors@R: c( person("Jae", "Choi", email="choi.jae.seok@gmail.com", role=c("aut", "cre")) )
 Description: This project provides tools to assimilate bathymetry data and interpolate them.
 Depends: R (>= 3.0.0)

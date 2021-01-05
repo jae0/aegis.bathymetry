@@ -439,25 +439,32 @@
       }
 
       M = M[ which( M$lon > p$corners$lon[1] & M$lon < p$corners$lon[2]  & M$lat > p$corners$lat[1] & M$lat < p$corners$lat[2] ), ]
-      M = lonlat2planar(M, p$aegis_proj4string_planar_km)  # should not be required but to make sure
       # levelplot( eval(paste(p$variabletomodel, "mean", sep="."))~plon+plat, data=M, aspect="iso")
-      if ( exists("spatial_domain", p)) M = M[ geo_subset( spatial_domain=p$spatial_domain, Z=M ), ] # need to be careful with extrapolation ...  filter depths
-      M$plon = NULL
-      M$plat = NULL
-
-      eps = .Machine$double.eps
-      M$z = M$z + runif( nrow(M), min=-eps, max=eps )
 
       M$AUID = st_points_in_polygons(
         pts = st_as_sf( M, coords=c("lon","lat"), crs=crs_lonlat ),
         polys = sppoly[, "AUID"],
         varname="AUID"
       )
+      M = M[ which(!is.na(M$AUID)),]
+      M$AUID = as.character( M$AUID )  # match each datum to an area
+ 
+      M = lonlat2planar(M, p$aegis_proj4string_planar_km)  # should not be required but to make sure
+
+      if (p$carstm_inputs_aggregated) {
+        if ( exists("spatial_domain", p)) {
+          M = M[ geo_subset( spatial_domain=p$spatial_domain, Z=M ) , ] # need to be careful with extrapolation ...  filter depths
+        }
+      }
+ 
+      M$plon = NULL
+      M$plat = NULL
+
+      eps = .Machine$double.eps
+      M$z = M$z + runif( nrow(M), min=-eps, max=eps )
 
       M$lon = NULL
       M$lat = NULL
-      M = M[ which(!is.na(M$AUID)),]
-      M$AUID = as.character( M$AUID )  # match each datum to an area
 
       M$tag = "observations"
 
