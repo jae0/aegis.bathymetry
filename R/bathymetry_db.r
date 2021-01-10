@@ -401,16 +401,17 @@
       crs_lonlat = st_crs(projection_proj4string("lonlat_wgs84"))
       sppoly = areal_units( p=p )  # will redo if not found
       sppoly = st_transform(sppoly, crs=crs_lonlat )
-
       areal_units_fn = attributes(sppoly)[["areal_units_fn"]]
 
-      if (p$carstm_inputs_aggregated) {
-        fn = carstm_filenames( p=p, projectname="bathymetry", projecttype="carstm_inputs", areal_units_fn=areal_units_fn )
-      } else {
-        fn = paste( "bathymetry", "carstm_inputs", areal_units_fn, "rawdata", "rdata", sep=".")
+      fn = carstm_filenames( p=p, returntype="carstm_inputs", areal_units_fn=areal_units_fn )
+      if (!p$carstm_inputs_aggregated) {
+        fn = carstm_filenames( p=p, returntype="carstm_inputs_rawdata", areal_units_fn=areal_units_fn )
       }
 
-      fn = file.path( p$modeldir, fn)
+      # inputs are shared across various secneario using the same polys
+      #.. store at the modeldir level as default
+      outputdir = dirname( fn )
+      if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
 
       if (!redo)  {
         if (file.exists(fn)) {

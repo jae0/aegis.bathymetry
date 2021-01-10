@@ -1,54 +1,33 @@
 
+### --------------------------------------------------------------------------------------------------------
+### this works fine, but resolutions less than 5 km are very slow and occasionally fails to converge
+### it is here as an example
+### the stmv-based results are better in that spatial resolution is higher (0.5 km or better), 
+### permitting more useful higher order descriptions (slope, curviture) and variability stats.  
 
-  ### this works fine, but resolutions less than 5 km are very slow and occasionally fails to converge
-  ### it is here as an example
+### WARNING::  running carstm directly on  raw data and resolution < 5 km  becomes very slow ...
+### instead use the aggregated data and larger resolution. 
+
+### IF number of polygons are large, this can fail (due to INLA representation) a potential solution 
+### is to run the following in a shell:  ulimit -s 16384
+### --------------------------------------------------------------------------------------------------------
 
 
-  ### WARNING::  running carstm directly... < 5 km resokution becomes rather slow ...
 
-  ## SLOW :: about 1 hr for each config x 25 configs .. ie., 24 hrs .. consider removing configs if no need for posterior samples
-
-  # -- might need to run in a shell if number of polygons are large:  ulimit -s 16384
-
-
-  # construct basic parameter list defining the main characteristics of the study
-  # and some plotting parameters (bounding box, projection, bathymetry layout, coastline)
-  # --- look inside "parameters_default" and define alternates based upon it
-
+# construct basic parameter list defining the main characteristics of the study
+# and some plotting parameters (bounding box, projection, bathymetry layout, coastline)
   p = aegis.bathymetry::bathymetry_parameters( project_class="carstm" )  # defaults are hard coded
 
-  if (0) {
-  # testing alternate params .. large grid for debugging
-    p = aegis.bathymetry::bathymetry_parameters(
-      project_class="carstm",
-      areal_units_resolution_km=100,
-      carstm_inputs_aggregated = TRUE
-    )
-
-  # example sequence to force creating of input data for modelling
-    sppoly = areal_units( p=p, redo=TRUE );
-    plot(sppoly[, "AUID"])
-    for( i in 1:3) plot( as(p$coastLayout[[i]][[2]], "sf"), add=TRUE )
-
-    # set up default map projection
-    oo = aegis.coastline::coastline_layout( p=p )
-    p = parameters_add_without_overwriting( p,
-      coastLayout = oo[["coastLayout"]],
-      bounding_domain = oo[["bounding_domain"]]
-    )
-    oo = NULL
-
-    M = bathymetry_db( p=p, DS="aggregated_data" , redo=TRUE )  # will redo if not found .. not used here but used for data matching/lookup in other aegis projects that use bathymetry
-    M = bathymetry_db( p=p, DS="carstm_inputs", redo=TRUE )  # will redo if not found
-    str(M)
-    M = NULL; gc()
-  }
+  p$inla_num.threads =  parallel::detectCores()    # incerase from default (=1)
+  p$inla_blas.num.threads=1 
+  # p$areal_units_resolution_km=100   # for testing use a fast run   
+  # p$carstm_inputs_aggregated = TRUE
 
 
 # run the model ... about 24 hrs
   fit = carstm_model( p=p, M='bathymetry_db( p=p, DS="carstm_inputs" )' ) # run model and obtain predictions
 
-# loading saved results
+# loading saved fit and results
   fit = carstm_model( p=p, DS="carstm_modelled_fit" )  # extract currently saved model fit
   res = carstm_summary( p=p ) # to load currently saved sppoly
 
@@ -59,7 +38,7 @@
   s$dic$dic # 1404489
   s$dic$p.eff # 151412
 
-  # maps of some of the results
+# maps of some of the results
   vn = paste(p$variabletomodel, "predicted", sep=".")
   carstm_plot( p=p, res=res, vn=vn )
 
@@ -72,6 +51,42 @@
   vn = paste(p$variabletomodel, "random_auid_spatial", sep=".")
   carstm_plot( p=p, res=res, vn=vn )
 
-  # end
+# end
+
+  if (0) {
+    # example work flow for testing alternate params .. large grid is for debugging
+      p = aegis.bathymetry::bathymetry_parameters(
+        project_class="carstm",
+        areal_units_resolution_km=100,
+        carstm_inputs_aggregated = TRUE
+      )
+
+    # example sequence to force creating of input data for modelling
+      sppoly = areal_units( p=p, redo=TRUE );
+      plot(sppoly[, "AUID"])
+      for( i in 1:3) plot( as(p$coastLayout[[i]][[2]], "sf"), add=TRUE )
+
+      # set up default map projection
+      oo = aegis.coastline::coastline_layout( p=p )
+      p = parameters_add_without_overwriting( p,
+        coastLayout = oo[["coastLayout"]],
+        bounding_domain = oo[["bounding_domain"]]
+      )
+      oo = NULL
+
+      B = bathymetry_db( p=p, DS="aggregated_data", redo=TRUE )  # will redo if not found .. not used here but used for data matching/lookup in other aegis projects that use bathymetry
+      str(B) 
+      B= NULL ;  gc()
+
+      M = bathymetry_db( p=p, DS="carstm_inputs", redo=TRUE )  # will redo if not found
+      str(M)
+      fit = carstm_model( p=p, M=M ) # run model and obtain predictions
+      # fit = carstm_model( p=p, DS="carstm_modelled_fit" )  # extract currently saved model fit
+      
+      res = carstm_summary( p=p ) # to load currently saved sppoly
+
+      vn = paste(p$variabletomodel, "predicted", sep=".")
+      carstm_plot( p=p, res=res, vn=vn )
+  }
 
 
