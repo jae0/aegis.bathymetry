@@ -59,6 +59,11 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
       areal_units_resolution_km = 25, # default in case not provided ... 25 km dim of lattice ~ 1 hr; 5km = 79hrs; 2km = ?? hrs
       areal_units_proj4string_planar_km = p$aegis_proj4string_planar_km,  # coord system to use for areal estimation and gridding for carstm
       areal_units_overlay = "none",
+      areal_units_timeperiod = "none"
+      tus="none", 
+      fraction_cv = 1.0, 
+      fraction_good_bad = 0.9, 
+      nAU_min = 30,  
       carstm_modelengine = "inla",  # {model engine}.{label to use to store}
       carstm_model_label = "default",
       carstm_inputs_aggregated = TRUE
