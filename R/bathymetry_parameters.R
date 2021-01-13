@@ -70,23 +70,15 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
       carstm_inputs_aggregated = TRUE
     )
 
-    if ( !exists("carstm_model_call", p)  ) {
-      if ( grepl("inla", p$carstm_modelengine) ) {
-        p$carstm_model_call = paste(
-          'inla(
-            formula = ', p$variabletomodel, ' ~ 1
-              + f(uid, model="iid" )
-              + f(auid, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, constr=TRUE, hyper=H$bym2),
-            family = "lognormal",
-            data= M,
-            control.compute=list(dic=TRUE, waic=TRUE, config=FALSE),  # config=TRUE if doing posterior simulations
-            control.results=list(return.marginals.random=TRUE, return.marginals.predictor=TRUE ),
-            control.predictor=list(compute=FALSE, link=1 ),
-            control.fixed=H$fixed,  # priors for fixed effects, generic is ok
-            control.inla = list(h=1e-3, tolerance=1e-9, cmin=0), # restart=3), # restart a few times in case posteriors are poorly defined
-            verbose=TRUE
-          ) ' )
+    if ( grepl("inla", p$carstm_modelengine) ) {
+      if ( !exists("carstm_model_formula", p)  ) {
+        p$carstm_model_formula = as.formula( paste(
+          p$variabletomodel, ' ~ 1',
+             ' + f(uid, model="iid" )',
+             ' + f(auid, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, constr=TRUE, hyper=H$bym2) ' 
+          ))
       }
+      if ( !exists("carstm_model_family", p)  )  p$carstm_model_family = "normal"
     }
 
     p = carstm_parameters( p=p )  # fill in anything missing with defaults and do some checks
