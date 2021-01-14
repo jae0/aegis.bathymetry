@@ -18,8 +18,11 @@
 # and some plotting parameters (bounding box, projection, bathymetry layout, coastline)
   p = aegis.bathymetry::bathymetry_parameters( project_class="carstm" )  # defaults are hard coded
 
-  p$inla_num.threads =  parallel::detectCores()    # incerase from default (=1)
-  p$inla_blas.num.threads=1 
+
+    # adjust based upon RAM requirements and ncores
+    inla.setOption(num.threads= floor( parallel::detectCores() / 2) )
+    inla.setOption(blas.num.threads= 2 )
+
   # p$areal_units_resolution_km=100   # for testing use a fast run   
   # p$carstm_inputs_aggregated = TRUE
 

@@ -62,6 +62,7 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
       areal_units_overlay = "none",
       areal_units_timeperiod = "none",
       tus="none", 
+      fraction_todrop = 1/5,
       fraction_cv = 1.0, 
       fraction_good_bad = 0.9, 
       nAU_min = 30,  
@@ -78,7 +79,7 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
              ' + f(auid, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, constr=TRUE, hyper=H$bym2) ' 
           ))
       }
-      if ( !exists("carstm_model_family", p)  )  p$carstm_model_family = "normal"
+      if ( !exists("carstm_model_family", p)  )  p$carstm_model_family = "lognormal"
     }
 
     p = carstm_parameters( p=p )  # fill in anything missing with defaults and do some checks
