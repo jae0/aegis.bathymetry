@@ -2,13 +2,13 @@
 ### --------------------------------------------------------------------------------------------------------
 ### this works fine, but resolutions less than 5 km are very slow and occasionally fails to converge
 ### it is here as an example
-### the stmv-based results are better in that spatial resolution is higher (0.5 km or better), 
-### permitting more useful higher order descriptions (slope, curviture) and variability stats.  
+### the stmv-based results are better in that spatial resolution is higher (0.5 km or better),
+### permitting more useful higher order descriptions (slope, curviture) and variability stats.
 
 ### WARNING::  running carstm directly on  raw data and resolution < 5 km  becomes very slow ...
-### instead use the aggregated data and larger resolution. 
+### instead use the aggregated data and larger resolution.
 
-### IF number of polygons are large, this can fail (due to INLA representation) a potential solution 
+### IF number of polygons are large, this can fail (due to INLA representation) a potential solution
 ### is to run the following in a shell:  ulimit -s 16384
 ### --------------------------------------------------------------------------------------------------------
 
@@ -18,13 +18,23 @@
 # and some plotting parameters (bounding box, projection, bathymetry layout, coastline)
   p = aegis.bathymetry::bathymetry_parameters( project_class="carstm" )  # defaults are hard coded
 
-
     # adjust based upon RAM requirements and ncores
-    inla.setOption(num.threads= floor( parallel::detectCores() / 2) )
-    inla.setOption(blas.num.threads= 2 )
+    inla.setOption(num.threads= floor( parallel::detectCores() / 3 ) )
+    inla.setOption(blas.num.threads= 3 )
 
-  # p$areal_units_resolution_km=100   # for testing use a fast run   
-  # p$carstm_inputs_aggregated = TRUE
+if(0) {
+      p$fraction_todrop = 1/4 # aggressiveness of solution finding ( fraction of counts to drop each iteration)
+      p$fraction_cv = 1.0  #sd/mean no.
+      p$fraction_good_bad = 0.9
+      p$areal_units_constraint_nmin = 1000  # length(p$yrs)
+      p$nAU_min = 100
+}
+  # to recreate the underlying data
+  # xydata=bathymetry_db(p=p, DS="areal_units_input", redo=TRUE)
+
+  sppoly = areal_units( p=p , redo=T )  # this has already been done in aegis.polygons::01 polygons.R .. should nto have to redo
+  plot( sppoly[ "AUID" ] )
+
 
 
 # run the model ... about 24 hrs
@@ -78,14 +88,14 @@
       oo = NULL
 
       B = bathymetry_db( p=p, DS="aggregated_data", redo=TRUE )  # will redo if not found .. not used here but used for data matching/lookup in other aegis projects that use bathymetry
-      str(B) 
+      str(B)
       B= NULL ;  gc()
 
       M = bathymetry_db( p=p, DS="carstm_inputs", redo=TRUE )  # will redo if not found
       str(M)
       fit = carstm_model( p=p, M=M ) # run model and obtain predictions
       # fit = carstm_model( p=p, DS="carstm_modelled_fit" )  # extract currently saved model fit
-      
+
       res = carstm_summary( p=p ) # to load currently saved sppoly
 
       vn = paste(p$variabletomodel, "predicted", sep=".")

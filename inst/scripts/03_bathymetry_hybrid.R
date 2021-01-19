@@ -35,10 +35,6 @@
   statistics  = stmv_db( p=p, DS="stmv.stats" )
   locations   = spatial_grid( p )
 
-  predictions = stmv_db( p=p, DS="stmv.prediction", ret="mean" )
-  statistics  = stmv_db( p=p, DS="stmv.stats" )
-  locations =  spatial_grid( p )
-
   # comparison
   dev.new(); surface( as.image( Z=predictions, x=locations, nx=p$nplons, ny=p$nplats, na.rm=TRUE) )
 

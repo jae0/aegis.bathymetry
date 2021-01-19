@@ -10,7 +10,7 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
   #   "maps", "mapdata", "maptools", "parallel",  "rgdal", "rgeos",  "sp", "spdep", "splancs", "GADMTools", "INLA" ) )
   p$libs = c( p$libs, RLibrary ( "colorspace",  "lubridate",  "lattice",
     "parallel", "sf", "GADMTools", "INLA" ) )
-  
+
   p$libs = c( p$libs, project.library ( "aegis", "aegis.bathymetry",  "aegis.polygons", "aegis.coastline" ) )
 
 
@@ -61,11 +61,11 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
       areal_units_proj4string_planar_km = p$aegis_proj4string_planar_km,  # coord system to use for areal estimation and gridding for carstm
       areal_units_overlay = "none",
       areal_units_timeperiod = "none",
-      tus="none", 
+      tus="none",
       fraction_todrop = 1/5,
-      fraction_cv = 1.0, 
-      fraction_good_bad = 0.9, 
-      nAU_min = 30,  
+      fraction_cv = 1.0,
+      fraction_good_bad = 0.9,
+      nAU_min = 30,
       carstm_modelengine = "inla",  # {model engine}.{label to use to store}
       carstm_model_label = "default",
       carstm_inputs_aggregated = TRUE
@@ -76,7 +76,7 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
         p$carstm_model_formula = as.formula( paste(
           p$variabletomodel, ' ~ 1',
              ' + f(uid, model="iid" )',
-             ' + f(auid, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, constr=TRUE, hyper=H$bym2) ' 
+             ' + f(auid, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, constr=TRUE, hyper=H$bym2) '
           ))
       }
       if ( !exists("carstm_model_family", p)  )  p$carstm_model_family = "lognormal"
@@ -122,7 +122,7 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
     )
 
 
-    
+
     p = parameters_add_without_overwriting( p,
       stmv_distance_prediction_limits = p$stmv_distance_statsgrid * c( 1/2, 5 ), # range of permissible predictions km (i.e 1/2 stats grid to upper limit based upon data density)
       stmv_distance_scale = p$stmv_distance_statsgrid * c( 1, 2, 3, 4, 5, 10, 15), # km ... approx guesses of 95% AC range
@@ -130,7 +130,7 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
       stmv_distance_interpolate_predictions = p$stmv_distance_statsgrid * c( 1/2, 1, 2, 3, 4, 8) # finalizing preds using linear interpolation
     )
 
- 
+
     # tweaked override the defaults of aegis_parameters( p=p, DS="stmv") :
     if ( p$stmv_local_modelengine %in% c("krige" )) {
       # nothing to do  .. this is faster than "gstat" .. do not use for bathymetry as it is oversmoothed
@@ -151,7 +151,7 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
       nu = 0.5  # exponential smoothing
       ac_local = 0.1  # ac at which to designate "effective range"
       p = parameters_add_without_overwriting( p,
-        stmv_fft_filter = "matern tapered lowpass modelled fast_predictions", #  act as a low pass filter first before matern with taper  
+        stmv_fft_filter = "matern tapered lowpass modelled fast_predictions", #  act as a low pass filter first before matern with taper
         stmv_autocorrelation_fft_taper = 0.9,  # benchmark from which to taper
         stmv_autocorrelation_localrange = ac_local,  # for output to stats
         stmv_autocorrelation_interpolation = c(0.25, 0.1, 0.05, 0.01),
@@ -189,7 +189,7 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
       # old method .. took a month to finish .. results look good but very slow
       ## data range is from -1667 to 5467 m .. 2000 shifts all to positive valued by one order of magnitude
       p$libs = unique( c( p$libs, RLibrary ("INLA")) )
- 
+
       p = parameters_add_without_overwriting( p,
         inla.alpha = 0.5, # bessel function curviness .. ie "nu"
         stmv_local_modelformula = formula( paste(
@@ -223,8 +223,8 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
           cor_0.01 = rep("localhost", 1)
         ),
         interpolate_predictions = list(
-          c1 = rep("localhost", 1),  
-          c2 = rep("localhost", 1),  
+          c1 = rep("localhost", 1),
+          c2 = rep("localhost", 1),
           c3 = rep("localhost", 1),
           c4 = rep("localhost", 1),
           c5 = rep("localhost", 1),
@@ -241,7 +241,7 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
     if ( p$inputdata_spatial_discretization_planar_km >= p$pres ) {
       warning( "p$inputdata_spatial_discretization_planar_km >= p$pres " )
     }
-    message ("p$stmv_distance_statsgrid: ", p$stmv_distance_statsgrid)
+    # message ("p$stmv_distance_statsgrid: ", p$stmv_distance_statsgrid)
 
     return(p)
   }
@@ -285,15 +285,15 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
       stmv_nmin = 100, # min number of data points req before attempting to model in a localized space
       stmv_nmax = 1000 # no real upper bound.. just speed /RAM
     )
- 
- 
+
+
     p = parameters_add_without_overwriting( p,
       stmv_distance_prediction_limits = p$stmv_distance_statsgrid * c( 1, 2 ), # range of permissible predictions km (i.e  stats grid to upper limit based upon data density)
       stmv_distance_interpolation = p$stmv_distance_statsgrid * c( 1/2, 1, 2 ),  # range of permissible predictions km (i.e 1/2 stats grid to upper limit) .. in this case 5, 10, 20
       stmv_distance_interpolate_predictions = p$stmv_distance_statsgrid * c( 1/2, 1, 2) # finalizing preds using linear interpolation
     )
 
- 
+
     p = parameters_add_without_overwriting( p,
       stmv_runmode = list(
         carstm = list(
@@ -305,7 +305,7 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
         globalmodel = FALSE,
         save_intermediate_results = TRUE,
         save_completed_data = TRUE
-      )  
+      )
     )
 
     p = aegis_parameters( p=p, DS="stmv" )  # get defaults
