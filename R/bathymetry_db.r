@@ -319,6 +319,9 @@
 
       M = bathymetry_db ( p=p, DS="z.lonlat.rawdata" )  # 16 GB in RAM just to store!
 
+      M = M[ geo_subset( spatial_domain=p$spatial_domain, Z=M ) , ] # need to be careful with extrapolation ...  filter depths
+
+
       # p$quantile_bounds_data = c(0.0005, 0.9995)
       if (exists("quantile_bounds_data", p)) {
         TR = quantile(M[,p$variabletomodel], probs=p$quantile_bounds_data, na.rm=TRUE )
@@ -406,10 +409,10 @@
         }
       }
       xydata = bathymetry_db( p=p, DS="aggregated_data"   )  #
+      names(xydata)[which(names(xydata)=="z.mean" )] = "z"
+      xydata = xydata[ geo_subset( spatial_domain=p$spatial_domain, Z=xydata ) , ] # need to be careful with extrapolation ...  filter depths
       xydata = xydata[ , c("lon", "lat"  )]
-      xydata = lonlat2planar(xydata, p$areal_units_proj4string_planar_km)  # should not be required but to make sure
-      xydata = st_as_sf ( xydata, coords= c('lon', 'lat'), crs = st_crs(projection_proj4string("lonlat_wgs84")) )
-      xydata = st_transform( xydata, st_crs( p$areal_units_proj4string_planar_km ))
+
       save(xydata, file=fn, compress=TRUE )
       return( xydata )
     }
