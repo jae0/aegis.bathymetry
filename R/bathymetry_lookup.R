@@ -43,7 +43,7 @@ bathymetry_lookup = function( p, locs, vnames="z", output_data_class="points", s
 
    } else if (source_data_class=="carstm") {
 
-      Bcarstm = carstm_summary( p=p ) # to load currently saved sppoly
+      Bcarstm = carstm_model( p=p, DS="carstm_modelled_summary" ) # to load currently saved sppoly
       B = areal_units( p=p )
       bm = match( B$AUID, Bcarstm$AUID )
       B$z  = Bcarstm$z.predicted[ bm ]
