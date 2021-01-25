@@ -1,4 +1,4 @@
-bathymetry_lookup_rawdata = function( M, spatial_domain=NULL, sppoly=NULL, lookup_mode="stmv" ) {
+bathymetry_lookup_rawdata = function( M, spatial_domain=NULL, sppoly=NULL  ) {
   # lookup from rawdata
 
   if (is.null(spatial_domain))  {
@@ -46,23 +46,6 @@ bathymetry_lookup_rawdata = function( M, spatial_domain=NULL, sppoly=NULL, looku
       M[ii,vnmod] = LU[jj]
     }
   }
-
-  if (lookup_mode %in% c("stmv",  "hybrid") ) {
-      # if any still missing then use stmv depths
-      pC = bathymetry_parameters( spatial_domain=pB$spatial_domain, project_class=lookup_mode  )
-      ii = NULL
-      ii =  which( !is.finite( M[,vnmod] ))
-      if (length(ii) > 0) {
-        LU = bathymetry_db ( pC, DS="complete", varnames="all" )  # raw data
-        LU = planar2lonlat(LU, proj.type=pC$aegis_proj4string_planar_km)
-        LU = LU[ which( LU$lon > pC$corners$lon[1] & LU$lon < pC$corners$lon[2]  & LU$lat > pC$corners$lat[1] & LU$lat < pC$corners$lat[2] ), ]
-        M[ii,vnmod] = LU[ match(
-          array_map( "xy->1", M[ii, c("plon","plat")], gridparams=pC$gridparams ),
-          array_map( "xy->1", LU[,c("plon","plat")], gridparams=pC$gridparams )
-        ), vnmod ]
-      }
-  }
-
   return( M[,vnmod] )
 
 }
