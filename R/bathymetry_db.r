@@ -606,6 +606,7 @@
 
     if ( DS %in% c("complete", "complete.redo" )) {
       #// merge all stmv results and compute stats and warp to different grids
+      if (p$project_class == "core" )  p = bathymetry_parameters(  spatial_domain=p$spatial_domain, project_class="stmv"  )
       outdir = file.path( p$modeldir, p$stmv_model_label, p$project_class, paste(  p$stmv_global_modelengine, p$stmv_local_modelengine, sep="_") )
 
       fn = file.path( outdir, paste( "bathymetry", "complete", p$spatial_domain, "rdata", sep=".") )
@@ -723,6 +724,8 @@
 
     if (DS %in% c("baseline", "baseline.redo") ) {
       # form prediction surface in planar coords over the ocean
+      if (p$project_class == "core" )  p = bathymetry_parameters(  spatial_domain=p$spatial_domain, project_class="stmv"  )
+
       outdir = file.path( p$modeldir, p$stmv_model_label, p$project_class, paste(  p$stmv_global_modelengine, p$stmv_local_modelengine, sep="_") )
 
       if ( DS=="baseline" ) {
