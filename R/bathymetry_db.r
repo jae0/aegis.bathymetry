@@ -606,7 +606,6 @@
 
     if ( DS %in% c("complete", "complete.redo" )) {
       #// merge all stmv results and compute stats and warp to different grids
-      if (p$project_class == "core" )  p = bathymetry_parameters(  spatial_domain=p$spatial_domain, project_class="stmv"  )
       outdir = file.path( p$modeldir, p$stmv_model_label, p$project_class, paste(  p$stmv_global_modelengine, p$stmv_local_modelengine, sep="_") )
 
       fn = file.path( outdir, paste( "bathymetry", "complete", p$spatial_domain, "rdata", sep=".") )
@@ -724,7 +723,6 @@
 
     if (DS %in% c("baseline", "baseline.redo") ) {
       # form prediction surface in planar coords over the ocean
-      if (p$project_class == "core" )  p = bathymetry_parameters(  spatial_domain=p$spatial_domain, project_class="stmv"  )
 
       outdir = file.path( p$modeldir, p$stmv_model_label, p$project_class, paste(  p$stmv_global_modelengine, p$stmv_local_modelengine, sep="_") )
 
@@ -775,6 +773,49 @@
     }
 
     # ------------
+
+
+    if (DS %in% c("baseline_prediction_locations", "baseline_prediction_locations.redo") ) {
+      # form prediction surface in planar coords over the ocean
+
+      outdir = p$modeldir
+
+      if ( DS=="baseline_prediction_locations" ) {
+        #  used to obtain coordinates
+        fn = paste( "bathymetry", "baseline_prediction_locations", p$spatial_domain, "rdata" , sep=".")
+        outfile =  file.path( outdir, fn )
+        Z = NULL
+        load( outfile )
+        Znames = names(Z)
+        if (is.null(varnames)) varnames =c("plon", "plat")  # default is to send locs only .. different reative to all other data streams
+        varnames = intersect( Znames, varnames )  # send anything that results in no match causes everything to be sent
+        if (length(varnames) == 0) varnames=Znames  # no match .. send all
+        Z = Z[ , varnames]
+        return (Z)
+      }
+
+      for (domain in unique( c(p$spatial_domain_subareas, p$spatial_domain ) ) ) {
+        pn = spatial_parameters( p=p, spatial_domain=domain )
+        # if ( pn$spatial_domain == "snowcrab" ) {
+        #   # NOTE::: snowcrab baseline == SSE baseline, except it is a subset so begin with the SSE conditions
+        #   pn = spatial_parameters( p=pn, spatial_domain="SSE" )
+        # }
+        Z = spatial_grid(p) 
+        Z$z = bathymetry_lookup_rawdata( spatial_domain=p$spatial_domain, M=lgbk[, c("lon", "lat")] ) 
+        Z = Z[ geo_subset( spatial_domain=domain, Z=Z ), ]
+
+        fn = paste( "bathymetry", "baseline_prediction_locations", domain, "rdata" , sep=".")
+        outfile =  file.path( outdir, fn )
+
+        save (Z, file=outfile, compress=TRUE )
+        print( outfile )
+      }
+      # require (lattice); levelplot( z~plon+plat, data=Z, aspect="iso")
+      return( "completed" )
+    }
+
+    # ------------
+
 
 
   }  # end bathymetry_db
