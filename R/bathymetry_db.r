@@ -800,7 +800,8 @@
         #   # NOTE::: snowcrab baseline == SSE baseline, except it is a subset so begin with the SSE conditions
         #   pn = spatial_parameters( p=pn, spatial_domain="SSE" )
         # }
-        Z = spatial_grid(p) 
+        Z = spatial_grid(p)
+        Z = planar2lonlat( Z,  proj.type=p$aegis_proj4string_planar_km   )
         Z$z = bathymetry_lookup_rawdata( spatial_domain=p$spatial_domain, M=lgbk[, c("lon", "lat")] ) 
         Z = Z[ geo_subset( spatial_domain=domain, Z=Z ), ]
 
