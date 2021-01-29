@@ -802,7 +802,7 @@
         # }
         Z = spatial_grid(p)
         Z = planar2lonlat( Z,  proj.type=p$aegis_proj4string_planar_km   )
-        Z$z = bathymetry_lookup_rawdata( spatial_domain=p$spatial_domain, M=lgbk[, c("lon", "lat")] ) 
+        Z$z = bathymetry_lookup( LOCS=lgbk[, c("lon", "lat")], spatial_domain=p$spatial_domain, lookup_from="core", lookup_to="points" , lookup_from_class="aggregated_data" ) # core=="rawdata"
         Z = Z[ geo_subset( spatial_domain=domain, Z=Z ), ]
 
         fn = paste( "bathymetry", "baseline_prediction_locations", domain, "rdata" , sep=".")
