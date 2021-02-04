@@ -2,6 +2,11 @@ bathymetry_lookup = function( LOCS=NULL, spatial_domain=NULL, lookup_from="core"
 
   # z = bathymetry_lookup( LOCS=M[, c("lon", "lat")], spatial_domain=p$spatial_domain, lookup_from="core", lookup_to="points" , lookup_from_class="aggregated_data" ) # core=="rawdata"
 
+
+
+message("need to check::  [match( APS$AUID, as.character( sppoly$AUID ) )] ")
+  
+  
   if (is.null(spatial_domain))  {
     pB = bathymetry_parameters(  project_class=lookup_from  )
   } else {
