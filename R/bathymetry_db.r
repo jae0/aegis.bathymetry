@@ -785,34 +785,31 @@
         fn = paste( "bathymetry", "baseline_prediction_locations", p$spatial_domain, "rdata" , sep=".")
         outfile =  file.path( outdir, fn )
         Z = NULL
-        load( outfile )
-        Znames = names(Z)
-        if (is.null(varnames)) varnames =c("plon", "plat")  # default is to send locs only .. different reative to all other data streams
-        varnames = intersect( Znames, varnames )  # send anything that results in no match causes everything to be sent
-        if (length(varnames) == 0) varnames=Znames  # no match .. send all
-        Z = Z[ , varnames]
-        return (Z)
+        if (file.exists(fn)) {
+          load( outfile )
+          Znames = names(Z)
+          if (is.null(varnames)) varnames =c("plon", "plat")  # default is to send locs only .. different reative to all other data streams
+          varnames = intersect( Znames, varnames )  # send anything that results in no match causes everything to be sent
+          if (length(varnames) == 0) varnames=Znames  # no match .. send all
+          Z = Z[ , varnames]
+          return (Z)
+        }
       }
 
-      for (domain in unique( c(p$spatial_domain_subareas, p$spatial_domain ) ) ) {
-        pn = spatial_parameters( p=p, spatial_domain=domain )
-        # if ( pn$spatial_domain == "snowcrab" ) {
-        #   # NOTE::: snowcrab baseline == SSE baseline, except it is a subset so begin with the SSE conditions
-        #   pn = spatial_parameters( p=pn, spatial_domain="SSE" )
-        # }
-        Z = spatial_grid(p)
-        Z = planar2lonlat( Z,  proj.type=p$aegis_proj4string_planar_km   )
-        Z$z = bathymetry_lookup( LOCS=lgbk[, c("lon", "lat")], spatial_domain=p$spatial_domain, lookup_from="core", lookup_to="points" , lookup_from_class="aggregated_data" ) # core=="rawdata"
-        Z = Z[ geo_subset( spatial_domain=domain, Z=Z ), ]
+      pn = spatial_parameters( p=p, spatial_domain=p$spatial_domain )
+      Z = spatial_grid(p)
+      Z = planar2lonlat( Z,  proj.type=p$aegis_proj4string_planar_km   )
+      Z$z = bathymetry_lookup( LOCS=Z[, c("lon", "lat")], spatial_domain=p$spatial_domain, lookup_from="core", lookup_to="points" , lookup_from_class="aggregated_data" ) # core=="rawdata"
+      Z = Z[ geo_subset( spatial_domain=p$spatial_domain, Z=Z ), ]
 
-        fn = paste( "bathymetry", "baseline_prediction_locations", domain, "rdata" , sep=".")
-        outfile =  file.path( outdir, fn )
+      fn = paste( "bathymetry", "baseline_prediction_locations", p$spatial_domain, "rdata" , sep=".")
+      outfile =  file.path( outdir, fn )
 
-        save (Z, file=outfile, compress=TRUE )
-        print( outfile )
-      }
+      save (Z, file=outfile, compress=TRUE )
+      print( outfile )
+
       # require (lattice); levelplot( z~plon+plat, data=Z, aspect="iso")
-      return( "completed" )
+      return( Z )
     }
 
     # ------------
