@@ -7,11 +7,7 @@ bathymetry_lookup = function( LOCS=NULL, spatial_domain=NULL, lookup_from="core"
 message("need to check::  [match( APS$AUID, as.character( sppoly$AUID ) )] ")
   
   
-  if (is.null(spatial_domain))  {
     pB = bathymetry_parameters(  project_class=lookup_from  )
-  } else {
-    pB = bathymetry_parameters( spatial_domain=spatial_domain, project_class=lookup_from  )
-  }
 
   crs_lonlat =  st_crs(projection_proj4string("lonlat_wgs84"))
 
