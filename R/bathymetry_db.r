@@ -322,9 +322,9 @@
       M = M[ geo_subset( spatial_domain=p$spatial_domain, Z=M ) , ] # need to be careful with extrapolation ...  filter depths
 
 
-      # p$quantile_bounds_data = c(0.0005, 0.9995)
-      if (exists("quantile_bounds_data", p)) {
-        TR = quantile(M[,p$variabletomodel], probs=p$quantile_bounds_data, na.rm=TRUE )
+      # p$quantile_bounds = c(0.0005, 0.9995)
+      if (exists("quantile_bounds", p)) {
+        TR = quantile(M[,p$variabletomodel], probs=p$quantile_bounds, na.rm=TRUE )
         keep = which( M[,p$variabletomodel] >=  TR[1] & M[,p$variabletomodel] <=  TR[2] )
         if (length(keep) > 0 ) M = M[ keep, ]
       }
@@ -458,9 +458,9 @@
         M = M[ which( !duplicated(M)), ]
         attr( M, "proj4string_planar" ) =  p$aegis_proj4string_planar_km
         attr( M, "proj4string_lonlat" ) =  projection_proj4string("lonlat_wgs84")
-            # p$quantile_bounds_data = c(0.0005, 0.9995)
-        if (exists("quantile_bounds_data", p)) {
-          TR = quantile(M[,p$variabletomodel], probs=p$quantile_bounds_data, na.rm=TRUE )
+            # p$quantile_bounds = c(0.0005, 0.9995)
+        if (exists("quantile_bounds", p)) {
+          TR = quantile(M[,p$variabletomodel], probs=p$quantile_bounds, na.rm=TRUE )
           keep = which( M[,p$variabletomodel] >=  TR[1] & M[,p$variabletomodel] <=  TR[2] )
           if (length(keep) > 0 ) M = M[ keep, ]
         }
@@ -558,9 +558,9 @@
 
       B = bathymetry_db ( p=p, DS="z.lonlat.rawdata" )  # 16 GB in RAM just to store!
 
-      # p$quantile_bounds_data = c(0.0005, 0.9995)
-      if (exists("quantile_bounds_data", p)) {
-        TR = quantile(B[,p$variabletomodel], probs=p$quantile_bounds_data, na.rm=TRUE )
+      # p$quantile_bounds = c(0.0005, 0.9995)
+      if (exists("quantile_bounds", p)) {
+        TR = quantile(B[,p$variabletomodel], probs=p$quantile_bounds, na.rm=TRUE )
         keep = which( B[,p$variabletomodel] >=  TR[1] & B[,p$variabletomodel] <=  TR[2] )
         if (length(keep) > 0 ) B = B[ keep, ]
       }

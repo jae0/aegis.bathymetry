@@ -30,6 +30,8 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
     aegis_dimensionality="space"
   )
 
+  p$quantile_bounds =c(0, 0.95) # trim upper bounds
+
   p = spatial_parameters( p=p )  # default (= only supported resolution of 0.2 km discretization)  .. do NOT change
 
   p = parameters_add_without_overwriting( p, inputdata_spatial_discretization_planar_km = p$pres/2 ) #  controls resolution of data prior to modelling (km .. ie 20 linear units smaller than the final discretization pres)
