@@ -35,8 +35,10 @@ isobath_db = function( ip=NULL, p=NULL,
     # Zm = fields::image.smooth( Zm, theta=p0$pres, dx=p0$pres, dy=p0$pres ) # a little smoothed to make contours cleaner     .. too slow
     cl = contourLines( x=x, y=y, Zm, levels=depths )
 
-    isobaths = maptools::ContourLines2SLDF(cl, proj4string=sp::CRS( p$aegis_proj4string_planar_km ) )
-    isobaths = st_transform( as( isobaths, "sf"), st_crs(projection_proj4string("lonlat_wgs84")) )  ## longlat  as storage format
+    isobaths = maptools::ContourLines2SLDF(cl, proj4string=sp::CRS( p0$aegis_proj4string_planar_km ) )
+    isobaths = as( isobaths, "sf")
+
+    isobaths = st_transform( isobaths, st_crs(projection_proj4string("lonlat_wgs84")) )  ## longlat  as storage format
     row.names(isobaths) = as.character(depths)
 
     save( isobaths, file=fn.iso, compress=TRUE)
