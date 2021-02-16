@@ -1,6 +1,5 @@
 
-isobath_db = function( ip=NULL, p=NULL,
-  spatial_domain="canada.east.superhighres",
+isobath_db = function( 
   depths=c( 0, 10, 20, 50, 75, 100, 200, 250, 300, 350, 400, 450, 500, 550, 600, 700, 750, 800, 900,
              1000, 1200, 1250, 1400, 1500, 1750, 2000, 2500, 3000, 4000, 5000 ),
   DS="isobath",
@@ -11,7 +10,8 @@ isobath_db = function( ip=NULL, p=NULL,
   # require(stmv)
   if (DS %in% c( "isobath", "isobath.redo" )) {
 
-    fn.iso = file.path( data_dir, "isobaths", paste("isobaths", spatial_domain, "rdata", sep=".") )  # in case there is an alternate project
+    p0 = bathymetry_parameters()
+    fn.iso = file.path( data_dir, "isobaths", paste("isobaths", p0$spatial_domain, "rdata", sep=".") )  # in case there is an alternate project
 
     isobaths = NULL
     notfound = NULL
@@ -25,8 +25,6 @@ isobath_db = function( ip=NULL, p=NULL,
       }
     }
 
-    p0 = bathymetry_parameters( spatial_domain=spatial_domain  )  # default params
-    # p0 = spatial_parameters( spatial_domain=spatial_domain )
     depths = sort( unique( depths ) )
     x=seq(min(p0$corners$plon), max(p0$corners$plon), by=p0$pres)
     y=seq(min(p0$corners$plat), max(p0$corners$plat), by=p0$pres)
@@ -37,6 +35,7 @@ isobath_db = function( ip=NULL, p=NULL,
 
     isobaths = maptools::ContourLines2SLDF(cl, proj4string=sp::CRS( p0$aegis_proj4string_planar_km ) )
     isobaths = as( isobaths, "sf")
+    st_crs(isobaths) = st_crs( p0$aegis_proj4string_planar_km  ) 
 
     isobaths = st_transform( isobaths, st_crs(projection_proj4string("lonlat_wgs84")) )  ## longlat  as storage format
     row.names(isobaths) = as.character(depths)
