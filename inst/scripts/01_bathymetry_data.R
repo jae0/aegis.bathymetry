@@ -22,7 +22,7 @@ if( bathyclines.redo ) {
   # For lower one specify an appropriate p$spatial_domain
   # options(max.contour.segments=1000) # might be required if superhighres is being used
 
-  depthsall = c( 0, 10, 20, 50, 75, 100, 200, 250, 300, 350, 400, 450, 500, 550, 600, 700, 750, 800, 900,
+  depths = c( 0, 10, 20, 50, 75, 100, 200, 250, 300, 350, 400, 450, 500, 550, 600, 700, 750, 800, 900,
               1000, 1200, 1250, 1400, 1500, 1750, 2000, 2500, 3000, 4000, 5000 )
   plygn = isobath_db( p=p, DS="isobath.redo", depths=depths  )
 

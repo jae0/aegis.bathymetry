@@ -57,18 +57,49 @@ if(0) {
     res$dyear
 
 
+
+  plot_crs = p$aegis_proj4string_planar_km
+  coastline=aegis.coastline::coastline_db( DS="eastcoast_gadm", project_to=plot_crs )
+  isobaths=aegis.bathymetry::isobath_db( depths=c(50, 100, 200, 400, 800), project_to )
+
+
 # maps of some of the results
   vn = paste(p$variabletomodel, "predicted", sep=".")
-  carstm_map( res=res, vn=vn, at=p$discretization$z, sp.layout=p$coastLayout, col.regions=p$mypalette, main="Bathymetry"  )
+
+  carstm_map(  res=res, vn=vn, 
+      breaks =pretty(p$discretization$z),
+      palette="viridis",
+      coastline=coastline,
+      isobaths=isobaths,
+      main="Bathymetry random unstructured" 
+  )
+
 
   vn = paste(p$variabletomodel, "random_sample_iid", sep=".")
-  carstm_map( res=res, vn=vn,  sp.layout=p$coastLayout, col.regions=p$mypalette, main="Bathymetry random iid"  )
+  carstm_map(  res=res, vn=vn, 
+     palette="viridis",
+      coastline=coastline,
+      isobaths=isobaths,
+      main="Bathymetry random iid" 
+  )
+
 
   vn = paste(p$variabletomodel, "random_auid_nonspatial", sep=".")
-  carstm_map( res=res, vn=vn,   sp.layout=p$coastLayout, col.regions=p$mypalette, main="Bathymetry random unstructured"  )
+  carstm_map(  res=res, vn=vn, 
+      palette="viridis",
+      coastline=coastline,
+      isobaths=isobaths,
+      main="Bathymetry random unstructured" 
+  )
+
 
   vn = paste(p$variabletomodel, "random_auid_spatial", sep=".")
-  carstm_map( res=res, vn=vn,   sp.layout=p$coastLayout, col.regions=p$mypalette, main="Bathymetry spatially structured"  )
+  carstm_map(  res=res, vn=vn, 
+      palette="viridis",
+      coastline=coastline,
+      isobaths=isobaths,
+      main="Bathymetry spatially structured" 
+  )
 
 # end
 
@@ -105,7 +136,13 @@ if(0) {
       res = carstm_model( p=p, DS="carstm_modelled_summary" ) # to load currently saved sppoly
 
       vn = paste(p$variabletomodel, "predicted", sep=".")
-      carstm_map( res=res, vn=vn, sp.layout=p$coastLayout, col.regions=p$mypalette, main="Bathymetry"  )
-  }
+      carstm_map(  res=res, vn=vn, time_match=time_match, 
+            breaks =pretty(p$discretization$z),
+            palette="viridis",
+            coastline=coastline,
+            isobaths=isobaths,
+            main= "Depth" 
+      )
+    }
 
 
