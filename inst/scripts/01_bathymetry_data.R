@@ -24,7 +24,7 @@ if( bathyclines.redo ) {
 
   depths = c( 0, 10, 20, 50, 75, 100, 200, 250, 300, 350, 400, 450, 500, 550, 600, 700, 750, 800, 900,
               1000, 1200, 1250, 1400, 1500, 1750, 2000, 2500, 3000, 4000, 5000 )
-  plygn = isobath_db( p=p, DS="isobath.redo", depths=depths  )
+  plygn = isobath_db( DS="isobath.redo", depths=depths, project_to=projection_proj4string("lonlat_wgs84")  )
 
 }
 
@@ -36,7 +36,7 @@ if (0) {
 
     p = bathymetry_parameters( spatial_domain="canada.east" ) # reset to lower resolution
     depths = c( 100, 200, 300, 500, 1000)
-    plygn = isobath_db( p=p, DS="isobath", depths=depths  )
+    plygn = isobath_db( DS="isobath", depths=depths  )
 
     coast = coastline_db( xlim=c(-75,-52), ylim=c(41,50), no.clip=TRUE )  # no.clip is an option for maptools::getRgshhsMap
     plot( coast, col="transparent", border="steelblue2" , xlim=c(-68,-52), ylim=c(41,50),  xaxs="i", yaxs="i", axes=TRUE )  # ie. coastline
@@ -46,7 +46,7 @@ if (0) {
 
 
     # or to get in projected (planar) coords as defined by p$spatial_domain
-    plygn = isobath_db( p=p, DS="isobath", depths=c(100) , project_to=p$aegis_proj4string_planar_km ) # as SpatialLines
+    plygn = isobath_db( DS="isobath", depths=c(100) , project_to=p$aegis_proj4string_planar_km ) # as SpatialLines
     plot(plygn)
 
     plygn_aslist = st_coordinates( plygn)
