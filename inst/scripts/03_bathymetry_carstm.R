@@ -85,7 +85,7 @@ if(0) {
   )
 
 
-  vn = paste(p$variabletomodel, "random_auid_nonspatial", sep=".")
+  vn = paste(p$variabletomodel, "random_space_nonspatial", sep=".")
   carstm_map(  res=res, vn=vn, 
       palette="viridis",
       coastline=coastline,
@@ -94,7 +94,7 @@ if(0) {
   )
 
 
-  vn = paste(p$variabletomodel, "random_auid_spatial", sep=".")
+  vn = paste(p$variabletomodel, "random_space_spatial", sep=".")
   carstm_map(  res=res, vn=vn, 
       palette="viridis",
       coastline=coastline,

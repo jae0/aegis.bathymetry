@@ -80,7 +80,7 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
         p$carstm_model_formula = as.formula( paste(
           p$variabletomodel, ' ~ 1',
              ' + f(uid, model="iid" )',
-             ' + f(auid, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, constr=TRUE, hyper=H$bym2) '
+             ' + f(space, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, constr=TRUE, hyper=H$bym2) '
           ))
       }
       if ( !exists("carstm_model_family", p)  )  p$carstm_model_family = "lognormal"
@@ -268,7 +268,8 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
       stmv_local_modelcall = paste(
         'inla(
           formula = z ~ 1
-            + f(auid, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, constr=TRUE),
+            + f(uid, model="iid" )
+            + f(space, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, constr=TRUE),
           family = "normal",
           data = dat,
           control.compute=list(dic=TRUE, waic=TRUE, cpo=FALSE, config=FALSE),  # config=TRUE if doing posterior simulations

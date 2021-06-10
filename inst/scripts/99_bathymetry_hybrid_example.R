@@ -50,7 +50,7 @@ p = bathymetry_parameters(
   stmv_local_modelcall = paste(
     'inla(
       formula = z ~ 1
-        + f(auid, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, constr=TRUE),
+        + f(space, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, constr=TRUE),
       family = "normal",
       data= dat,
       control.compute=list(dic=TRUE, waic=TRUE, cpo=FALSE, config=FALSE),  
@@ -132,7 +132,7 @@ statsvars = dimnames(statistics)[[2]]
 
 # statsvars = c( "sdTotal", "rsquared", "ndata", "sdSpatial", "sdObs", "phi", "nu", "localrange" )
 dev.new(); levelplot( predictions[] ~ locations[,1] + locations[,2], aspect="iso" )
-dev.new(); levelplot( statistics[,match("Phi_for_auid", statsvars)]  ~ locations[,1] + locations[,2], aspect="iso" ) # nu
+dev.new(); levelplot( statistics[,match("Phi_for_space", statsvars)]  ~ locations[,1] + locations[,2], aspect="iso" ) # nu
 dev.new(); levelplot( statistics[,match("sdTotal", statsvars)]  ~ locations[,1] + locations[,2], aspect="iso" ) #sd total
 dev.new(); levelplot( statistics[,match("rsquared", statsvars)]  ~ locations[,1] + locations[,2], aspect="iso" ) #localrange
 
