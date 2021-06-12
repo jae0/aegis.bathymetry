@@ -19,7 +19,7 @@ bathyclines.redo = FALSE
 if( bathyclines.redo ) {
   # note these polygons are created at the resolution specified in p$spatial_domain ..
   # which by default is very high ("canada.east.highres" = 0.5 km .. p$pres ).
-  # For lower one specify an appropriate p$spatial_domain
+  # For lower, specify an appropriate p$spatial_domain
   # options(max.contour.segments=1000) # might be required if superhighres is being used
 
   depths = c( 0, 10, 20, 50, 75, 100, 200, 250, 300, 350, 400, 450, 500, 550, 600, 700, 750, 800, 900,
@@ -67,6 +67,7 @@ for ( areal_units_resolution_km in c(100, 50, 25, 20, 15, 10, 5, 1) ) {
   # for ( spatial_domain in c("snowcrab", "SSE")) {
    for ( spatial_domain in c( "SSE", "snowcrab", "canada.east.superhighres", "canada.east.highres", "canada.east" )) {
     p = bathymetry_parameters(
+      project_class="carstm",
       spatial_domain = spatial_domain,  # defines spatial area, currenty: "snowcrab" or "SSE"
       areal_units_resolution_km = areal_units_resolution_km # km dim of lattice ~ 1 hr
       # areal_units_proj4string_planar_km = projection_proj4string("utm20"),  # coord system to use for areal estimation and gridding for carstm  --  uses p$aegis_proj4string_planar_km if not set ..
