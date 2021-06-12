@@ -393,9 +393,9 @@
 
       return(Zm)
     }
- 
+
     # ------------------------------
- 
+
     if ( DS=="areal_units_input" ) {
 
       fn = file.path( p$datadir,  "areal_units_input.rdata" )
@@ -476,7 +476,7 @@
       )
       M = M[ which(!is.na(M$AUID)),]
       M$AUID = as.character( M$AUID )  # match each datum to an area
- 
+
       M = lonlat2planar(M, p$aegis_proj4string_planar_km)  # should not be required but to make sure
 
       if (p$carstm_inputs_aggregated) {
@@ -484,7 +484,7 @@
           M = M[ geo_subset( spatial_domain=p$spatial_domain, Z=M ) , ] # need to be careful with extrapolation ...  filter depths
         }
       }
- 
+
       M$plon = NULL
       M$plat = NULL
 
@@ -511,8 +511,7 @@
       APS = NULL
 
       #required for carstm formulae
-      M$space = as.character( M$AUID) 
-
+      M$space = as.character( M$AUID)
       M$uid = 1:nrow(M)  # seems to require an iid model for each obs for stability .. use this for iid
 
       save( M, file=fn, compress=TRUE )
