@@ -318,17 +318,18 @@
       }
 
       M = bathymetry_db ( p=p, DS="z.lonlat.rawdata" )  # 16 GB in RAM just to store!
+      setDT(M)
 
       M = M[ geo_subset( spatial_domain=p$spatial_domain, Z=M ) , ] # need to be careful with extrapolation ...  filter depths
 
-
       # p$quantile_bounds = c(0.0005, 0.9995)
       if (exists("quantile_bounds", p)) {
-        TR = quantile(M[,p$variabletomodel], probs=p$quantile_bounds, na.rm=TRUE )
-        keep = which( M[,p$variabletomodel] >=  TR[1] & M[,p$variabletomodel] <=  TR[2] )
+        TR = quantile(M[[p$variabletomodel]], probs=p$quantile_bounds, na.rm=TRUE )
+        keep = which( M[[p$variabletomodel]] >=  TR[1] & M[[p$variabletomodel]] <=  TR[2] )
         if (length(keep) > 0 ) M = M[ keep, ]
+        keep = NULL
+        gc()
       }
-
 
       # thin data a bit ... remove potential duplicates and robustify
       M = lonlat2planar( M, proj.type=p$aegis_proj4string_planar_km )  # first ensure correct projection
@@ -339,28 +340,41 @@
       M = M[ which( M$plon > p$corners$plon[1] & M$plon < p$corners$plon[2]  & M$plat > p$corners$plat[1] & M$plat < p$corners$plat[2] ), ]
 
       gc()
+      ## should use data.table in future .. slow
+      # new method
 
-      bb = as.data.frame( t( simplify2array(
-        tapply( X=M[,p$variabletomodel], INDEX=list(paste(  M$plon, M$plat, sep="~") ),
-          FUN = function(w) { c(
-            mean(w, na.rm=TRUE),
-            sd(w, na.rm=TRUE),
-            length( which(is.finite(w)) )
-          ) }, simplify=TRUE )
-      )))
-      M = NULL
-      colnames(bb) = paste( p$variabletomodel, c("mean", "sd", "n"), sep=".")
-      plonplat = matrix( as.numeric( unlist(strsplit( rownames(bb), "~", fixed=TRUE))), ncol=2, byrow=TRUE)
+      setDT(M)
+      M$z = M[[p$variabletomodel]]
 
-      bb$plon = plonplat[,1]
-      bb$plat = plonplat[,2]
-      plonplat = NULL
+      M = M[, .(lon=unique(lon)[1], lat=unique(lat)[1], mean=mean(z, na.rm=TRUE), sd=sd(z, na.rm=TRUE), n=length(which(is.finite(z))) ), by=list(plon, plat) ]
 
-      ii = which( is.finite( bb[, paste(p$variabletomodel, "mean", sep=".")] ))
-      M = bb[ii  ,]
-      bb =NULL
-      gc()
-      M = planar2lonlat( M, p$aegis_proj4string_planar_km)
+      colnames(M) = c( "lon", "lat", paste( p$variabletomodel, c("mean", "sd", "n"), sep=".") )
+      M = setDF(M)
+
+      if (0) {
+        # old method .. defunct .. slow and ram hungry
+        bb = as.data.frame( t( simplify2array(
+          tapply( X=M[,p$variabletomodel], INDEX=list(paste(  M$plon, M$plat, sep="~") ),
+            FUN = function(w) { c(
+              mean(w, na.rm=TRUE),
+              sd(w, na.rm=TRUE),
+              length( which(is.finite(w)) )
+            ) }, simplify=TRUE )
+        )))
+        M = NULL
+        colnames(bb) = paste( p$variabletomodel, c("mean", "sd", "n"), sep=".")
+        plonplat = matrix( as.numeric( unlist(strsplit( rownames(bb), "~", fixed=TRUE))), ncol=2, byrow=TRUE)
+
+        bb$plon = plonplat[,1]
+        bb$plat = plonplat[,2]
+        plonplat = NULL
+
+        ii = which( is.finite( bb[, paste(p$variabletomodel, "mean", sep=".")] ))
+        M = bb[ii  ,]
+        bb =NULL
+        gc()
+        M = planar2lonlat( M, p$aegis_proj4string_planar_km)
+      }
 
       attr( M, "proj4string_planar" ) =  p$aegis_proj4string_planar_km
       attr( M, "proj4string_lonlat" ) =  projection_proj4string("lonlat_wgs84")
@@ -410,7 +424,6 @@
       }
       xydata = bathymetry_db( p=p, DS="aggregated_data"   )  #
       names(xydata)[which(names(xydata)=="z.mean" )] = "z"
-      xydata = xydata[ geo_subset( spatial_domain=p$spatial_domain, Z=xydata ) , ] # need to be careful with extrapolation ...  filter depths
       xydata = xydata[ , c("lon", "lat"  )]
 
       save(xydata, file=fn, compress=TRUE )
@@ -431,8 +444,11 @@
       areal_units_fn = attributes(sppoly)[["areal_units_fn"]]
 
       fn = carstm_filenames( p=p, returntype="carstm_inputs", areal_units_fn=areal_units_fn )
-      if (!p$carstm_inputs_aggregated) {
+      if (p$carstm_inputs_prefilter =="rawdata") {
         fn = carstm_filenames( p=p, returntype="carstm_inputs_rawdata", areal_units_fn=areal_units_fn )
+      }
+      if (p$carstm_inputs_prefilter =="sampled") {
+        fn = carstm_filenames( p=p, returntype=paste("carstm_inputs_sampled", p$carstm_inputs_prefilter_n, sep="_"), areal_units_fn=areal_units_fn )
       }
 
       # inputs are shared across various secneario using the same polys
@@ -448,26 +464,47 @@
       }
 
       # reduce size
-      if (p$carstm_inputs_aggregated) {
+      if (p$carstm_inputs_prefilter =="aggregated") {
         M = bathymetry_db ( p=p, DS="aggregated_data"   )  # 16 GB in RAM just to store!
         names(M)[which(names(M)==paste(p$variabletomodel, "mean", sep=".") )] = p$variabletomodel
 
-      } else {
+      } else if (p$carstm_inputs_prefilter =="sampled") {
+        require(data.table)
         M = bathymetry_db ( p=p, DS="z.lonlat.rawdata"  )  # 16 GB in RAM just to store!
         names(M)[which(names(M)=="z") ] = p$variabletomodel
         M = M[ which( !duplicated(M)), ]
-        attr( M, "proj4string_planar" ) =  p$aegis_proj4string_planar_km
-        attr( M, "proj4string_lonlat" ) =  projection_proj4string("lonlat_wgs84")
-            # p$quantile_bounds = c(0.0005, 0.9995)
-        if (exists("quantile_bounds", p)) {
-          TR = quantile(M[,p$variabletomodel], probs=p$quantile_bounds, na.rm=TRUE )
-          keep = which( M[,p$variabletomodel] >=  TR[1] & M[,p$variabletomodel] <=  TR[2] )
-          if (length(keep) > 0 ) M = M[ keep, ]
-        }
+        M = M[ which( M$lon > p$corners$lon[1] & M$lon < p$corners$lon[2]  & M$lat > p$corners$lat[1] & M$lat < p$corners$lat[2] ), ]
+      # levelplot( eval(paste(p$variabletomodel, "mean", sep="."))~plon+plat, data=M, aspect="iso")
+
+    # thin data a bit ... remove potential duplicates and robustify
+        M = lonlat2planar( M, proj.type=p$aegis_proj4string_planar_km )  # first ensure correct projection
+
+        M$plon = aegis_floor(M$plon / p$inputdata_spatial_discretization_planar_km + 1 ) * p$inputdata_spatial_discretization_planar_km
+        M$plat = aegis_floor(M$plat / p$inputdata_spatial_discretization_planar_km + 1 ) * p$inputdata_spatial_discretization_planar_km
+    
+        M = setDT(M)
+        M = M[,.SD[sample(.N, min(.N, p$carstm_inputs_prefilter_n))], by =list(plon, plat) ]  # compact, might be slightly slower
+        # M = M[ M[, sample(.N, min(.N, p$carstm_inputs_prefilter_n) ), by=list(plon, plat)], .SD[i.V1], on=list(plon, plat), by=.EACHI]  # faster .. just a bit
+        setDF(M)
+
+      } else {
+
+        M = bathymetry_db ( p=p, DS="z.lonlat.rawdata"  )  # 16 GB in RAM just to store!
+        names(M)[which(names(M)=="z") ] = p$variabletomodel
+        M = M[ which( !duplicated(M)), ]
+        M = M[ which( M$lon > p$corners$lon[1] & M$lon < p$corners$lon[2]  & M$lat > p$corners$lat[1] & M$lat < p$corners$lat[2] ), ]
+        # levelplot( eval(paste(p$variabletomodel, "mean", sep="."))~plon+plat, data=M, aspect="iso")
+
       }
 
-      M = M[ which( M$lon > p$corners$lon[1] & M$lon < p$corners$lon[2]  & M$lat > p$corners$lat[1] & M$lat < p$corners$lat[2] ), ]
-      # levelplot( eval(paste(p$variabletomodel, "mean", sep="."))~plon+plat, data=M, aspect="iso")
+      attr( M, "proj4string_planar" ) =  p$aegis_proj4string_planar_km
+      attr( M, "proj4string_lonlat" ) =  projection_proj4string("lonlat_wgs84")
+          # p$quantile_bounds = c(0.0005, 0.9995)
+      if (exists("quantile_bounds", p)) {
+        TR = quantile(M[,p$variabletomodel], probs=p$quantile_bounds, na.rm=TRUE )
+        keep = which( M[,p$variabletomodel] >=  TR[1] & M[,p$variabletomodel] <=  TR[2] )
+        if (length(keep) > 0 ) M = M[ keep, ]
+      }
 
       M$AUID = st_points_in_polygons(
         pts = st_as_sf( M, coords=c("lon","lat"), crs=crs_lonlat ),
@@ -477,16 +514,15 @@
       M = M[ which(!is.na(M$AUID)),]
       M$AUID = as.character( M$AUID )  # match each datum to an area
 
-      M = lonlat2planar(M, p$aegis_proj4string_planar_km)  # should not be required but to make sure
 
-      if (p$carstm_inputs_aggregated) {
+      if (p$carstm_inputs_prefilter=="aggregated") {
         if ( exists("spatial_domain", p)) {
+          M = lonlat2planar(M, p$aegis_proj4string_planar_km)  # should not be required but to make sure
           M = M[ geo_subset( spatial_domain=p$spatial_domain, Z=M ) , ] # need to be careful with extrapolation ...  filter depths
+          M$plon = NULL
+          M$plat = NULL
         }
       }
-
-      M$plon = NULL
-      M$plat = NULL
 
       eps = .Machine$double.eps
       M$z = M$z + runif( nrow(M), min=-eps, max=eps )

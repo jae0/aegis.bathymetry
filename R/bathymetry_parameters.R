@@ -34,7 +34,7 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
 
   p = spatial_parameters( p=p )  # default (= only supported resolution of 0.2 km discretization)  .. do NOT change
 
-  p = parameters_add_without_overwriting( p, inputdata_spatial_discretization_planar_km = p$pres/2 ) #  controls resolution of data prior to modelling (km .. ie 20 linear units smaller than the final discretization pres)
+  p = parameters_add_without_overwriting( p, inputdata_spatial_discretization_planar_km = 1 ) #  p$pres/2 is a bit too slow ..; controls resolution of data prior to modelling (km .. ie 20 linear units smaller than the final discretization pres)
 
 
   # ---------------------
@@ -63,7 +63,7 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
       areal_units_proj4string_planar_km = p$aegis_proj4string_planar_km,  # coord system to use for areal estimation and gridding for carstm
       areal_units_overlay = "none",
       areal_units_timeperiod = "none",
-      areal_units_constraint_ntarget = 500,  
+      areal_units_constraint_ntarget = 500,
       areal_units_constraint_nmin = 30 ,
       tus="none",
       fraction_todrop = 1/5,
@@ -72,7 +72,8 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
       nAU_min = 30,
       carstm_modelengine = "inla",  # {model engine}.{label to use to store}
       carstm_model_label = "default",
-      carstm_inputs_aggregated = TRUE
+      carstm_inputs_prefilter = "sampled",
+      carstm_inputs_prefilter_n = 10
     )
 
     if ( grepl("inla", p$carstm_modelengine) ) {
