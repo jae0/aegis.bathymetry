@@ -102,7 +102,8 @@
       p = aegis.bathymetry::bathymetry_parameters(
         project_class="carstm",
         areal_units_resolution_km=100,
-        carstm_inputs_prefilter = TRUE
+        carstm_inputs_prefilter = "sampled",
+        carstm_inputs_prefilter_n = 10
       )
 
     # example sequence to force creating of input data for modelling
