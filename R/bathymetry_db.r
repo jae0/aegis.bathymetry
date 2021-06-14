@@ -469,20 +469,23 @@
         names(M)[which(names(M)==paste(p$variabletomodel, "mean", sep=".") )] = p$variabletomodel
 
       } else if (p$carstm_inputs_prefilter =="sampled") {
-        require(data.table)
         M = bathymetry_db ( p=p, DS="z.lonlat.rawdata"  )  # 16 GB in RAM just to store!
+
+        require(data.table)
+        setDT(M)
         names(M)[which(names(M)=="z") ] = p$variabletomodel
+
         M = M[ which( !duplicated(M)), ]
         M = M[ which( M$lon > p$corners$lon[1] & M$lon < p$corners$lon[2]  & M$lat > p$corners$lat[1] & M$lat < p$corners$lat[2] ), ]
       # levelplot( eval(paste(p$variabletomodel, "mean", sep="."))~plon+plat, data=M, aspect="iso")
 
     # thin data a bit ... remove potential duplicates and robustify
         M = lonlat2planar( M, proj.type=p$aegis_proj4string_planar_km )  # first ensure correct projection
+        setDT(M)
 
         M$plon = aegis_floor(M$plon / p$inputdata_spatial_discretization_planar_km + 1 ) * p$inputdata_spatial_discretization_planar_km
         M$plat = aegis_floor(M$plat / p$inputdata_spatial_discretization_planar_km + 1 ) * p$inputdata_spatial_discretization_planar_km
     
-        M = setDT(M)
         M = M[,.SD[sample(.N, min(.N, p$carstm_inputs_prefilter_n))], by =list(plon, plat) ]  # compact, might be slightly slower
         # M = M[ M[, sample(.N, min(.N, p$carstm_inputs_prefilter_n) ), by=list(plon, plat)], .SD[i.V1], on=list(plon, plat), by=.EACHI]  # faster .. just a bit
         setDF(M)
@@ -496,15 +499,15 @@
         # levelplot( eval(paste(p$variabletomodel, "mean", sep="."))~plon+plat, data=M, aspect="iso")
 
       }
+        # if (exists("quantile_bounds", p)) {
+        #   TR = quantile(M[,p$variabletomodel], probs=p$quantile_bounds, na.rm=TRUE )
+        #   keep = which( M[,p$variabletomodel] >=  TR[1] & M[,p$variabletomodel] <=  TR[2] )
+        #   if (length(keep) > 0 ) M = M[ keep, ]
+        # }
 
       attr( M, "proj4string_planar" ) =  p$aegis_proj4string_planar_km
       attr( M, "proj4string_lonlat" ) =  projection_proj4string("lonlat_wgs84")
           # p$quantile_bounds = c(0.0005, 0.9995)
-      if (exists("quantile_bounds", p)) {
-        TR = quantile(M[,p$variabletomodel], probs=p$quantile_bounds, na.rm=TRUE )
-        keep = which( M[,p$variabletomodel] >=  TR[1] & M[,p$variabletomodel] <=  TR[2] )
-        if (length(keep) > 0 ) M = M[ keep, ]
-      }
 
       M$AUID = st_points_in_polygons(
         pts = st_as_sf( M, coords=c("lon","lat"), crs=crs_lonlat ),

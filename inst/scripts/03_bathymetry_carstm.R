@@ -29,6 +29,8 @@
 
       sppoly = areal_units( p=p , redo=T )  # this has already been done in aegis.polygons::01 polygons.R .. should nto have to redo
       plot( sppoly[ "AUID" ] )
+      
+      bathymetry_db( p=p, DS="carstm_inputs", redo=TRUE )
     }
 
 
@@ -38,6 +40,7 @@
     if (0) {
       # loading saved fit and results
       # very large files .. slow 
+
       fit = carstm_model( p=p, DS="carstm_modelled_fit" )  # extract currently saved model fit
       plot(fit)
       plot(fit, plot.prior=TRUE, plot.hyperparameters=TRUE, plot.fixed.effects=FALSE )
