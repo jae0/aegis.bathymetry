@@ -35,8 +35,11 @@
 
 
 # run the model ... about 24 hrs
-  fit = carstm_model( p=p, M='bathymetry_db( p=p, DS="carstm_inputs" )' ) # run model and obtain predictions
-
+# careful: any reasonable compression can increase save time by hours ..
+  fit = carstm_model( p=p, M='bathymetry_db( p=p, DS="carstm_inputs" )', toget= c("summary", "random_spatial", "random_other", "predictions"), compression_level=0, toinvert=c("fixed_effects", "random_effects", "predictions"), nposteriors=500 ) 
+    # run model and obtain predictions, 0== no file compression
+    # fixed and random effects are multiplicative effects 
+    
     if (0) {
       # loading saved fit and results
       # very large files .. slow 
@@ -61,42 +64,28 @@
 
 
 # maps of some of the results
-  vn = paste(p$variabletomodel, "predicted", sep=".")
 
-  carstm_map(  res=res, vn=vn, 
-      breaks =pretty(p$discretization$z),
-      palette="viridis",
-      coastline=coastline,
-      isobaths=isobaths,
-      main="Bathymetry random unstructured" 
+  carstm_map(  
+    res=res,    
+    vn = list("predictions", c(:,"2001", "mean") ),
+    breaks =pretty(p$discretization$z),
+    palette="viridis",
+    coastline=coastline,
+    isobaths=isobaths,
+    main="Bathymetry predicted" 
   )
 
 
-  vn = paste(p$variabletomodel, "random_sample_iid", sep=".")
-  carstm_map(  res=res, vn=vn, 
-     palette="viridis",
-      coastline=coastline,
-      isobaths=isobaths,
-      main="Bathymetry random iid" 
+  carstm_map(  
+    res=res, 
+    vn = list("random", "combined", c()  ), 
+    palette="viridis",
+    coastline=coastline,
+    isobaths=isobaths,
+    main="Bathymetry random spatial" 
   )
+  
 
-
-  vn = paste(p$variabletomodel, "random_space_nonspatial", sep=".")
-  carstm_map(  res=res, vn=vn, 
-      palette="viridis",
-      coastline=coastline,
-      isobaths=isobaths,
-      main="Bathymetry random unstructured" 
-  )
-
-
-  vn = paste(p$variabletomodel, "random_space_spatial", sep=".")
-  carstm_map(  res=res, vn=vn, 
-      palette="viridis",
-      coastline=coastline,
-      isobaths=isobaths,
-      main="Bathymetry spatially structured" 
-  )
 
 # end
 
