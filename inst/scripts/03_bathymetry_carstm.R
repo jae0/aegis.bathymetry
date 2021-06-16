@@ -19,8 +19,8 @@
   p = aegis.bathymetry::bathymetry_parameters( project_class="carstm" )  # defaults are hard coded
 
     # adjust based upon RAM requirements and ncores
-    inla.setOption(num.threads= floor( parallel::detectCores() / 3 ) )
-    inla.setOption(blas.num.threads= 3 )
+    # inla.setOption(num.threads= floor( parallel::detectCores() / 3 ) )
+    # inla.setOption(blas.num.threads= 3 )
  
 
     if (0) {

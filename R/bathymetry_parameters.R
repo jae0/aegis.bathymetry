@@ -9,7 +9,7 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
   # p$libs = c( p$libs, RLibrary ( "colorspace",  "fields", "geosphere", "lubridate",  "lattice",
   #   "maps", "mapdata", "maptools", "parallel",  "rgdal", "rgeos",  "sp", "spdep", "splancs", "GADMTools", "INLA" ) )
   p$libs = c( p$libs, RLibrary ( "colorspace",  "lubridate",  "lattice",
-    "parallel", "sf", "GADMTools", "INLA" ) )
+    "parallel", "sf", "GADMTools", "INLA", "data.table" ) )
 
   p$libs = c( p$libs, project.library ( "aegis", "aegis.bathymetry",  "aegis.polygons", "aegis.coastline" ) )
 
