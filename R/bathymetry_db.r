@@ -346,7 +346,7 @@
       setDT(M)
       M$z = M[[p$variabletomodel]]
 
-      M = M[, .(lon=unique(lon)[1], lat=unique(lat)[1], mean=mean(z, na.rm=TRUE), sd=sd(z, na.rm=TRUE), n=length(which(is.finite(z))) ), by=list(plon, plat) ]
+      M = M[, .(lon=unique(lon)[1], lat=unique(lat)[1], mean=mean(z, trim=0.05, na.rm=TRUE), sd=sd(z, na.rm=TRUE), n=length(which(is.finite(z))) ), by=list(plon, plat) ]
 
       colnames(M) = c( "lon", "lat", paste( p$variabletomodel, c("mean", "sd", "n"), sep=".") )
       M = setDF(M)
