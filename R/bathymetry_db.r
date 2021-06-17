@@ -318,38 +318,42 @@
       }
 
       M = bathymetry_db ( p=p, DS="z.lonlat.rawdata" )  # 16 GB in RAM just to store!
-      setDT(M)
-
-      M = M[ geo_subset( spatial_domain=p$spatial_domain, Z=M ) , ] # need to be careful with extrapolation ...  filter depths
-
-      # p$quantile_bounds = c(0.0005, 0.9995)
-      if (exists("quantile_bounds", p)) {
-        TR = quantile(M[[p$variabletomodel]], probs=p$quantile_bounds, na.rm=TRUE )
-        keep = which( M[[p$variabletomodel]] >=  TR[1] & M[[p$variabletomodel]] <=  TR[2] )
-        if (length(keep) > 0 ) M = M[ keep, ]
-        keep = NULL
-        gc()
-      }
-
-      # thin data a bit ... remove potential duplicates and robustify
       M = lonlat2planar( M, proj.type=p$aegis_proj4string_planar_km )  # first ensure correct projection
 
-      M$plon = aegis_floor(M$plon / p$inputdata_spatial_discretization_planar_km + 1 ) * p$inputdata_spatial_discretization_planar_km
-      M$plat = aegis_floor(M$plat / p$inputdata_spatial_discretization_planar_km + 1 ) * p$inputdata_spatial_discretization_planar_km
-
-      M = M[ which( M$plon > p$corners$plon[1] & M$plon < p$corners$plon[2]  & M$plat > p$corners$plat[1] & M$plat < p$corners$plat[2] ), ]
-
-      gc()
-      ## should use data.table in future .. slow
-      # new method
-
       setDT(M)
-      M$z = M[[p$variabletomodel]]
 
-      M = M[, .(lon=unique(lon)[1], lat=unique(lat)[1], mean=mean(z, trim=0.05, na.rm=TRUE), sd=sd(z, na.rm=TRUE), n=length(which(is.finite(z))) ), by=list(plon, plat) ]
+        M = M[ geo_subset( spatial_domain=p$spatial_domain, Z=M ) , ] # need to be careful with extrapolation ...  filter depths
 
-      colnames(M) = c( "lon", "lat", paste( p$variabletomodel, c("mean", "sd", "n"), sep=".") )
+        # p$quantile_bounds = c(0.0005, 0.9995)
+        if (exists("quantile_bounds", p)) {
+          TR = quantile(M[[p$variabletomodel]], probs=p$quantile_bounds, na.rm=TRUE )
+          keep = which( M[[p$variabletomodel]] >=  TR[1] & M[[p$variabletomodel]] <=  TR[2] )
+          if (length(keep) > 0 ) M = M[ keep, ]
+          keep = NULL
+          gc()
+        }
+
+        # thin data a bit ... remove potential duplicates and robustify
+
+
+        M$plon = aegis_floor(M$plon / p$inputdata_spatial_discretization_planar_km + 1 ) * p$inputdata_spatial_discretization_planar_km
+        M$plat = aegis_floor(M$plat / p$inputdata_spatial_discretization_planar_km + 1 ) * p$inputdata_spatial_discretization_planar_km
+
+
+        gc()
+        ## should use data.table in future .. slow
+        # new method
+
+        M = M[ which( M$plon > p$corners$plon[1] & M$plon < p$corners$plon[2]  & M$plat > p$corners$plat[1] & M$plat < p$corners$plat[2] ), ]
+        M$z = M[[p$variabletomodel]]
+        M$lon = NULL
+        M$lat = NULL
+        M = M[, .( mean=mean(z, trim=0.05, na.rm=TRUE), sd=sd(z, na.rm=TRUE), n=length(which(is.finite(z))) ), by=list(plon, plat) ]
+
+        colnames(M) = c( "plon", "plat", paste( p$variabletomodel, c("mean", "sd", "n"), sep=".") )
+
       M = setDF(M)
+      M = planar2lonlat( M, p$aegis_proj4string_planar_km)
 
       if (0) {
         # old method .. defunct .. slow and ram hungry
@@ -373,8 +377,8 @@
         M = bb[ii  ,]
         bb =NULL
         gc()
-        M = planar2lonlat( M, p$aegis_proj4string_planar_km)
       }
+      
 
       attr( M, "proj4string_planar" ) =  p$aegis_proj4string_planar_km
       attr( M, "proj4string_lonlat" ) =  projection_proj4string("lonlat_wgs84")
