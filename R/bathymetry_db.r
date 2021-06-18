@@ -318,20 +318,14 @@
       }
 
       M = bathymetry_db ( p=p, DS="z.lonlat.rawdata" )  # 16 GB in RAM just to store!
-      M = lonlat2planar( M, proj.type=p$aegis_proj4string_planar_km )  # first ensure correct projection
-
+   
       setDT(M)
-
-        M = M[ geo_subset( spatial_domain=p$spatial_domain, Z=M ) , ] # need to be careful with extrapolation ...  filter depths
-
-        # p$quantile_bounds = c(0.0005, 0.9995)
-        if (exists("quantile_bounds", p)) {
-          TR = quantile(M[[p$variabletomodel]], probs=p$quantile_bounds, na.rm=TRUE )
-          keep = which( M[[p$variabletomodel]] >=  TR[1] & M[[p$variabletomodel]] <=  TR[2] )
-          if (length(keep) > 0 ) M = M[ keep, ]
-          keep = NULL
-          gc()
-        }
+      M = M[ which( M$lon > p$corners$lon[1] & M$lon < p$corners$lon[2]  & M$lat > p$corners$lat[1] & M$lat < p$corners$lat[2] ), ]
+      M = lonlat2planar( M, proj.type=p$aegis_proj4string_planar_km, returntype="DT")  # first ensure correct projection
+  
+      M$lon = NULL
+      M$lat = NULL
+      M$z = M[[p$variabletomodel]]
 
         # thin data a bit ... remove potential duplicates and robustify
 
@@ -344,19 +338,25 @@
         ## should use data.table in future .. slow
         # new method
 
-        M = M[ which( M$plon > p$corners$plon[1] & M$plon < p$corners$plon[2]  & M$plat > p$corners$plat[1] & M$plat < p$corners$plat[2] ), ]
-        M$z = M[[p$variabletomodel]]
-        M$lon = NULL
-        M$lat = NULL
-        
+                
+        M = M[ geo_subset( spatial_domain=p$spatial_domain, Z=M ) , ] # need to be careful with extrapolation ...  filter depths
+
+        # p$quantile_bounds = c(0.0005, 0.9995)
+        if (exists("quantile_bounds", p)) {
+          TR = quantile(M[[p$variabletomodel]], probs=p$quantile_bounds, na.rm=TRUE )
+          keep = which( M[[p$variabletomodel]] >=  TR[1] & M[[p$variabletomodel]] <=  TR[2] )
+          if (length(keep) > 0 ) M = M[ keep, ]
+          keep = NULL
+          gc()
+        }
+
+
         setDT(M)
         M = M[, .( mean=mean(z, trim=0.05, na.rm=TRUE), sd=sd(z, na.rm=TRUE), n=length(which(is.finite(z))) ), by=list(plon, plat) ]
 
         colnames(M) = c( "plon", "plat", paste( p$variabletomodel, c("mean", "sd", "n"), sep=".") )
-
-        M = setDF(M)
-  
-        M = planar2lonlat( M, p$aegis_proj4string_planar_km)
+        M = planar2lonlat( M, p$aegis_proj4string_planar_km, returntype="DT")
+ 
 
       if (0) {
         # old method .. defunct .. slow and ram hungry
@@ -385,7 +385,7 @@
 
       attr( M, "proj4string_planar" ) =  p$aegis_proj4string_planar_km
       attr( M, "proj4string_lonlat" ) =  projection_proj4string("lonlat_wgs84")
-
+      setDF(M)
       save(M, file=fn, compress=TRUE)
 
       return( M )
