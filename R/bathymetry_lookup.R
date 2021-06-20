@@ -2,6 +2,7 @@ bathymetry_lookup = function( LOCS=NULL, spatial_domain=NULL, lookup_from="core"
 
   # z = bathymetry_lookup( LOCS=M[, c("lon", "lat")], spatial_domain=p$spatial_domain, lookup_from="core", lookup_to="points" , lookup_from_class="aggregated_data" ) # core=="rawdata"
 
+  #NOTE .. might get more speed with data.table (TODO, one day..)
 
   if (is.null(pB))   pB = bathymetry_parameters(  project_class=lookup_from  )
 
@@ -15,7 +16,7 @@ bathymetry_lookup = function( LOCS=NULL, spatial_domain=NULL, lookup_from="core"
     vn2 = paste( vn, "mean", sep="." )
 
     LU = bathymetry_db ( p=pB, DS=lookup_from_class )  # raw data
-    LU = planar2lonlat(LU, pB$aegis_proj4string_planar_km)
+    LU = planar2lonlat( LU, pB$aegis_proj4string_planar_km)
     names(LU)[ which(names(LU) == vn2 ) ] =  vn
 
     LOCS = lonlat2planar(LOCS, proj.type=pB$aegis_proj4string_planar_km) # get planar projections of lon/lat in km
