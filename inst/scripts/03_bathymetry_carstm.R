@@ -36,27 +36,27 @@
 
 # run the model ... about 24 hrs
 # careful: any reasonable compression can increase save time by hours ..
-  fit = carstm_model( p=p, M='bathymetry_db( p=p, DS="carstm_inputs" )', toget= c("summary", "random_spatial", "random_other", "predictions"), compression_level=0, toinvert=c("fixed_effects", "random_effects", "predictions"), quantile_limit=1, nposteriors=1000 ) 
+  res = carstm_model( p=p, M='bathymetry_db( p=p, DS="carstm_inputs" )', toget= c("summary", "random_spatial", "random_other", "predictions"), compression_level=0, toinvert=c("fixed_effects", "random_effects", "predictions"), quantile_bounds=c(0,1), nposteriors=1000, redo_fit=TRUE ) 
     # run model and obtain predictions, 0== no file compression
     # fixed and random effects are multiplicative effects 
-    # quantile_limit=1 means do not extrapolate
+    # quantile_bounds=c(0,1) means do not extrapolate
     
     if (0) {
       # loading saved fit and results
       # very large files .. slow 
 
       fit = carstm_model( p=p, DS="carstm_modelled_fit" )  # extract currently saved model fit
+    
+      fit$summary$dic$dic
+      fit$summary$dic$p.eff
+
       plot(fit)
       plot(fit, plot.prior=TRUE, plot.hyperparameters=TRUE, plot.fixed.effects=FALSE )
     }
 
 # extract results and examine
   res = carstm_model( p=p, DS="carstm_modelled_summary"  ) # to load currently saved results
-  
-    res$summary$dic$dic
-    res$summary$dic$p.eff
-    res$dyear
-
+  res$summary  
 
 
   plot_crs = p$aegis_proj4string_planar_km
@@ -68,7 +68,7 @@
 
   carstm_map(  
     res=res,    
-    vn = list("predictions", c(:,"2001", "mean") ),
+    vn = list("predictions" ),
     breaks =pretty(p$discretization$z),
     palette="viridis",
     coastline=coastline,
@@ -79,7 +79,7 @@
 
   carstm_map(  
     res=res, 
-    vn = list("random", "combined", c()  ), 
+    vn = list("random", "combined"  ), 
     palette="viridis",
     coastline=coastline,
     isobaths=isobaths,

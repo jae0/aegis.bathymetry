@@ -339,9 +339,9 @@
         # new method
 
                 
-        M = M[ geo_subset( spatial_domain=p$spatial_domain, Z=M ) , ] # need to be careful with extrapolation ...  filter depths
+        M = M[ geo_subset( spatial_domain=p$spatial_domain, Z=M ) , ] # need to Pbe careful with extrapolation ...  filter depths
 
-        # p$quantile_bounds = c(0.0005, 0.9995)
+
         if (exists("quantile_bounds", p)) {
           TR = quantile(M[[p$variabletomodel]], probs=p$quantile_bounds, na.rm=TRUE )
           keep = which( M[[p$variabletomodel]] >=  TR[1] & M[[p$variabletomodel]] <=  TR[2] )
@@ -506,6 +506,18 @@
         # levelplot( eval(paste(p$variabletomodel, "mean", sep="."))~plon+plat, data=M, aspect="iso")
 
       }
+    
+
+      if (p$carstm_inputs_prefilter != "aggregated") {
+        if (exists("quantile_bounds", p)) {
+          TR = quantile(M[[p$variabletomodel]], probs=p$quantile_bounds, na.rm=TRUE )
+          keep = which( M[[p$variabletomodel]] >=  TR[1] & M[[p$variabletomodel]] <=  TR[2] )
+          if (length(keep) > 0 ) M = M[ keep, ]
+          keep = NULL
+          gc()
+        }
+      }
+
         # if (exists("quantile_bounds", p)) {
         #   TR = quantile(M[,p$variabletomodel], probs=p$quantile_bounds, na.rm=TRUE )
         #   keep = which( M[,p$variabletomodel] >=  TR[1] & M[,p$variabletomodel] <=  TR[2] )
@@ -523,16 +535,6 @@
       )
       M = M[ which(!is.na(M$AUID)),]
       M$AUID = as.character( M$AUID )  # match each datum to an area
-
-
-      if (p$carstm_inputs_prefilter=="aggregated") {
-        if ( exists("spatial_domain", p)) {
-          M = lonlat2planar(M, p$aegis_proj4string_planar_km)  # should not be required but to make sure
-          M = M[ geo_subset( spatial_domain=p$spatial_domain, Z=M ) , ] # need to be careful with extrapolation ...  filter depths
-          M$plon = NULL
-          M$plat = NULL
-        }
-      }
 
       eps = .Machine$double.eps
       M$z = M$z + runif( nrow(M), min=-eps, max=eps )
