@@ -329,60 +329,27 @@
 
         # thin data a bit ... remove potential duplicates and robustify
 
+      M$plon = aegis_floor(M$plon / p$inputdata_spatial_discretization_planar_km + 1 ) * p$inputdata_spatial_discretization_planar_km
+      M$plat = aegis_floor(M$plat / p$inputdata_spatial_discretization_planar_km + 1 ) * p$inputdata_spatial_discretization_planar_km
 
-        M$plon = aegis_floor(M$plon / p$inputdata_spatial_discretization_planar_km + 1 ) * p$inputdata_spatial_discretization_planar_km
-        M$plat = aegis_floor(M$plat / p$inputdata_spatial_discretization_planar_km + 1 ) * p$inputdata_spatial_discretization_planar_km
+      gc()
+              
+      M = M[ geo_subset( spatial_domain=p$spatial_domain, Z=M ) , ] # need to Pbe careful with extrapolation ...  filter depths
 
-
-        gc()
-        ## should use data.table in future .. slow
-        # new method
-
-                
-        M = M[ geo_subset( spatial_domain=p$spatial_domain, Z=M ) , ] # need to Pbe careful with extrapolation ...  filter depths
-
-
-        if (exists("quantile_bounds", p)) {
-          TR = quantile(M[[p$variabletomodel]], probs=p$quantile_bounds, na.rm=TRUE )
-          keep = which( M[[p$variabletomodel]] >=  TR[1] & M[[p$variabletomodel]] <=  TR[2] )
-          if (length(keep) > 0 ) M = M[ keep, ]
-          keep = NULL
-          gc()
-        }
-
-
-        setDT(M)
-        M = M[, .( mean=mean(z, trim=0.05, na.rm=TRUE), sd=sd(z, na.rm=TRUE), n=length(which(is.finite(z))) ), by=list(plon, plat) ]
-
-        colnames(M) = c( "plon", "plat", paste( p$variabletomodel, c("mean", "sd", "n"), sep=".") )
-        M = planar2lonlat( M, p$aegis_proj4string_planar_km, returntype="DF")
- 
-
-      if (0) {
-        # old method .. defunct .. slow and ram hungry
-        bb = as.data.frame( t( simplify2array(
-          tapply( X=M[,p$variabletomodel], INDEX=list(paste(  M$plon, M$plat, sep="~") ),
-            FUN = function(w) { c(
-              mean(w, na.rm=TRUE),
-              sd(w, na.rm=TRUE),
-              length( which(is.finite(w)) )
-            ) }, simplify=TRUE )
-        )))
-        M = NULL
-        colnames(bb) = paste( p$variabletomodel, c("mean", "sd", "n"), sep=".")
-        plonplat = matrix( as.numeric( unlist(strsplit( rownames(bb), "~", fixed=TRUE))), ncol=2, byrow=TRUE)
-
-        bb$plon = plonplat[,1]
-        bb$plat = plonplat[,2]
-        plonplat = NULL
-
-        ii = which( is.finite( bb[, paste(p$variabletomodel, "mean", sep=".")] ))
-        M = bb[ii  ,]
-        bb =NULL
+      if (exists("quantile_bounds", p)) {
+        TR = quantile(M[[p$variabletomodel]], probs=p$quantile_bounds, na.rm=TRUE )
+        keep = which( M[[p$variabletomodel]] >=  TR[1] & M[[p$variabletomodel]] <=  TR[2] )
+        if (length(keep) > 0 ) M = M[ keep, ]
+        keep = NULL
         gc()
       }
-      
 
+      setDT(M)
+      M = M[, .( mean=mean(z, trim=0.05, na.rm=TRUE), sd=sd(z, na.rm=TRUE), n=length(which(is.finite(z))) ), by=list(plon, plat) ]
+
+      colnames(M) = c( "plon", "plat", paste( p$variabletomodel, c("mean", "sd", "n"), sep=".") )
+      M = planar2lonlat( M, p$aegis_proj4string_planar_km, returntype="DF")
+ 
       attr( M, "proj4string_planar" ) =  p$aegis_proj4string_planar_km
       attr( M, "proj4string_lonlat" ) =  projection_proj4string("lonlat_wgs84")
       setDF(M)
