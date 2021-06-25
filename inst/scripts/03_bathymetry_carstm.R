@@ -46,7 +46,6 @@
       # very large files .. slow 
 
       fit = carstm_model( p=p, DS="carstm_modelled_fit" )  # extract currently saved model fit
-    
       fit$summary$dic$dic
       fit$summary$dic$p.eff
 

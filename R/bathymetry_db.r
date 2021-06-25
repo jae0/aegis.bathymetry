@@ -321,7 +321,7 @@
    
       setDT(M)
       M = M[ which( M$lon > p$corners$lon[1] & M$lon < p$corners$lon[2]  & M$lat > p$corners$lat[1] & M$lat < p$corners$lat[2] ), ]
-      M = lonlat2planar( M, proj.type=p$aegis_proj4string_planar_km, returntype="DT")  # first ensure correct projection
+      M = lonlat2planar( M, proj.type=p$aegis_proj4string_planar_km)  # first ensure correct projection
   
       M$lon = NULL
       M$lat = NULL
@@ -348,7 +348,7 @@
       M = M[, .( mean=mean(z, trim=0.05, na.rm=TRUE), sd=sd(z, na.rm=TRUE), n=length(which(is.finite(z))) ), by=list(plon, plat) ]
 
       colnames(M) = c( "plon", "plat", paste( p$variabletomodel, c("mean", "sd", "n"), sep=".") )
-      M = planar2lonlat( M, p$aegis_proj4string_planar_km, returntype="DF")
+      M = planar2lonlat( M, p$aegis_proj4string_planar_km )
  
       attr( M, "proj4string_planar" ) =  p$aegis_proj4string_planar_km
       attr( M, "proj4string_lonlat" ) =  projection_proj4string("lonlat_wgs84")
@@ -815,7 +815,7 @@
       pn = spatial_parameters( p=p, spatial_domain=p$spatial_domain )
       Z = spatial_grid(p)
       Z = planar2lonlat( Z,  proj.type=p$aegis_proj4string_planar_km   )
-      Z$z = bathymetry_lookup( LOCS=Z[, c("lon", "lat")], lookup_from="core", lookup_to="points" , lookup_from_class="aggregated_data" ) # core=="rawdata"
+      Z$z = aegis_lookup( data_class="bathymetry", LOCS=Z[, c("lon", "lat")], lookup_from="core", lookup_to="points" , lookup_from_class="aggregated_data" ) # core=="rawdata"
       Z = Z[ geo_subset( spatial_domain=p$spatial_domain, Z=Z ), ]
 
       fn = paste( "bathymetry", "baseline_prediction_locations", p$spatial_domain, "rdata" , sep=".")
