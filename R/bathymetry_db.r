@@ -345,7 +345,7 @@
       }
 
       setDT(M)
-      M = M[, .( mean=mean(z, trim=0.05, na.rm=TRUE), sd=sd(z, na.rm=TRUE), n=length(which(is.finite(z))) ), by=list(plon, plat) ]
+      M = M[, .( mean=mean(z, na.rm=TRUE), sd=sd(z, na.rm=TRUE), n=length(which(is.finite(z))) ), by=list(plon, plat) ]
 
       colnames(M) = c( "plon", "plat", paste( p$variabletomodel, c("mean", "sd", "n"), sep=".") )
       M = planar2lonlat( M, p$aegis_proj4string_planar_km )
@@ -361,43 +361,7 @@
 
     # ------------------------------
 
-    if ( DS=="aggregated_data_as_matrix") {
-
-      if (!exists("inputdata_spatial_discretization_planar_km", p) )  p$inputdata_spatial_discretization_planar_km = 1
-  
-      p$plons = seq(min(p$corners$plon), max(p$corners$plon), by = p$inputdata_spatial_discretization_planar_km)
-      p$plats = seq(min(p$corners$plat), max(p$corners$plat), by = p$inputdata_spatial_discretization_planar_km)
-      plons = seq(min(p$corners$plon), max(p$corners$plon), by = p$inputdata_spatial_discretization_planar_km)
-      plats = seq(min(p$corners$plat), max(p$corners$plat), by = p$inputdata_spatial_discretization_planar_km)
-      p$nplons = length(plons)
-      p$nplats = length(plats)
-      p$origin = c(min(p$corners$plon), min(p$corners$plat))
-      p$gridparams = list(dims = c(p$nplons, p$nplats), origin = p$origin, 
-        res = c(p$inputdata_spatial_discretization_planar_km, p$inputdata_spatial_discretization_planar_km))
-
-
-      fn = file.path( p$datadir, paste( "bathymetry", "aggregated_data_as_matrix", p$spatial_domain, round(p$inputdata_spatial_discretization_planar_km, 6) , "rdata", sep=".") )
-      if (!redo)  {
-        if (file.exists(fn)) {
-          load( fn)
-          return( Zm )
-        }
-      }
-
-      Z = bathymetry_db( p=p, DS="aggregated_data" )
-      Zi = array_map( "xy->2", Z[, c("plon", "plat")], gridparams=p$gridparams )
-      good = which( Zi[,1] >= 1 & Zi[,1] <= p$nplons & Zi[,2] >= 1 & Zi[,2] <= p$nplats )
-      Zi = Zi[good]
-      Z = Z[good,]
-      Zm = matrix( NA, ncol=p$nplats, nrow=p$nplons )
-      Zm[Zi] = Z$z.mean
-      save(Zm, file=fn, compress=TRUE)
-
-      return(Zm)
-    }
-
-    # ------------------------------
-
+   
     if ( DS=="areal_units_input" ) {
 
       fn = file.path( p$datadir,  "areal_units_input.rdata" )

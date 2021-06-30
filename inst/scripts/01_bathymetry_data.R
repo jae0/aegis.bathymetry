@@ -8,8 +8,6 @@ bathymetry_db( p=p, DS="z.lonlat.rawdata.redo" ) # needs about 42 GB RAM, JC 201
 Z = bathymetry_db( p=p, DS="aggregated_data", redo=TRUE )  
 Z = NULL; gc()
 
-Z = bathymetry_db( p=p, DS="aggregated_data_as_matrix", redo=TRUE )  
-Z = NULL; gc()
 
 
 ### -----------------------------------------------------------------

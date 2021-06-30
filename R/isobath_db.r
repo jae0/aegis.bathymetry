@@ -4,9 +4,12 @@ isobath_db = function(
              1000, 1200, 1250, 1400, 1500, 1750, 2000, 2500, 3000, 4000, 5000 ),
   DS="isobath",
   project_to=projection_proj4string("lonlat_wgs84"),
-  data_dir=project.datadirectory( "aegis", "bathymetry" ) ) {
+  data_dir=project.datadirectory( "aegis", "bathymetry" ),
+  aRange = 3  # # pixels to approx 1 SD 
+   ) {
 
   #\\ create or return isobaths and coastlines/coast polygons
+  #\\ isobaths come from aggregated data (resolution of pres) which is then locally smoothed through a guassian kernal process 
   # require(stmv)
   if (DS %in% c( "isobath", "isobath.redo" )) {
 
@@ -29,17 +32,37 @@ isobath_db = function(
     x=seq(min(p0$corners$plon), max(p0$corners$plon), by=p0$pres)
     y=seq(min(p0$corners$plat), max(p0$corners$plat), by=p0$pres)
 
-    Zm = bathymetry_db( p=p0, DS="aggregated_data_as_matrix" )
-    # Zm = fields::image.smooth( Zm, theta=p0$pres, dx=p0$pres, dy=p0$pres ) # a little smoothed to make contours cleaner     .. too slow
-    cl = contourLines( x=x, y=y, Zm, levels=depths )
+    Z = bathymetry_db( p=p0, DS="aggregated_data" )
+
+    Zi = array_map( "xy->2", Z[, c("plon", "plat")], gridparams=p0$gridparams )
+
+    # remove raw data outside of the bounding box
+      good = which( Zi[,1] >= 1 & Zi[,1] <= p0$nplons & Zi[,2] >= 1 & Zi[,2] <= p0$nplats )
+      Zi = Zi[good,]
+      Z = Z[good,]
+
+    Zmatrix = matrix(NA, nrow=p0$nplons, ncol=p0$nplats )
+    Zmatrix[Zi] = Z$z.mean
+
+    Zsmoothed = image.smooth( Zmatrix, aRange=aRange )
+  
+    cl = contourLines( x=x, y=y, Zsmoothed$z, levels=depths )
 
     isobaths = maptools::ContourLines2SLDF(cl, proj4string=sp::CRS( p0$aegis_proj4string_planar_km ) )
     isobaths = as( isobaths, "sf")
     st_crs(isobaths) = st_crs( p0$aegis_proj4string_planar_km  ) 
 
     isobaths = st_transform( isobaths, st_crs(projection_proj4string("lonlat_wgs84")) )  ## longlat  as storage format
-    row.names(isobaths) = as.character(depths)
+    row.names(isobaths) = as.character(isobaths$level)
 
+    attr( isobaths, "Zmatrix" ) = Zmatrix
+    attr( isobaths, "Zsmoothed" ) = Zsmoothed
+    attr( isobaths, "aRange" ) =  aRange
+
+    attr( isobaths, "pres" ) =  p0$pres
+    attr( isobaths, "proj4string_planar" ) =  p0$aegis_proj4string_planar_km
+    attr( isobaths, "proj4string_lonlat" ) =  projection_proj4string("lonlat_wgs84")
+         
     save( isobaths, file=fn.iso, compress=TRUE)
 
     if ( ! st_crs( isobaths ) == st_crs( project_to) ) isobaths = st_transform( isobaths, st_crs( project_to ) )
@@ -52,7 +75,7 @@ isobath_db = function(
   if (DS %in% c( "coastLine", "coastLine.redo")) {
     #\\ synomym for coastline_db ... left for historical compatibility .. deprecated
     if (DS=="coastline") return( coastline_db( project_to = project_to   ) )
-    # if (DS=="coastline.redo") return( coastline_db( p=p, DS="mapdata.coastLine.redo", project_to = project_to   ) )
+
   }
 
   # ------------------------
@@ -60,7 +83,6 @@ isobath_db = function(
   if (DS %in% c("coastPolygon", "coastPolygon.redo") ) {
     #\\ synomym for coastline_db ... left for historical compatibility .. deprecated
     if (DS=="coastPolygon") return( coastline_db( project_to = project_to   ) )
-    # if (DS=="coastPolygon.redo") return( coastline_db( p=p, DS="mapdata.coastPolygon.redo", project_to = project_to   ) )
   }
 
 
