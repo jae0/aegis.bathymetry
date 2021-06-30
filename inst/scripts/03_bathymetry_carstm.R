@@ -36,7 +36,7 @@
 
 # run the model ... about 24 hrs
 # careful: any reasonable compression can increase save time by hours ..
-  res = carstm_model( p=p, M='bathymetry_db( p=p, DS="carstm_inputs" )', toget= c("summary", "random_spatial", "random_other", "predictions"), compression_level=0, toinvert=c("fixed_effects", "random_effects", "predictions"), quantile_bounds=c(0,1), nposteriors=1000, redo_fit=TRUE ) 
+  res = carstm_model( p=p, M='bathymetry_db( p=p, DS="carstm_inputs" )', compression_level=0, quantile_bounds=c(0,1), nposteriors=1000, redo_fit=TRUE ) 
     # run model and obtain predictions, 0== no file compression
     # fixed and random effects are multiplicative effects 
     # quantile_bounds=c(0,1) means do not extrapolate
