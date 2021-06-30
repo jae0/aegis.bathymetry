@@ -793,7 +793,7 @@
       pn = spatial_parameters( p=p, spatial_domain=p$spatial_domain )
       Z = spatial_grid(p)
       Z = planar2lonlat( Z,  proj.type=p$aegis_proj4string_planar_km   )
-      Z$z = aegis_lookup( data_class="bathymetry", LOCS=Z[, c("lon", "lat")], lookup_from="core", lookup_to="points" , lookup_from_class="aggregated_data" ) # core=="rawdata"
+      Z$z = aegis_lookup( data_class="bathymetry", LOCS=Z[, c("lon", "lat")], lookup_from="core", lookup_to="points" , lookup_from_class="aggregated_data", variable.name="z.mean" )  # core == unmodelled
       Z = Z[ geo_subset( spatial_domain=p$spatial_domain, Z=Z ), ]
 
       fn = paste( "bathymetry", "baseline_prediction_locations", p$spatial_domain, "rdata" , sep=".")
