@@ -24,7 +24,7 @@ isobath_db = function(
     if ( DS == "isobath" ) {
       if (file.exists(fn.iso)) {
         load(fn.iso)
-        notfound = setdiff( as.character(depths), names(isobaths) )
+        notfound = setdiff( as.character(depths), isobaths$level)
         if (length( notfound)==0) {
           if ( st_crs( isobaths ) != st_crs(project_to) ) isobaths = st_transform( isobaths, st_crs( project_to ) )
           return( isobaths[ which(isobaths$level %in% as.character(depths)), ] )
