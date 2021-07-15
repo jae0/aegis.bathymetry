@@ -13,6 +13,8 @@ isobath_db = function(
   # require(stmv)
   if (DS %in% c( "isobath", "isobath.redo" )) {
 
+    require (fields)
+    
     p0 = bathymetry_parameters()
     fn.iso = file.path( data_dir, "isobaths", paste("isobaths", p0$spatial_domain, "rdata", sep=".") )  # in case there is an alternate project
 
