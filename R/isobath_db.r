@@ -15,18 +15,20 @@ isobath_db = function(
 
     require (fields)
     
-    p0 = bathymetry_parameters()
+    p0 = aegis.bathymetry::bathymetry_parameters() 
     fn.iso = file.path( data_dir, "isobaths", paste("isobaths", p0$spatial_domain, "rdata", sep=".") )  # in case there is an alternate project
 
     isobaths = NULL
     notfound = NULL
 
     if ( DS == "isobath" ) {
-      if (file.exists(fn.iso)) load(fn.iso)
-      notfound = setdiff( as.character(depths), names(isobaths) )
-      if (length( notfound)==0) {
-        if ( st_crs( isobaths ) != st_crs(project_to) ) isobaths = st_transform( isobaths, st_crs( project_to ) )
-        return( isobaths[ which(isobaths$level %in% as.character(depths)), ] )
+      if (file.exists(fn.iso)) {
+        load(fn.iso)
+        notfound = setdiff( as.character(depths), names(isobaths) )
+        if (length( notfound)==0) {
+          if ( st_crs( isobaths ) != st_crs(project_to) ) isobaths = st_transform( isobaths, st_crs( project_to ) )
+          return( isobaths[ which(isobaths$level %in% as.character(depths)), ] )
+        }
       }
     }
 
