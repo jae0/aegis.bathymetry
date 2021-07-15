@@ -58,78 +58,30 @@
   res$summary  
 
 
-  plot_crs = p$aegis_proj4string_planar_km
-  coastline=aegis.coastline::coastline_db( DS="eastcoast_gadm", project_to=plot_crs )
-  isobaths=aegis.bathymetry::isobath_db( depths=c(50, 100, 200, 400, 800), project_to=plot_crs )
-
-
 # maps of some of the results
 
-  carstm_map(  
+  tmout = carstm_map(  
     res=res,    
-    vn = list("predictions" ),
-    breaks =pretty(p$discretization$z),
-    palette="viridis",
-    coastline=coastline,
-    isobaths=isobaths,
-    main="Bathymetry predicted" 
+    vn = "predictions" ,
+    palette="-Spectral",
+    plot_elements=c( "isobaths", "coastline", "compass", "scale_bar", "legend" ),
+    outfilename= file.path( project.datadirectory("aegis", "bathymetry", "maps"), "bathymetry_predictions_carstm.png"),
+    main="Bathymetry predicted" ,
+    tmap_zoom=6.5
   )
+  tmout
 
-
-  carstm_map(  
+  tmout = carstm_map(  
     res=res, 
-    vn = list("random", "combined"  ), 
-    palette="viridis",
-    coastline=coastline,
-    isobaths=isobaths,
-    main="Bathymetry random spatial" 
+    vn = c( "random", "space", "combined" ), 
+    palette="-Spectral",
+    plot_elements=c( "isobaths", "coastline", "compass", "scale_bar", "legend" ),
+    outfilename= file.path( project.datadirectory("aegis", "bathymetry", "maps"), "bathymetry_spatialeffect_carstm.png"),
+    main="Bathymetry random spatial" ,
+    tmap_zoom=6.5
   )
   
 
 
 # end
-
-  if (0) {
-    # example work flow for testing alternate params .. large grid is for debugging
-      p = aegis.bathymetry::bathymetry_parameters(
-        project_class="carstm",
-        areal_units_resolution_km=100,
-        carstm_inputs_prefilter = "sampled",
-        carstm_inputs_prefilter_n = 10
-      )
-
-    # example sequence to force creating of input data for modelling
-      sppoly = areal_units( p=p, redo=TRUE );
-      plot(sppoly[, "AUID"])
-      for( i in 1:3) plot( as(p$coastLayout[[i]][[2]], "sf"), add=TRUE )
-
-      # set up default map projection
-      oo = aegis.coastline::coastline_layout( p=p )
-      p = parameters_add_without_overwriting( p,
-        coastLayout = oo[["coastLayout"]],
-        bounding_domain = oo[["bounding_domain"]]
-      )
-      oo = NULL
-
-      B = bathymetry_db( p=p, DS="aggregated_data", redo=TRUE )  # will redo if not found .. not used here but used for data matching/lookup in other aegis projects that use bathymetry
-      str(B)
-      B= NULL ;  gc()
-
-      M = bathymetry_db( p=p, DS="carstm_inputs", redo=TRUE )  # will redo if not found
-      str(M)
-      fit = carstm_model( p=p, M=M, DS="redo" ) # run model and obtain predictions
-      # fit = carstm_model( p=p, DS="carstm_modelled_fit" )  # extract currently saved model fit
-
-      res = carstm_model( p=p, DS="carstm_modelled_summary" ) # to load currently saved sppoly
-
-      vn = paste(p$variabletomodel, "predicted", sep=".")
-      carstm_map(  res=res, vn=vn, time_match=time_match, 
-            breaks =pretty(p$discretization$z),
-            palette="viridis",
-            coastline=coastline,
-            isobaths=isobaths,
-            main= "Depth" 
-      )
-    }
-
-
+ 

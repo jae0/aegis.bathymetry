@@ -20,6 +20,8 @@ if( bathyclines.redo ) {
   # For lower, specify an appropriate p$spatial_domain
   # options(max.contour.segments=1000) # might be required if superhighres is being used
 
+  p = aegis.bathymetry::bathymetry_parameters()  # default params
+
   depths = c( 0, 10, 20, 50, 75, 100, 200, 250, 300, 350, 400, 450, 500, 550, 600, 700, 750, 800, 900,
               1000, 1200, 1250, 1400, 1500, 1750, 2000, 2500, 3000, 4000, 5000 )
   plygn = isobath_db( DS="isobath.redo", depths=depths, project_to=projection_proj4string("lonlat_wgs84")  )
@@ -34,7 +36,7 @@ if (0) {
 
     p = bathymetry_parameters( spatial_domain="canada.east" ) # reset to lower resolution
     depths = c( 100, 200, 300, 500, 1000)
-    plygn = isobath_db( DS="isobath", depths=depths  )
+    plygn = isobath_db(  depths=depths  )
 
     coast = coastline_db( xlim=c(-75,-52), ylim=c(41,50), no.clip=TRUE )  # no.clip is an option for maptools::getRgshhsMap
     plot( coast, col="transparent", border="steelblue2" , xlim=c(-68,-52), ylim=c(41,50),  xaxs="i", yaxs="i", axes=TRUE )  # ie. coastline
