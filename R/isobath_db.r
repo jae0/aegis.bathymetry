@@ -21,8 +21,8 @@ isobath_db = function(
     isobaths = NULL
     notfound = NULL
 
-    if ( DS != "isobath.redo" & file.exists(fn.iso) ) {
-      load(fn.iso)
+    if ( DS == "isobath" ) {
+      if (file.exists(fn.iso)) load(fn.iso)
       notfound = setdiff( as.character(depths), names(isobaths) )
       if (length( notfound)==0) {
         if ( st_crs( isobaths ) != st_crs(project_to) ) isobaths = st_transform( isobaths, st_crs( project_to ) )
