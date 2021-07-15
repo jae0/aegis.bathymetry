@@ -35,8 +35,10 @@
 
 
 # run the model ... about 24 hrs
+# don't invert random effects as it is lognormal .. multiplicative .. meaningless to invert them
 # careful: any reasonable compression can increase save time by hours ..
-  res = carstm_model( p=p, M='bathymetry_db( p=p, DS="carstm_inputs" )', compression_level=0, quantile_bounds=c(0,1), nposteriors=1000, redo_fit=TRUE ) 
+  res = carstm_model( p=p, M='bathymetry_db( p=p, DS="carstm_inputs" )', compression_level=0, quantile_bounds=c(0,1), nposteriors=1000, redo_fit=TRUE, toinvert=c("fixed_effects", "predictions")  ) 
+
     # run model and obtain predictions, 0== no file compression
     # fixed and random effects are multiplicative effects 
     # quantile_bounds=c(0,1) means do not extrapolate
@@ -59,28 +61,29 @@
 
 
 # maps of some of the results
+  outputdir = file.path( gsub( ".rdata", "", carstm_filenames(p, "carstm_modelled_fit") ), "figures" )
+  if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
 
-  tmout = carstm_map(  
-    res=res,    
-    vn = "predictions" ,
+  tmout = carstm_map( res=res, vn = "predictions",
+    main="Bathymetry predicted",
     palette="-Spectral",
     plot_elements=c( "isobaths", "coastline", "compass", "scale_bar", "legend" ),
-    outfilename= file.path( project.datadirectory("aegis", "bathymetry", "maps"), "bathymetry_predictions_carstm.png"),
-    main="Bathymetry predicted" ,
-    tmap_zoom=6.5
+    outfilename= file.path( outputdir, "bathymetry_predictions_carstm.png"),
+    tmap_zoom= c((p$lon0+p$lon1)/2 - 0.5, (p$lat0+p$lat1)/2 -0.8, 6.5)
   )
   tmout
 
-  tmout = carstm_map(  
-    res=res, 
-    vn = c( "random", "space", "combined" ), 
+# random effects are on log scale ... ie, multiplicative factors
+  tmout = carstm_map( res=res, vn = c( "random", "space", "combined" ), 
+    main="Bathymetry random spatial",
     palette="-Spectral",
     plot_elements=c( "isobaths", "coastline", "compass", "scale_bar", "legend" ),
-    outfilename= file.path( project.datadirectory("aegis", "bathymetry", "maps"), "bathymetry_spatialeffect_carstm.png"),
-    main="Bathymetry random spatial" ,
-    tmap_zoom=6.5
+    outfilename= file.path( outputdir, "bathymetry_spatialeffect_carstm.png"),
+    tmap_zoom= c((p$lon0+p$lon1)/2 - 0.5, (p$lat0+p$lat1)/2 -0.8, 6.5)
   )
-  
+  tmout
+
+
 
 
 # end
