@@ -4,9 +4,14 @@ p = aegis.bathymetry::bathymetry_parameters()  # default params
 
 bathymetry_db( p=p, DS="z.lonlat.rawdata.redo" ) # needs about 42 GB RAM, JC 2015
 
-
 Z = bathymetry_db( p=p, DS="aggregated_data", redo=TRUE )  
-Z = NULL; gc()
+
+# also do subareas
+for ( dom in p$spatial_domain_subareas ) {
+  p = aegis.bathymetry::bathymetry_parameters( spatial_domain=dom )  # default params
+  Z = bathymetry_db( p=p, DS="aggregated_data", redo=TRUE )  
+  Z = NULL; gc()
+}
 
 
 

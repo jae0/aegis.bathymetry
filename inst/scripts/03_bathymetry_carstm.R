@@ -35,7 +35,7 @@
 
 
 # run the model ... about 24 hrs
-# don't invert random effects as it is lognormal .. multiplicative .. meaningless to invert them
+# random effects left on log scale (easier to plot) .. must exponentiate to get the multiplicative factor  
 # careful: any reasonable compression can increase save time by hours ..
   res = carstm_model( p=p, M='bathymetry_db( p=p, DS="carstm_inputs" )', compression_level=0, quantile_bounds=c(0,1), nposteriors=1000, redo_fit=TRUE, toinvert=c("fixed_effects", "predictions")  ) 
 
