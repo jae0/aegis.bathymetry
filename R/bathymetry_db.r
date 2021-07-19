@@ -308,14 +308,15 @@
       if (!exists("inputdata_spatial_discretization_planar_km", p) )  p$inputdata_spatial_discretization_planar_km = 1
 
       fn = file.path( p$datadir, paste( "bathymetry", "aggregated_data", p$spatial_domain,  round(p$inputdata_spatial_discretization_planar_km, 6) , "rdata", sep=".") )
-      message("Using: ", fn)
       M = NULL
       if (!redo)  {
         if (file.exists(fn)) {
+          message("Using: ", fn)
           load( fn)
           return( M )
         }
       }
+      message("Making: ", fn)
 
       M = bathymetry_db ( p=p, DS="z.lonlat.rawdata" )  # 16 GB in RAM just to store!
    
