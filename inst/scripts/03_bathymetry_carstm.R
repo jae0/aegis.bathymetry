@@ -35,16 +35,14 @@
 
 
 # run the model ... about 24 hrs
-# random effects left on log scale (easier to plot) .. must exponentiate to get the multiplicative factor  
-# careful: any reasonable compression can increase save time by hours ..
+
   res = carstm_model( 
     p=p, 
     M='bathymetry_db( p=p, DS="carstm_inputs" )', 
     # compression_level=0, 
-    nposteriors=5000, 
-    redo_fit=TRUE, 
+    # nposteriors=5000, 
     # control.inla = list( strategy='adaptive', int.strategy='eb' ),
-    # control.results  = list(return.marginals.random=TRUE, return.marginals.predictor=TRUE ), 
+    redo_fit=TRUE, 
     verbose=TRUE   
   ) 
 
@@ -70,11 +68,12 @@
 
 
 # maps of some of the results
+
   outputdir = file.path( gsub( ".rdata", "", carstm_filenames(p, "carstm_modelled_fit") ), "figures" )
   if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
 
   tmout = carstm_map( res=res, vn = "predictions",
-    title="Bathymetry predicted",
+    title="Bathymetry predicted (m)",
     palette="-Spectral",
     plot_elements=c( "isobaths", "coastline", "compass", "scale_bar", "legend" ),
     outfilename= file.path( outputdir, "bathymetry_predictions_carstm.png"),
@@ -82,9 +81,9 @@
   )
   tmout
 
-# random effects are on log scale ... ie, multiplicative factors
+# random effects  ..i.e.,  deviation from lognormal model
   tmout = carstm_map( res=res, vn = c( "random", "space", "combined" ), 
-    title="Bathymetry random spatial",
+    title="Bathymetry random spatial (m)",
     palette="-Spectral",
     plot_elements=c( "isobaths", "coastline", "compass", "scale_bar", "legend" ),
     outfilename= file.path( outputdir, "bathymetry_spatialeffect_carstm.png"),
