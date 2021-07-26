@@ -24,7 +24,7 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
 
 
   p = parameters_add_without_overwriting( p,
-    variabletomodel = "z",
+    variabletomodel = "z",  
     spatial_domain = "canada.east.superhighres",
     spatial_domain_subareas = c( "canada.east.highres", "canada.east", "SSE", "SSE.mpa" , "snowcrab"),  # this is for bathymetry_db, not stmv
     aegis_dimensionality="space"
@@ -80,7 +80,6 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
       if ( !exists("carstm_model_formula", p)  ) {
         p$carstm_model_formula = as.formula( paste(
           p$variabletomodel, ' ~ 1',
-             ' + f(uid, model="iid" )',
              ' + f(space, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, constr=TRUE, hyper=H$bym2) '
           ))
       }
