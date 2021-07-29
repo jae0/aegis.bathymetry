@@ -5,11 +5,15 @@ p = aegis.bathymetry::bathymetry_parameters()  # default params
 bathymetry_db( p=p, DS="z.lonlat.rawdata.redo" ) # needs about 42 GB RAM, JC 2015
 
 Z = bathymetry_db( p=p, DS="aggregated_data", redo=TRUE )  
+str(Z)
+
+Z = NULL; gc()
 
 # also do subareas
 for ( dom in p$spatial_domain_subareas ) {
   p = aegis.bathymetry::bathymetry_parameters( spatial_domain=dom )  # default params
   Z = bathymetry_db( p=p, DS="aggregated_data", redo=TRUE )  
+  str(Z)
   Z = NULL; gc()
 }
 
@@ -30,6 +34,10 @@ if( bathyclines.redo ) {
   depths = c( 0, 10, 20, 50, 75, 100, 200, 250, 300, 350, 400, 450, 500, 550, 600, 700, 750, 800, 900,
               1000, 1200, 1250, 1400, 1500, 1750, 2000, 2500, 3000, 4000, 5000 )
   plygn = isobath_db( DS="isobath.redo", depths=depths, project_to=projection_proj4string("lonlat_wgs84")  )
+  
+  (plygn)
+
+  plygn = NULL; gc()
 
 }
 
@@ -80,5 +88,8 @@ for ( areal_units_resolution_km in c(100, 50, 25, 20, 15, 10, 5, 1) ) {
     )
     sppoly = areal_units( p=p, redo=TRUE )  # this has already been done in aegis.polygons::01 polygons.R .. should nto have to redo
     M = bathymetry_db( p=p, DS="carstm_inputs", redo=TRUE )  # will redo if not found
+    str(M)
+
+    M = NULL; gc()
   }
 }
