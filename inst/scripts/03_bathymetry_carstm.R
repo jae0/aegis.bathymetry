@@ -16,7 +16,7 @@
 
 # construct basic parameter list defining the main characteristics of the study
 # and some plotting parameters (bounding box, projection, bathymetry layout, coastline)
-  p = aegis.bathymetry::bathymetry_parameters( project_class="carstm" )  # defaults are hard coded
+  p = aegis.bathymetry::bathymetry_parameters( project_class="carstm", areal_units_resolution_km = 5 )  # defaults are hard coded
 
     # adjust based upon RAM requirements and ncores
     # inla.setOption(num.threads= floor( parallel::detectCores() / 3 ) )
