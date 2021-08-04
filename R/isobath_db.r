@@ -1,11 +1,13 @@
 
 isobath_db = function( 
+  p = NULL,
   depths=c( 0, 10, 20, 50, 75, 100, 200, 250, 300, 350, 400, 450, 500, 550, 600, 700, 750, 800, 900,
              1000, 1200, 1250, 1400, 1500, 1750, 2000, 2500, 3000, 4000, 5000 ),
   DS="isobath",
   project_to=projection_proj4string("lonlat_wgs84"),
   data_dir=project.datadirectory( "aegis", "bathymetry" ),
-  aRange = 3  # # pixels to approx 1 SD 
+  add_missing=FALSE,
+  aRange = 3  # # pixels to approx 1 SD ,
    ) {
 
   #\\ create or return isobaths and coastlines/coast polygons
@@ -15,8 +17,8 @@ isobath_db = function(
 
     require (fields)
     
-    p0 = aegis.bathymetry::bathymetry_parameters() 
-    fn.iso = file.path( data_dir, "isobaths", paste("isobaths", p0$spatial_domain, "rdata", sep=".") )  # in case there is an alternate project
+    if (is.null(p)) p = aegis.bathymetry::bathymetry_parameters() 
+    fn.iso = file.path( data_dir, "isobaths", paste("isobaths", p$spatial_domain, "rdata", sep=".") )  # in case there is an alternate project
 
     isobaths = NULL
     notfound = NULL
@@ -26,47 +28,65 @@ isobath_db = function(
         load(fn.iso)
         notfound = setdiff( as.character(depths), isobaths$level)
         if (length( notfound)==0) {
-          if ( st_crs( isobaths ) != st_crs(project_to) ) isobaths = st_transform( isobaths, st_crs( project_to ) )
-          return( isobaths[ which(isobaths$level %in% as.character(depths)), ] )
+          message( "Some isobaths not found ... add them:", notfound)
+          if (!add_missing) {
+            if ( st_crs( isobaths ) != st_crs(project_to) ) isobaths = st_transform( isobaths, st_crs( project_to ) )
+            return( isobaths[ which(isobaths$level %in% as.character(depths)), ] )
+          }
         }
       }
     }
 
-    depths = sort( unique( depths ) )
-    x=seq(min(p0$corners$plon), max(p0$corners$plon), by=p0$pres)
-    y=seq(min(p0$corners$plat), max(p0$corners$plat), by=p0$pres)
+    x = seq(min(p$corners$plon), max(p$corners$plon), by=p$pres)
+    y = seq(min(p$corners$plat), max(p$corners$plat), by=p$pres)
 
-    Z = bathymetry_db( p=p0, DS="aggregated_data" )
+    options( max.contour.segments=30000 )
 
-    Zi = array_map( "xy->2", Z[, c("plon", "plat")], gridparams=p0$gridparams )
+    if ( !is.null(notfound) ) {
 
-    # remove raw data outside of the bounding box
-      good = which( Zi[,1] >= 1 & Zi[,1] <= p0$nplons & Zi[,2] >= 1 & Zi[,2] <= p0$nplats )
-      Zi = Zi[good,]
-      Z = Z[good,]
+      depths = sort( unique( as.numeric( notfound ) ) )
+      message("Adding isobaths ..")
+      Zsmoothed = attributes( isobaths)$Zsmoothed 
 
-    Zmatrix = matrix(NA, nrow=p0$nplons, ncol=p0$nplats )
-    Zmatrix[Zi] = Z$z.mean
+    } else {
+      
+      depths = sort( unique( depths ) )
+      Z = bathymetry_db( p=p, DS="aggregated_data" )
+      Zi = array_map( "xy->2", Z[, c("plon", "plat")], gridparams=p$gridparams )
 
-    Zsmoothed = image.smooth( Zmatrix, aRange=aRange )
-  
+      # remove raw data outside of the bounding box
+        good = which( Zi[,1] >= 1 & Zi[,1] <= p$nplons & Zi[,2] >= 1 & Zi[,2] <= p$nplats )
+        Zi = Zi[good,]
+        Z = Z[good,]
+
+      Zmatrix = matrix(NA, nrow=p$nplons, ncol=p$nplats )
+      Zmatrix[Zi] = Z$z.mean
+      Zsmoothed = image.smooth( Zmatrix, aRange=aRange )
+
+    }
+
     cl = contourLines( x=x, y=y, Zsmoothed$z, levels=depths )
 
-    isobaths = maptools::ContourLines2SLDF(cl, proj4string=sp::CRS( p0$aegis_proj4string_planar_km ) )
+    isobaths = maptools::ContourLines2SLDF(cl, proj4string=sp::CRS( p$aegis_proj4string_planar_km ) )
     isobaths = as( isobaths, "sf")
-    st_crs(isobaths) = st_crs( p0$aegis_proj4string_planar_km  ) 
+    st_crs(isobaths) = st_crs( p$aegis_proj4string_planar_km  ) 
 
     isobaths = st_transform( isobaths, st_crs(projection_proj4string("lonlat_wgs84")) )  ## longlat  as storage format
     row.names(isobaths) = as.character(isobaths$level)
 
-    attr( isobaths, "Zmatrix" ) = Zmatrix
     attr( isobaths, "Zsmoothed" ) = Zsmoothed
     attr( isobaths, "aRange" ) =  aRange
 
-    attr( isobaths, "pres" ) =  p0$pres
-    attr( isobaths, "proj4string_planar" ) =  p0$aegis_proj4string_planar_km
+    attr( isobaths, "pres" ) =  p$pres
+    attr( isobaths, "proj4string_planar" ) =  p$aegis_proj4string_planar_km
     attr( isobaths, "proj4string_lonlat" ) =  projection_proj4string("lonlat_wgs84")
-         
+
+    if ( !is.null(notfound) ) {
+      toadd = isobaths
+      load(fn.iso)
+      isobaths = rbind(isobaths, toadd)           
+    }
+
     save( isobaths, file=fn.iso, compress=TRUE)
 
     if ( ! st_crs( isobaths ) == st_crs( project_to) ) isobaths = st_transform( isobaths, st_crs( project_to ) )
