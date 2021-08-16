@@ -86,8 +86,6 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
       if ( !exists("carstm_model_family", p)  )  p$carstm_model_family = "lognormal"
     }
 
-    p = carstm_parameters( p=p )  # fill in anything missing with defaults and do some checks
-
     if ( p$inputdata_spatial_discretization_planar_km >= p$areal_units_resolution_km ) {
       warning( "p$inputdata_spatial_discretization_planar_km >= p$areal_units_resolution_km " )
     }
