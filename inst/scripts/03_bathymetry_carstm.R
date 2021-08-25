@@ -38,8 +38,8 @@
 
   res = carstm_model( 
     p=p, 
-    M='bathymetry_db( p=p, DS="carstm_inputs" )', 
-    # compression_level=0, 
+    data='bathymetry_db( p=p, DS="carstm_inputs" )', 
+    # compress=FALSE, 
     # nposteriors=5000, 
     # control.inla = list( strategy='adaptive', int.strategy='eb' ),
     redo_fit=TRUE, 
