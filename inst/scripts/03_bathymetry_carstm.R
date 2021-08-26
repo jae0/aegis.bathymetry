@@ -39,9 +39,9 @@
   res = carstm_model( 
     p=p, 
     data='bathymetry_db( p=p, DS="carstm_inputs" )', 
-    # compress=FALSE, 
-    # nposteriors=5000, 
-    # control.inla = list( strategy='adaptive', int.strategy='eb' ),
+    num.threads="4:2",
+    compress="xz", 
+    control.inla = list( strategy='adaptive', int.strategy='eb' ),
     redo_fit=TRUE, 
     verbose=TRUE   
   ) 

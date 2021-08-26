@@ -499,14 +499,13 @@
       APS$AUID = as.character( APS$AUID )
       APS$tag ="predictions"
 
-      vn = c("z", "tag", "AUID")
+      vn = c("z", "tag", "AUID", "z_offset")
 
       M = rbind( M[, vn], APS[, vn] )
       APS = NULL
 
       #required for carstm formulae
       M$space = as.character( M$AUID)
-      # M$uid = 1:nrow(M)  # seems to require an iid model for each obs for stability .. use this for iid
 
       save( M, file=fn, compress=TRUE )
       return( M )
