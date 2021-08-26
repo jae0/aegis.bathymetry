@@ -499,7 +499,7 @@
       APS$AUID = as.character( APS$AUID )
       APS$tag ="predictions"
 
-      vn = c("z", "tag", "AUID", "z_offset")
+      vn = c("z", "tag", "AUID" )
 
       M = rbind( M[, vn], APS[, vn] )
       APS = NULL
