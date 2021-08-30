@@ -36,12 +36,11 @@
 
 # run the model ... about 24 hrs
 
-  res = carstm_model( 
+  fit = carstm_model( 
     p=p, 
     data='bathymetry_db( p=p, DS="carstm_inputs" )', 
     num.threads="4:2",
-    compress="xz", 
-    control.inla = list( strategy='adaptive', int.strategy='eb' ),
+    compress="bzip2", 
     redo_fit=TRUE, 
     verbose=TRUE   
   ) 
@@ -91,6 +90,25 @@
   tmout
 
 
+
+# random effects  ..i.e.,  deviation from lognormal model
+  tmout = carstm_map( res=res, vn = c( "random", "space", "iid" ), 
+    title="Bathymetry random spatial (m)",
+    palette="-Spectral",
+    plot_elements=c( "isobaths", "coastline", "compass", "scale_bar", "legend" ),
+    tmap_zoom= c((p$lon0+p$lon1)/2 - 0.5, (p$lat0+p$lat1)/2 -0.8, 6.5)
+  )
+  tmout
+
+
+# random effects  ..i.e.,  deviation from lognormal model
+  tmout = carstm_map( res=res, vn = c( "random", "space", "bym2" ), 
+    title="Bathymetry random spatial (m)",
+    palette="-Spectral",
+    plot_elements=c( "isobaths", "coastline", "compass", "scale_bar", "legend" ),
+    tmap_zoom= c((p$lon0+p$lon1)/2 - 0.5, (p$lat0+p$lat1)/2 -0.8, 6.5)
+  )
+  tmout
 
 
 # end
