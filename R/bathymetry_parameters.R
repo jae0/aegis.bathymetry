@@ -34,6 +34,8 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
 
   p = spatial_parameters( p=p )  # default (= only supported resolution of 0.2 km discretization)  .. do NOT change
 
+  p$discretization = discretizations(p=p$discretization)  # key for discretization levels
+
   p = parameters_add_without_overwriting( p, inputdata_spatial_discretization_planar_km = 0.5 ) #  p$pres/2 is a bit too slow ..; controls resolution of data prior to modelling (km .. ie 20 linear units smaller than the final discretization pres)
 
 
@@ -265,12 +267,11 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
       stmv_local_modelcall = paste(
         'inla(
           formula = z ~ 1
-            + f(uid, model="iid" )
             + f(space, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, constr=TRUE),
-          family = "normal",
+          family = "gaussian",
           data = dat,
-          control.compute=list(dic=TRUE, waic=TRUE, cpo=FALSE, config=FALSE),  # config=TRUE if doing posterior simulations
-          control.results=list(return.marginals.random=TRUE, return.marginals.predictor=TRUE ),
+          inla.mode="experimental",
+          control.compute=list(dic=TRUE, waic=TRUE, cpo=FALSE, config=FALSE, return.marginals.predictor=TRUE),  # config=TRUE if doing posterior simulations
           control.predictor=list(compute=FALSE, link=1 ),
           verbose=FALSE
         ) '
