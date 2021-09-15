@@ -26,13 +26,14 @@ isobath_db = function(
     if ( DS == "isobath" ) {
       if (file.exists(fn.iso)) {
         load(fn.iso)
-        notfound = setdiff( as.character(depths), isobaths$level)
+        nn = names(isobaths)
+        notfound = setdiff( as.character(depths), nn )
         if (length( notfound) > 0 ) {
           message( "Some isobaths not found ... add them:", notfound)
         }
         if (!add_missing) {
           if ( st_crs( isobaths ) != st_crs(project_to) ) isobaths = st_transform( isobaths, st_crs( project_to ) )
-          return( isobaths[ which(isobaths$level %in% as.character(depths)), ] )
+          return( isobaths[ which( nn %in% as.character(depths)), ] )
         } else {
           message( "adding .. " )
         }
