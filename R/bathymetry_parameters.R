@@ -11,7 +11,7 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
   p$libs = c( p$libs, RLibrary ( "colorspace",  "lubridate",  "lattice",
     "parallel", "sf", "GADMTools", "INLA", "data.table" ) )
 
-  p$libs = c( p$libs, project.library ( "aegis", "aegis.bathymetry",  "aegis.polygons", "aegis.coastline" ) )
+  p$libs = c( p$libs, project.library ( "aegis", "aegis.bathymetry",  "aegis.polygons", "aegis.coastline", "aegis.survey" ) )
 
 
   p = parameters_add_without_overwriting( p, project_name = project_name )
