@@ -26,20 +26,23 @@ isobath_db = function(
     if ( DS == "isobath" ) {
       if (file.exists(fn.iso)) {
         load(fn.iso)
-        nn = names(isobaths)
+        isobaths = as( isobaths, "sf")
+        st_crs(isobaths) = st_crs( p$aegis_proj4string_planar_km  ) 
+
+        nn = row.names(isobaths)
         notfound = setdiff( as.character(depths), nn )
         if (length( notfound) > 0 ) {
-          message( "Some isobaths not found ... add them:", notfound)
+          message( "Some isobaths not found ... add them:")
+          print(notfound)
         }
         if (!add_missing) {
           if ( st_crs( isobaths ) != st_crs(project_to) ) isobaths = st_transform( isobaths, st_crs( project_to ) )
           return( isobaths[ which( nn %in% as.character(depths)), ] )
         } else {
-          message( "adding .. " )
+          message( "adding missing depths to current data object .. " )
         }
       }
     }
-
 
     x = seq(min(p$corners$plon), max(p$corners$plon), by=p$pres)
     y = seq(min(p$corners$plat), max(p$corners$plat), by=p$pres)
