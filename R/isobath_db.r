@@ -7,7 +7,6 @@ isobath_db = function(
   project_to=projection_proj4string("lonlat_wgs84"),
   data_dir=project.datadirectory( "aegis", "bathymetry" ),
   add_missing=FALSE,
-  p_max_resolution="canada.east.superhighres",
   aRange = 3  # # pixels to approx 1 SD ,
    ) {
 
@@ -19,8 +18,6 @@ isobath_db = function(
     require (fields)
     
     if (is.null(p)) p = aegis.bathymetry::bathymetry_parameters() 
-    pDomain = aegis.bathymetry::bathymetry_parameters( spatial_domain=p_max_resolution )
-
     fn.iso = file.path( data_dir, "isobaths", paste("isobaths", p$spatial_domain, "rdata", sep=".") )  # in case there is an alternate project
 
     isobaths = NULL
@@ -47,11 +44,8 @@ isobath_db = function(
       }
     }
 
-
-    pres = pDomain$pres
-
-    x = seq(min(pDomain$corners$plon), max(pDomain$corners$plon), by=pres)
-    y = seq(min(pDomain$corners$plat), max(pDomain$corners$plat), by=pres)
+    x = seq(min(p$corners$plon), max(p$corners$plon), by=p$pres)
+    y = seq(min(p$corners$plat), max(p$corners$plat), by=p$pres)
 
     options( max.contour.segments=50000 )
 
@@ -64,15 +58,15 @@ isobath_db = function(
     } else {
       
       depths = sort( unique( depths ) )
-      Z = bathymetry_db( p=pDomain, DS="aggregated_data" )
-      Zi = array_map( "xy->2", Z[, c("plon", "plat")], gridparams=pDomain$gridparams )
+      Z = bathymetry_db( p=p, DS="aggregated_data" )
+      Zi = array_map( "xy->2", Z[, c("plon", "plat")], gridparams=p$gridparams )
 
       # remove raw data outside of the bounding box
-        good = which( Zi[,1] >= 1 & Zi[,1] <= pDomain$nplons & Zi[,2] >= 1 & Zi[,2] <= pDomain$nplats )
+        good = which( Zi[,1] >= 1 & Zi[,1] <= p$nplons & Zi[,2] >= 1 & Zi[,2] <= p$nplats )
         Zi = Zi[good,]
         Z = Z[good,]
 
-      Zmatrix = matrix(NA, nrow=pDomain$nplons, ncol=pDomain$nplats )
+      Zmatrix = matrix(NA, nrow=p$nplons, ncol=p$nplats )
       Zmatrix[Zi] = Z$z.mean
       Zsmoothed = image.smooth( Zmatrix, aRange=aRange )
 
@@ -90,7 +84,7 @@ isobath_db = function(
     attr( isobaths, "Zsmoothed" ) = Zsmoothed
     attr( isobaths, "aRange" ) =  aRange
 
-    attr( isobaths, "pres" ) =  pres
+    attr( isobaths, "pres" ) =  p$pres
     attr( isobaths, "proj4string_planar" ) =  p$aegis_proj4string_planar_km
     attr( isobaths, "proj4string_lonlat" ) =  projection_proj4string("lonlat_wgs84")
 
