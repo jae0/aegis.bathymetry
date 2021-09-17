@@ -4,10 +4,15 @@ p = aegis.bathymetry::bathymetry_parameters()  # default params
 
 bathymetry_db( p=p, DS="z.lonlat.rawdata.redo" ) # needs about 42 GB RAM, JC 2015
 
-Z = bathymetry_db( p=p, DS="aggregated_data", redo=TRUE )  
-str(Z)
-
-Z = NULL; gc()
+for ( dom in p$spatial_domain_subareas ) {
+  Z = bathymetry_db( 
+    p = aegis.bathymetry::bathymetry_parameters( spatial_domain=dom ), 
+    DS ="aggregated_data", 
+    redo=TRUE 
+  )  
+  str(Z)
+  Z = NULL; gc()
+}
 
 
 ### -----------------------------------------------------------------
@@ -27,7 +32,7 @@ if( bathyclines.redo ) {
 
   for ( dom in p$spatial_domain_subareas ) {
     plygn = isobath_db( 
-      p=aegis.bathymetry::bathymetry_parameters( spatial_domain=dom ),
+      p = aegis.bathymetry::bathymetry_parameters( spatial_domain=dom ),
       DS="isobath.redo", 
       depths=depths, 
       project_to=projection_proj4string("lonlat_wgs84")  
