@@ -9,15 +9,6 @@ str(Z)
 
 Z = NULL; gc()
 
-# also do subareas
-for ( dom in p$spatial_domain_subareas ) {
-  p = aegis.bathymetry::bathymetry_parameters( spatial_domain=dom )  # default params
-  Z = bathymetry_db( p=p, DS="aggregated_data", redo=TRUE )  
-  str(Z)
-  Z = NULL; gc()
-}
-
-
 
 ### -----------------------------------------------------------------
 # to update/recreate new polygons, run the following:
@@ -28,10 +19,21 @@ if( bathyclines.redo ) {
   # which by default is very high ("canada.east.highres" = 0.5 km .. p$pres ).
   # For lower, specify an appropriate p$spatial_domain
   # options(max.contour.segments=1000) # might be required if superhighres is being used
-  p = aegis.bathymetry::bathymetry_parameters()  # default params
+
   depths = c( 0, 10, 20, 50, 75, 100, 200, 250, 300, 350, 400, 450, 500, 550, 600, 700, 750, 800, 900,
               1000, 1200, 1250, 1400, 1500, 1750, 2000, 2500, 3000, 4000, 5000 )
-  plygn = isobath_db( DS="isobath.redo", depths=depths, project_to=projection_proj4string("lonlat_wgs84")  )
+  
+  p = aegis.bathymetry::bathymetry_parameters()  # default params
+
+  for ( dom in p$spatial_domain_subareas ) {
+    plygn = isobath_db( 
+      p=aegis.bathymetry::bathymetry_parameters( spatial_domain=dom ),
+      DS="isobath.redo", 
+      depths=depths, 
+      project_to=projection_proj4string("lonlat_wgs84")  
+    )
+  }
+
   
   (plygn)
 

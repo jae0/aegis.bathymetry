@@ -335,6 +335,8 @@
 
       gc()
               
+
+
       M = M[ geo_subset( spatial_domain=p$spatial_domain, Z=M ) , ] # need to Pbe careful with extrapolation ...  filter depths
 
       if (exists("quantile_bounds", p)) {

@@ -47,7 +47,7 @@ isobath_db = function(
     x = seq(min(p$corners$plon), max(p$corners$plon), by=p$pres)
     y = seq(min(p$corners$plat), max(p$corners$plat), by=p$pres)
 
-    options( max.contour.segments=30000 )
+    options( max.contour.segments=50000 )
 
     if ( !is.null(notfound) ) {
 
@@ -71,6 +71,8 @@ isobath_db = function(
       Zsmoothed = image.smooth( Zmatrix, aRange=aRange )
 
     }
+
+browser()
 
     cl = contourLines( x=x, y=y, Zsmoothed$z, levels=depths )
 
