@@ -65,6 +65,7 @@ isobath_db = function(
       }
     }
 
+
     Z = bathymetry_db( p=p, DS="aggregated_data" )
     Zi = array_map( "xy->2", Z[, c("plon", "plat")], gridparams=p$gridparams )
 
