@@ -35,6 +35,7 @@ if( bathyclines.redo ) {
       p = aegis.bathymetry::bathymetry_parameters( spatial_domain=dom ),
       DS="isobath.redo", 
       depths=depths, 
+      use_highres_data=TRUE,
       project_to=projection_proj4string("lonlat_wgs84")  
     )
   }
