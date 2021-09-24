@@ -12,14 +12,14 @@ isobath_db = function(
 
   #\\ create or return isobaths and coastlines/coast polygons
   #\\ isobaths come from aggregated data (resolution of pres) which is then locally smoothed through a guassian kernal process 
-  # require(stmv)
+    
   if (DS %in% c( "isobath", "isobath.redo" )) {
     
+    # behviour determmined by p. If passed then a p-specific Zsmooth is created otherwise use the highest resoltuion for the region
     require (fields)
     
     if ( spatial_domain %in% c( "canada.east.superhighres", "canada.east.highres", "canada.east", "SSE", "SSE.mpa" , "snowcrab" ) ) spatial_domain_input = "canada.east.superhighres"
         
-    fn.iso = file.path( data_dir, "isobaths", paste("isobaths", spatial_domain, "rdata", sep=".") )  # in case there is an alternate project
 
     isobaths = NULL
 
@@ -27,40 +27,50 @@ isobath_db = function(
 
     depths = sort( unique( depths ) )
 
-    if ( DS == "isobath" ) {
-      if (file.exists(fn.iso)) {
-        load(fn.iso)
-        isobaths = as( isobaths, "sf")
-
-        nn = row.names(isobaths)
-        if ( st_crs( isobaths ) != st_crs(project_to) ) isobaths = st_transform( isobaths, st_crs( project_to ) )
-
-        notfound = setdiff( as.character(depths), nn )
-
-        if (length( notfound) > 0 ) {
-          message( "matching isobaths not found, computing on the fly  .. " )
-
-          Zsmoothed = attributes( isobaths)$Zsmoothed 
-
-          x = seq(min(attributes( isobaths)$corners$plon), max(attributes( isobaths)$corners$plon), by=attributes( isobaths)$pres)
-          y = seq(min(attributes( isobaths)$corners$plat), max(attributes( isobaths)$corners$plat), by=attributes( isobaths)$pres)
-
-          cl = contourLines( x=x, y=y, Zsmoothed$z, levels=depths )
-
-          iso_crs = attributes( isobaths)$proj4string_planar 
-          isobaths = maptools::ContourLines2SLDF(cl, proj4string=sp::CRS(iso_crs) )
+    if ( is.null(p)) {
+    
+      if ( DS == "isobath" ) {
+    
+        fn.iso = file.path( data_dir, "isobaths", paste("isobaths", spatial_domain_input, "rdata", sep=".") )  # in case there is an alternate project
+        
+        if (file.exists(fn.iso)) {
+          load(fn.iso)
           isobaths = as( isobaths, "sf")
-          st_crs(isobaths) = st_crs( iso_crs )  
 
-          isobaths = st_transform( isobaths, st_crs(projection_proj4string("lonlat_wgs84")) )  ## longlat  as storage format
-          row.names(isobaths) = as.character(isobaths$level)
- 
+          nn = row.names(isobaths)
+          if ( st_crs( isobaths ) != st_crs(project_to) ) isobaths = st_transform( isobaths, st_crs( project_to ) )
+
+          notfound = setdiff( as.character(depths), nn )
+
+          if (length( notfound) > 0 ) {
+            message( "matching isobaths not found, computing on the fly  .. " )
+
+            Zsmoothed = attributes( isobaths)$Zsmoothed 
+
+            x = seq(min(attributes( isobaths)$corners$plon), max(attributes( isobaths)$corners$plon), by=attributes( isobaths)$pres)
+            y = seq(min(attributes( isobaths)$corners$plat), max(attributes( isobaths)$corners$plat), by=attributes( isobaths)$pres)
+
+            cl = contourLines( x=x, y=y, Zsmoothed$z, levels=depths )
+
+            iso_crs = attributes( isobaths)$proj4string_planar 
+            isobaths = maptools::ContourLines2SLDF(cl, proj4string=sp::CRS(iso_crs) )
+            isobaths = as( isobaths, "sf")
+            st_crs(isobaths) = st_crs( iso_crs )  
+
+            isobaths = st_transform( isobaths, st_crs(projection_proj4string("lonlat_wgs84")) )  ## longlat  as storage format
+            row.names(isobaths) = as.character(isobaths$level)
+  
+          }
+          return( isobaths  )
         }
-        return( isobaths  )
       }
-    }
-
+    
+    } 
+    
+    # here is redoing or p is passed and a lower (alt) resolution, p-specific isobath is desired 
     if (is.null(p)) p = aegis.bathymetry::bathymetry_parameters( spatial_domain=spatial_domain_input ) 
+
+    fn.iso = file.path( data_dir, "isobaths", paste("isobaths", spatial_domain, "rdata", sep=".") )  # in case there is an alternate project
 
     Z = bathymetry_db( p=p, DS="aggregated_data" )
     Zi = array_map( "xy->2", Z[, c("plon", "plat")], gridparams=p$gridparams )
