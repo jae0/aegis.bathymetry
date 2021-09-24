@@ -1,12 +1,12 @@
 
 isobath_db = function( 
   p = NULL,
+  spatial_domain="canada.east.superhighres",
   depths=c( 0, 10, 20, 50, 75, 100, 200, 250, 300, 350, 400, 450, 500, 550, 600, 700, 750, 800, 900,
              1000, 1200, 1250, 1400, 1500, 1750, 2000, 2500, 3000, 4000, 5000 ),
   DS="isobath",
   project_to=projection_proj4string("lonlat_wgs84"),
   data_dir=project.datadirectory( "aegis", "bathymetry" ),
-  use_highres_data=TRUE,
   aRange = 3  # # pixels to approx 1 SD ,
    ) {
 
@@ -14,14 +14,14 @@ isobath_db = function(
   #\\ isobaths come from aggregated data (resolution of pres) which is then locally smoothed through a guassian kernal process 
   # require(stmv)
   if (DS %in% c( "isobath", "isobath.redo" )) {
-
+    
     require (fields)
     
-    if (is.null(p)) p = aegis.bathymetry::bathymetry_parameters() 
-    fn.iso = file.path( data_dir, "isobaths", paste("isobaths", p$spatial_domain, "rdata", sep=".") )  # in case there is an alternate project
+    if ( spatial_domain %in% c( "canada.east.superhighres", "canada.east.highres", "canada.east", "SSE", "SSE.mpa" , "snowcrab" ) ) spatial_domain_input = "canada.east.superhighres"
+        
+    fn.iso = file.path( data_dir, "isobaths", paste("isobaths", spatial_domain, "rdata", sep=".") )  # in case there is an alternate project
 
     isobaths = NULL
-
 
     options( max.contour.segments=50000 )
 
@@ -47,9 +47,10 @@ isobath_db = function(
 
           cl = contourLines( x=x, y=y, Zsmoothed$z, levels=depths )
 
-          isobaths = maptools::ContourLines2SLDF(cl, proj4string=sp::CRS( attributes( isobaths)$proj4string_planar ) )
+          iso_crs = attributes( isobaths)$proj4string_planar 
+          isobaths = maptools::ContourLines2SLDF(cl, proj4string=sp::CRS(iso_crs) )
           isobaths = as( isobaths, "sf")
-          st_crs(isobaths) = st_crs( attributes( isobaths)$proj4string_planar )  
+          st_crs(isobaths) = st_crs( iso_crs )  
 
           isobaths = st_transform( isobaths, st_crs(projection_proj4string("lonlat_wgs84")) )  ## longlat  as storage format
           row.names(isobaths) = as.character(isobaths$level)
@@ -59,7 +60,7 @@ isobath_db = function(
       }
     }
 
-    if (use_highres_data) p = aegis.bathymetry::bathymetry_parameters() 
+    if (is.null(p)) p = aegis.bathymetry::bathymetry_parameters( spatial_domain=spatial_domain_input ) 
 
     Z = bathymetry_db( p=p, DS="aggregated_data" )
     Zi = array_map( "xy->2", Z[, c("plon", "plat")], gridparams=p$gridparams )
@@ -87,9 +88,7 @@ isobath_db = function(
 
     attr( isobaths, "Zsmoothed" ) = Zsmoothed
     attr( isobaths, "aRange" ) =  aRange
-
     attr( isobaths, "corners" ) =  p$corners
-
     attr( isobaths, "pres" ) =  p$pres
     attr( isobaths, "proj4string_planar" ) =  p$aegis_proj4string_planar_km
     attr( isobaths, "proj4string_lonlat" ) =  projection_proj4string("lonlat_wgs84")
