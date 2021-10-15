@@ -73,7 +73,7 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
       fraction_good_bad = 0.9,
       nAU_min = 30,
       carstm_modelengine = "inla",  # {model engine}.{label to use to store}
-      carstm_model_label = "default",
+      carstm_model_label = "default",  
       carstm_inputs_prefilter = "aggregated",
       carstm_inputs_prefilter_n = 10  # used only if "sampled"
     )
