@@ -27,17 +27,18 @@
       # to recreate the underlying data:
       xydata=bathymetry_db(p=p, DS="areal_units_input", redo=TRUE)
 
-      sppoly = areal_units( p=p , redo=T )  # this has already been done in aegis.polygons::01 polygons.R .. should nto have to redo
-      plot( sppoly[ "AUID" ] )
       
       bathymetry_db( p=p, DS="carstm_inputs", redo=TRUE )
     }
 
+  sppoly = areal_units( p=p , redo=FALSE )  # this is the same as  aegis.polygons::01 polygons.R  
+  plot( sppoly[ "AUID" ] )
 
 # run the model ... about 24 hrs
 
   fit = carstm_model( 
     p=p, 
+    sppoly=sppoly,
     data='bathymetry_db( p=p, DS="carstm_inputs" )', 
     num.threads="4:2",
     compress="bzip2", 
@@ -62,7 +63,7 @@
     }
 
 # extract results and examine
-  res = carstm_model( p=p, DS="carstm_modelled_summary"  ) # to load currently saved results
+  res = carstm_model( p=p, DS="carstm_modelled_summary", sppoly=sppoly ) # to load currently saved results
   res$summary  
 
 
@@ -70,7 +71,12 @@
   outputdir = file.path( gsub( ".rdata", "", carstm_filenames(p, returntype="carstm_modelled_fit") ), "figures" )
   if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
 
+  toplot = carstm_results_unpack( res, "predictions" ) 
+  brks = pretty(  quantile( toplot[,,"mean"], probs=c(0,0.975), na.rm=TRUE )  ),
+
   tmout = carstm_map( res=res, vn = "predictions",
+    sppoly=sppoly,
+    breaks = brks, 
     title="Bathymetry predicted (m)",
     palette="-Spectral",
     plot_elements=c( "isobaths", "coastline", "compass", "scale_bar", "legend" ),
@@ -81,6 +87,7 @@
 
 # random effects  ..i.e.,  deviation from lognormal model
   tmout = carstm_map( res=res, vn = c( "random", "space", "combined" ), 
+    sppoly=sppoly,
     title="Bathymetry random spatial (m)",
     palette="-Spectral",
     plot_elements=c( "isobaths", "coastline", "compass", "scale_bar", "legend" ),
