@@ -28,7 +28,7 @@
       xydata=bathymetry_db(p=p, DS="areal_units_input", redo=TRUE)
 
       
-      bathymetry_db( p=p, DS="carstm_inputs", redo=TRUE )
+      bathymetry_db( p=p, DS="carstm_inputs", sppoly=sppoly, redo=TRUE )
     }
 
   sppoly = areal_units( p=p , redo=FALSE )  # this is the same as  aegis.polygons::01 polygons.R  
@@ -39,7 +39,7 @@
   fit = carstm_model( 
     p=p, 
     sppoly=sppoly,
-    data='bathymetry_db( p=p, DS="carstm_inputs" )', 
+    data='bathymetry_db( p=p, DS="carstm_inputs", sppoly=sppoly )', 
     num.threads="4:2",
     compress="bzip2", 
     redo_fit=TRUE, 
@@ -54,7 +54,7 @@
       # loading saved fit and results
       # very large files .. slow 
 
-      fit = carstm_model( p=p, DS="carstm_modelled_fit" )  # extract currently saved model fit
+      fit = carstm_model( p=p, DS="carstm_modelled_fit", sppoly=sppoly )  # extract currently saved model fit
       fit$summary$dic$dic
       fit$summary$dic$p.eff
 
@@ -71,26 +71,30 @@
   outputdir = file.path( gsub( ".rdata", "", carstm_filenames(p, returntype="carstm_modelled_fit") ), "figures" )
   if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
 
-  toplot = carstm_results_unpack( res, "predictions" ) 
-  brks = pretty(  quantile( toplot[,,"mean"], probs=c(0,0.975), na.rm=TRUE )  ),
+  vn = "predictions"  
+  brks = pretty(  quantile( carstm_results_unpack( res, vn )[,"mean"], probs=c(0,0.975), na.rm=TRUE )  )
 
-  tmout = carstm_map( res=res, vn = "predictions",
+  tmout = carstm_map( res=res, vn = vn,
     sppoly=sppoly,
     breaks = brks, 
     title="Bathymetry predicted (m)",
     palette="-Spectral",
-    plot_elements=c( "isobaths", "coastline", "compass", "scale_bar", "legend" ),
+    plot_elements=c( "isobaths", "compass", "scale_bar", "legend" ),
     outfilename= file.path( outputdir, "bathymetry_predictions_carstm.png"),
     tmap_zoom= c((p$lon0+p$lon1)/2 - 0.5, (p$lat0+p$lat1)/2 -0.8, 6.5)
   )
   tmout
 
+
 # random effects  ..i.e.,  deviation from lognormal model
-  tmout = carstm_map( res=res, vn = c( "random", "space", "combined" ), 
+  vn = c( "random", "space", "combined" )
+  brks = pretty(  quantile( carstm_results_unpack( res, vn )[,"mean"], probs=c(0,0.975), na.rm=TRUE )  )
+  tmout = carstm_map( res=res, vn=vn, 
     sppoly=sppoly,
+    breaks = brks, 
     title="Bathymetry random spatial (m)",
     palette="-Spectral",
-    plot_elements=c( "isobaths", "coastline", "compass", "scale_bar", "legend" ),
+    plot_elements=c( "isobaths", "compass", "scale_bar", "legend" ),
     outfilename= file.path( outputdir, "bathymetry_spatialeffect_carstm.png"),
     tmap_zoom= c((p$lon0+p$lon1)/2 - 0.5, (p$lat0+p$lat1)/2 -0.8, 6.5)
   )
@@ -98,24 +102,37 @@
 
 
 
-# random effects  ..i.e.,  deviation from lognormal model
-  tmout = carstm_map( res=res, vn = c( "random", "space", "iid" ), 
-    title="Bathymetry random spatial (m)",
-    palette="-Spectral",
-    plot_elements=c( "isobaths", "coastline", "compass", "scale_bar", "legend" ),
-    tmap_zoom= c((p$lon0+p$lon1)/2 - 0.5, (p$lat0+p$lat1)/2 -0.8, 6.5)
-  )
-  tmout
+if (0) {
+    # random effects  ..i.e.,  deviation from lognormal model
+      vn = c( "random", "space", "iid" )
+      brks = pretty(  quantile( carstm_results_unpack( res, vn )[,"mean"], probs=c(0,0.975), na.rm=TRUE )  )
+
+      tmout = carstm_map( res=res, vn = vn, 
+        sppoly=sppoly,
+        breaks = brks, 
+        title="Bathymetry random spatial (m)",
+        palette="-Spectral",
+        plot_elements=c( "isobaths", "compass", "scale_bar", "legend" ),
+        tmap_zoom= c((p$lon0+p$lon1)/2 - 0.5, (p$lat0+p$lat1)/2 -0.8, 6.5)
+      )
+      tmout
 
 
-# random effects  ..i.e.,  deviation from lognormal model
-  tmout = carstm_map( res=res, vn = c( "random", "space", "bym2" ), 
-    title="Bathymetry random spatial (m)",
-    palette="-Spectral",
-    plot_elements=c( "isobaths", "coastline", "compass", "scale_bar", "legend" ),
-    tmap_zoom= c((p$lon0+p$lon1)/2 - 0.5, (p$lat0+p$lat1)/2 -0.8, 6.5)
-  )
-  tmout
+    # random effects  ..i.e.,  deviation from lognormal model
+      vn = c( "random", "space", "bym2" )
+      brks = pretty(  quantile( carstm_results_unpack( res, vn )[,"mean"], probs=c(0,0.975), na.rm=TRUE )  )
+
+      tmout = carstm_map( res=res, vn = vn, 
+        sppoly=sppoly,
+        breaks = brks, 
+        title="Bathymetry random spatial (m)",
+        palette="-Spectral",
+        plot_elements=c( "isobaths", "compass", "scale_bar", "legend" ),
+        tmap_zoom= c((p$lon0+p$lon1)/2 - 0.5, (p$lat0+p$lat1)/2 -0.8, 6.5)
+      )
+      tmout
+}
+
 
 
 # end

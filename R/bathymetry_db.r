@@ -1,5 +1,5 @@
 
-  bathymetry_db = function( p=NULL, DS=NULL, varnames=NULL, redo=FALSE, ... ) {
+  bathymetry_db = function( p=NULL, DS=NULL, varnames=NULL, redo=FALSE, sppoly=NULL, ... ) {
 
     #\\ Note inverted convention: depths are positive valued
     #\\ i.e., negative valued for above sea level and positive valued for below sea level
@@ -392,7 +392,7 @@
       #\\ Note inverted convention: depths are positive valued
       #\\ i.e., negative valued for above sea level and positive valued for below sea level
       crs_lonlat = st_crs(projection_proj4string("lonlat_wgs84"))
-      sppoly = areal_units( p=p )  # will redo if not found
+      if (is.null(sppoly)) sppoly = areal_units( p=p )  # will redo if not found
       sppoly = st_transform(sppoly, crs=crs_lonlat )
       areal_units_fn = attributes(sppoly)[["areal_units_fn"]]
 
