@@ -74,8 +74,8 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
       nAU_min = 30,
       carstm_modelengine = "inla",  # {model engine}.{label to use to store}
       carstm_model_label = "default",  
-      carstm_inputs_prefilter = "sampled", # "aggregated",
-      carstm_inputs_prefilter_n = 100  # used only if "sampled" 10
+      carstm_inputs_prefilter = "aggregated",
+      carstm_inputs_prefilter_n = 10  # used only if "sampled"
     )
 
     if ( grepl("inla", p$carstm_modelengine) ) {
