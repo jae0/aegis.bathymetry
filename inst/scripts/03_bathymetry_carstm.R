@@ -26,19 +26,22 @@
     if (0) {
       # to recreate the underlying data:
       xydata=bathymetry_db(p=p, DS="areal_units_input", redo=TRUE)
+      sppoly = areal_units( p=p , redo=FALSE )  # this is the same as  aegis.polygons::01 polygons.R  
+      plot( sppoly[ "AUID" ] )
 
+      M = bathymetry_db( p=p, DS="carstm_inputs", sppoly=areal_units( p=p ) , redo=TRUE )
       
-      bathymetry_db( p=p, DS="carstm_inputs", sppoly=sppoly, redo=TRUE )
+      M = bathymetry_db( p=p, DS="carstm_inputs", sppoly=areal_units( p=p )  )
+      str(M)
+
     }
 
-  sppoly = areal_units( p=p , redo=FALSE )  # this is the same as  aegis.polygons::01 polygons.R  
-  plot( sppoly[ "AUID" ] )
 
 # run the model ... about 24 hrs
 
   fit = carstm_model( 
     p=p, 
-    sppoly=sppoly,
+    sppoly=areal_units( p=p ),
     data='bathymetry_db( p=p, DS="carstm_inputs", sppoly=sppoly )', 
     num.threads="4:2",
     compress="bzip2", 
@@ -63,6 +66,9 @@
     }
 
 # extract results and examine
+  
+  sppoly = areal_units( p=p )
+
   res = carstm_model( p=p, DS="carstm_modelled_summary", sppoly=sppoly ) # to load currently saved results
   res$summary  
 
