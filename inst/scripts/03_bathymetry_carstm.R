@@ -16,7 +16,7 @@
 
 # construct basic parameter list defining the main characteristics of the study
 # and some plotting parameters (bounding box, projection, bathymetry layout, coastline)
-  p = aegis.bathymetry::bathymetry_parameters( project_class="carstm", areal_units_resolution_km = 1 )  # defaults are hard coded
+  p = aegis.bathymetry::bathymetry_parameters( project_class="carstm", areal_units_resolution_km = 5 )  # defaults are hard coded as a lattice .. anything else takes a very long time
 
     # adjust based upon RAM requirements and ncores
     # inla.setOption(num.threads= floor( parallel::detectCores() / 3 ) )
@@ -26,7 +26,7 @@
     if (0) {
       # to recreate the underlying data:
       xydata=bathymetry_db(p=p, DS="areal_units_input", redo=TRUE)
-      sppoly = areal_units( p=p , redo=FALSE )  # this is the same as  aegis.polygons::01 polygons.R  
+      sppoly = areal_units( p=p , redo=TRUE )  # this is the same as  aegis.polygons::01 polygons.R  
       plot( sppoly[ "AUID" ] )
 
       M = bathymetry_db( p=p, DS="carstm_inputs", sppoly=areal_units( p=p ) , redo=TRUE )
