@@ -74,9 +74,10 @@
 
 
 # maps of some of the results
-  outputdir = file.path( gsub( ".rdata", "", carstm_filenames(p, returntype="carstm_modelled_fit") ), "figures" )
+  outputdir = file.path(p$data_root, "maps", p$carstm_model_label )
   if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
 
+  
   vn = "predictions"  
   brks = pretty(  quantile( carstm_results_unpack( res, vn )[,"mean"], probs=c(0,0.975), na.rm=TRUE )  )
 
@@ -85,13 +86,13 @@
     breaks = brks, 
     title="Bathymetry predicted (m)",
     palette="-Spectral",
-    plot_elements=c( "isobaths", "compass", "scale_bar", "legend" ),
+    # plot_elements=c( "isobaths", "compass", "scale_bar", "legend" ),
     tmap_zoom= c((p$lon0+p$lon1)/2 - 0.5, (p$lat0+p$lat1)/2 -0.8, 6.5)
   )
   tmout
 
   outfilename = file.path( outputdir, "bathymetry_predictions_carstm.png")
-  mapview::mapshot( tmap_leaflet(outfilename), file=outfilename, vwidth = 1600, vheight = 1200 )
+  mapview::mapshot( tmap_leaflet(tmout), file=outfilename, vwidth = 1600, vheight = 1200 )
   
 
 # random effects  ..i.e.,  deviation from lognormal model
@@ -103,10 +104,12 @@
     title="Bathymetry random spatial (m)",
     palette="-Spectral",
     plot_elements=c( "isobaths", "compass", "scale_bar", "legend" ),
-    outfilename= file.path( outputdir, "bathymetry_spatialeffect_carstm.png"),
     tmap_zoom= c((p$lon0+p$lon1)/2 - 0.5, (p$lat0+p$lat1)/2 -0.8, 6.5)
   )
   tmout
+
+  outfilename= file.path( outputdir, "bathymetry_spatialeffect_carstm.png")
+  mapview::mapshot( tmap_leaflet(tmout), file=outfilename, vwidth = 1600, vheight = 1200 )
 
 
 
@@ -124,6 +127,8 @@ if (0) {
         tmap_zoom= c((p$lon0+p$lon1)/2 - 0.5, (p$lat0+p$lat1)/2 -0.8, 6.5)
       )
       tmout
+      outfilename= file.path( outputdir, "bathymetry_spatialeffect_iid_carstm.png")
+      mapview::mapshot( tmap_leaflet(tmout), file=outfilename, vwidth = 1600, vheight = 1200 )
 
 
     # random effects  ..i.e.,  deviation from lognormal model
@@ -139,6 +144,8 @@ if (0) {
         tmap_zoom= c((p$lon0+p$lon1)/2 - 0.5, (p$lat0+p$lat1)/2 -0.8, 6.5)
       )
       tmout
+      outfilename= file.path( outputdir, "bathymetry_spatialeffect_bym_carstm.png")
+      mapview::mapshot( tmap_leaflet(tmout), file=outfilename, vwidth = 1600, vheight = 1200 )
 }
 
 
