@@ -86,11 +86,13 @@
     title="Bathymetry predicted (m)",
     palette="-Spectral",
     plot_elements=c( "isobaths", "compass", "scale_bar", "legend" ),
-    outfilename= file.path( outputdir, "bathymetry_predictions_carstm.png"),
     tmap_zoom= c((p$lon0+p$lon1)/2 - 0.5, (p$lat0+p$lat1)/2 -0.8, 6.5)
   )
   tmout
 
+  outfilename = file.path( outputdir, "bathymetry_predictions_carstm.png")
+  mapview::mapshot( tmap_leaflet(outfilename), file=outfilename, vwidth = 1600, vheight = 1200 )
+  
 
 # random effects  ..i.e.,  deviation from lognormal model
   vn = c( "random", "space", "combined" )
