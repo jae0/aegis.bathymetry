@@ -45,9 +45,14 @@
     data='bathymetry_db( p=p, DS="carstm_inputs", sppoly=sppoly )', 
     num.threads="4:2",
     compress="bzip2", 
+  # control.inla = list( strategy='adaptive', int.strategy="eb" ),
+    control.inla = list( strategy='laplace'  ),
+    theta = c( 9.129, 3.775, -2.970 ) 
     redo_fit=TRUE, 
     verbose=TRUE   
   ) 
+
+  
 
     # run model and obtain predictions, 0== no file compression
     # fixed and random effects are multiplicative effects 
