@@ -46,9 +46,12 @@
     num.threads="4:2",
     compress="bzip2", 
   # control.inla = list( strategy='adaptive', int.strategy="eb" ),
-    control.inla = list( strategy='laplace'  ),
-    theta = c( 9.129, 3.775, -2.970 ) 
-    redo_fit=TRUE, 
+    theta = c( 9.129, 3.775, -2.970 ) ,
+    control.inla = list( strategy='laplace'),
+    # control.inla = list( strategy='adaptive', int.strategy="eb" ),
+    redo_fit=TRUE, # to start optim from a solution close to the final in 2021 ... 
+    # redo_fit=FALSE, # to start optim from a solution close to the final in 2021 ... 
+    # debug = TRUE,
     verbose=TRUE   
   ) 
 
