@@ -81,6 +81,15 @@
   res$summary  
 
 
+  # bbox = c(-71.5, 41, -52.5,  50.5 )
+  additional_features = additional_features_tmap( 
+      p=p0, 
+      isobaths=c( 10, 100, 200, 300, 500, 1000 ), 
+      coastline =  c("canada"), 
+      xlim=c(-80,-40), 
+      ylim=c(38, 60) 
+  )
+
 # maps of some of the results
   outputdir = file.path(p$data_root, "maps", p$carstm_model_label )
   if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
@@ -88,75 +97,40 @@
   
   vn = "predictions"  
   brks = pretty(  quantile( carstm_results_unpack( res, vn )[,"mean"], probs=c(0,0.975), na.rm=TRUE )  )
+  outfilename = file.path( outputdir, "bathymetry_predictions_carstm.png")
 
   tmout = carstm_map( res=res, vn = vn,
     sppoly=sppoly,
     breaks = brks, 
     title="Bathymetry predicted (m)",
     palette="-Spectral",
-    # plot_elements=c( "isobaths", "compass", "scale_bar", "legend" ),
-    tmap_zoom= c((p$lon0+p$lon1)/2 - 0.5, (p$lat0+p$lat1)/2 -0.8, 6.5)
+    plot_elements=c(  "compass", "scale_bar", "legend" ),
+    additional_features=additional_features,
+    outfilename=outfilename
   )
   tmout
 
-  outfilename = file.path( outputdir, "bathymetry_predictions_carstm.png")
-  mapview::mapshot( tmap_leaflet(tmout), file=outfilename, vwidth = 1600, vheight = 1200 )
+
   
 
 # random effects  ..i.e.,  deviation from lognormal model
   vn = c( "random", "space", "combined" )
   brks = pretty(  quantile( carstm_results_unpack( res, vn )[,"mean"], probs=c(0,0.975), na.rm=TRUE )  )
+
+  outfilename= file.path( outputdir, "bathymetry_spatialeffect_carstm.png")
+
   tmout = carstm_map( res=res, vn=vn, 
     sppoly=sppoly,
     breaks = brks, 
     title="Bathymetry random spatial (m)",
     palette="-Spectral",
-    plot_elements=c( "isobaths", "compass", "scale_bar", "legend" ),
-    tmap_zoom= c((p$lon0+p$lon1)/2 - 0.5, (p$lat0+p$lat1)/2 -0.8, 6.5)
+    plot_elements=c(  "compass", "scale_bar", "legend" ),
+    additional_features=additional_features,
+    outfilename=outfilename
   )
   tmout
 
-  outfilename= file.path( outputdir, "bathymetry_spatialeffect_carstm.png")
-  mapview::mapshot( tmap_leaflet(tmout), file=outfilename, vwidth = 1600, vheight = 1200 )
-
-
-
-if (0) {
-    # random effects  ..i.e.,  deviation from lognormal model
-      vn = c( "random", "space", "iid" )
-      brks = pretty(  quantile( carstm_results_unpack( res, vn )[,"mean"], probs=c(0,0.975), na.rm=TRUE )  )
-
-      tmout = carstm_map( res=res, vn = vn, 
-        sppoly=sppoly,
-        breaks = brks, 
-        title="Bathymetry random spatial (m)",
-        palette="-Spectral",
-        plot_elements=c( "isobaths", "compass", "scale_bar", "legend" ),
-        tmap_zoom= c((p$lon0+p$lon1)/2 - 0.5, (p$lat0+p$lat1)/2 -0.8, 6.5)
-      )
-      tmout
-      outfilename= file.path( outputdir, "bathymetry_spatialeffect_iid_carstm.png")
-      mapview::mapshot( tmap_leaflet(tmout), file=outfilename, vwidth = 1600, vheight = 1200 )
-
-
-    # random effects  ..i.e.,  deviation from lognormal model
-      vn = c( "random", "space", "bym2" )
-      brks = pretty(  quantile( carstm_results_unpack( res, vn )[,"mean"], probs=c(0,0.975), na.rm=TRUE )  )
-
-      tmout = carstm_map( res=res, vn = vn, 
-        sppoly=sppoly,
-        breaks = brks, 
-        title="Bathymetry random spatial (m)",
-        palette="-Spectral",
-        plot_elements=c( "isobaths", "compass", "scale_bar", "legend" ),
-        tmap_zoom= c((p$lon0+p$lon1)/2 - 0.5, (p$lat0+p$lat1)/2 -0.8, 6.5)
-      )
-      tmout
-      outfilename= file.path( outputdir, "bathymetry_spatialeffect_bym_carstm.png")
-      mapview::mapshot( tmap_leaflet(tmout), file=outfilename, vwidth = 1600, vheight = 1200 )
-}
-
-
+ 
 
 # end
  
