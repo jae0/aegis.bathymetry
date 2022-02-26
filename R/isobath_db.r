@@ -35,7 +35,7 @@ isobath_db = function(
         
         if (file.exists(fn.iso)) {
           load(fn.iso)
-          isobaths = as( isobaths, "sf")
+          isobaths = as( isobaths, "sf")  # in case an old file from sp*
 
           nn = row.names(isobaths)
           if ( st_crs( isobaths ) != st_crs(project_to) ) isobaths = st_transform( isobaths, st_crs( project_to ) )
