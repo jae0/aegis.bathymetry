@@ -61,7 +61,8 @@ isobath_db = function(
             row.names(isobaths) = as.character(isobaths$level)
   
           }
-          return( isobaths  )
+          retain = which( row.names(isobaths) %in% as.character(depths) )
+          return( isobaths[retain,]  )
         }
       }
     
