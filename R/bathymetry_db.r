@@ -492,7 +492,6 @@
 
       M$tag = "observations"
 
-      region.id = slot( slot(sppoly, "nb"), "region.id" )
       APS = st_drop_geometry(sppoly)
       sppoly = NULL
       gc()
