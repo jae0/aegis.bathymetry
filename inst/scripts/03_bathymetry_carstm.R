@@ -17,15 +17,12 @@
 # construct basic parameter list defining the main characteristics of the study
 # and some plotting parameters (bounding box, projection, bathymetry layout, coastline)
   p = aegis.bathymetry::bathymetry_parameters( project_class="carstm", areal_units_resolution_km = 5 )  # defaults are hard coded as a lattice .. anything else takes a very long time
-
-    # adjust based upon RAM requirements and ncores
-    # inla.setOption(num.threads= floor( parallel::detectCores() / 3 ) )
-    # inla.setOption(blas.num.threads= 3 )
  
 
     if (0) {
       # to recreate the underlying data:
       xydata=bathymetry_db(p=p, DS="areal_units_input", redo=TRUE)
+    
       sppoly = areal_units( p=p , redo=TRUE )  # this is the same as  aegis.polygons::01 polygons.R  
       plot( sppoly[ "AUID" ] )
 
@@ -37,21 +34,21 @@
     }
 
 
-# run the model ... about 24 hrs
+# run the model ... about 24 hrs depending upon no posteriors to keep
 
   res = carstm_model( 
     p=p, 
     sppoly=areal_units( p=p ),
     data='bathymetry_db( p=p, DS="carstm_inputs", sppoly=sppoly )', 
-    nposteriors = 1000,
+    nposteriors = 1000,  # do not need too many as stmv solutions are default
     # redo_fit=TRUE, # to start optim from a solution close to the final in 2021 ... 
-    redo_fit=FALSE, # to start optim from a solution close to the final in 2021 ... 
+    # redo_fit=FALSE, # to start optim from a solution close to the final in 2021 ... 
     # debug = TRUE,
     control.mode = list( restart=FALSE, theta= c( 8.988, 3.704, -2.970 ) ) ,
     # control.inla = list( strategy='laplace'),
     # control.inla = list( strategy='adaptive', int.strategy="eb" ),
     # control.inla = list( strategy='adaptive', int.strategy="eb" ),
-    num.threads="1:1",  # very memory intensive ...
+    num.threads="1:1",  # very memory intensive ... serial process
     verbose=TRUE   
   ) 
 
@@ -83,7 +80,7 @@
 
   # bbox = c(-71.5, 41, -52.5,  50.5 )
   additional_features = additional_features_tmap( 
-      p=p0, 
+      p=p, 
       isobaths=c( 10, 100, 200, 300, 500, 1000 ), 
       coastline =  c("canada"), 
       xlim=c(-80,-40), 
@@ -100,7 +97,6 @@
   outfilename = file.path( outputdir, "bathymetry_predictions_carstm.png")
 
   tmout = carstm_map( res=res, vn = vn,
-    sppoly=sppoly,
     breaks = brks, 
     title="Bathymetry predicted (m)",
     palette="-Spectral",
@@ -115,12 +111,13 @@
 
 # random effects  ..i.e.,  deviation from lognormal model
   vn = c( "random", "space", "combined" )
-  brks = pretty(  quantile( carstm_results_unpack( res, vn )[,"mean"], probs=c(0,0.975), na.rm=TRUE )  )
+  oo = carstm_results_unpack( res, vn )[,"mean"]
+  oo = oo[oo< 5000]
+  brks = pretty(  quantile( oo, probs=c(0,0.975), na.rm=TRUE )  )
 
   outfilename= file.path( outputdir, "bathymetry_spatialeffect_carstm.png")
 
   tmout = carstm_map( res=res, vn=vn, 
-    sppoly=sppoly,
     breaks = brks, 
     title="Bathymetry random spatial (m)",
     palette="-Spectral",
@@ -131,6 +128,23 @@
   tmout
 
  
+
+  predictions_errors_removed = posterior_summary( res$sims$predictions - res$sims$space$combined)
+
+  outfilename= file.path( outputdir, "bathymetry_denoised_carstm.png")
+  brks = pretty(  quantile( carstm_results_unpack( res, vn )[,"mean"], probs=c(0,0.975), na.rm=TRUE )  )
+
+  sppoly$z_denoised = predictions_errors_removed$mean
+  tmout = carstm_map( vn="z_denoised", 
+    sppoly = sppoly,
+    breaks = brks, 
+    title="Bathymetry denoised (m)",
+    palette="-Spectral",
+    plot_elements=c(  "compass", "scale_bar", "legend" ),
+    additional_features=additional_features,
+    outfilename=outfilename
+  )
+  tmout
 
 # end
  
