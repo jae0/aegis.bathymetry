@@ -27,7 +27,7 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
     variabletomodel = "z",  
     spatial_domain = "canada.east.superhighres",
     spatial_domain_subareas = c( "canada.east.highres", "canada.east", "SSE", "SSE.mpa" , "snowcrab"),  # this is for bathymetry_db, not stmv
-    aegis_dimensionality="space"
+    dimensionality="space"
   )
 
   p$quantile_bounds =c(0, 0.95) # trim upper bounds
