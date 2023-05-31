@@ -43,7 +43,7 @@
     nposteriors = 1000,  # do not need too many as stmv solutions are default
     # redo_fit=TRUE, # to start optim from a solution close to the final in 2021 ... 
     # redo_fit=FALSE, # to start optim from a solution close to the final in 2021 ... 
-    # debug = TRUE,
+    # debug = TRUE,      
     control.mode = list( restart=FALSE, theta= c( 8.988, 3.704, -2.970 ) ) ,
     # control.inla = list( strategy='laplace'),
     # control.inla = list( strategy='adaptive', int.strategy="eb" ),
