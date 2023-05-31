@@ -506,7 +506,7 @@
       APS = NULL
 
       #required for carstm formulae
-      M$space = as.character( M$AUID)
+      M$space = match( M$AUID, sppoly$AUID) 
 
       save( M, file=fn, compress=TRUE )
       return( M )
