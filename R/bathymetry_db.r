@@ -475,6 +475,8 @@
       attr( M, "proj4string_planar" ) =  p$aegis_proj4string_planar_km
       attr( M, "proj4string_lonlat" ) =  projection_proj4string("lonlat_wgs84")
           # p$quantile_bounds = c(0.0005, 0.9995)
+ 
+      
 
       M$AUID = st_points_in_polygons(
         pts = st_as_sf( M, coords=c("lon","lat"), crs=crs_lonlat ),
@@ -493,7 +495,7 @@
       M$tag = "observations"
 
       APS = st_drop_geometry(sppoly)
-      sppoly = NULL
+      
       gc()
 
       APS[, p$variabletomodel] = NA
@@ -506,8 +508,8 @@
       APS = NULL
 
       #required for carstm formulae
-      M$space = match( M$AUID, sppoly$AUID) 
-
+      M$space = match( M$AUID, as.character(sppoly$AUID) ) 
+      
       save( M, file=fn, compress=TRUE )
       return( M )
     }

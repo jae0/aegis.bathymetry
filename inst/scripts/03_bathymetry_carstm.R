@@ -26,9 +26,9 @@
       sppoly = areal_units( p=p , redo=TRUE )  # this is the same as  aegis.polygons::01 polygons.R  
       plot( sppoly[ "AUID" ] )
 
-      M = bathymetry_db( p=p, DS="carstm_inputs", sppoly=areal_units( p=p ) , redo=TRUE )
+      M = bathymetry_db( p=p, DS="carstm_inputs", sppoly=sppoly , redo=TRUE )
       
-      M = bathymetry_db( p=p, DS="carstm_inputs", sppoly=areal_units( p=p )  )
+      M = bathymetry_db( p=p, DS="carstm_inputs", sppoly=sppoly  )
       str(M)
 
     }
@@ -48,7 +48,7 @@
     # control.inla = list( strategy='laplace'),
     # control.inla = list( strategy='adaptive', int.strategy="eb" ),
     # control.inla = list( strategy='adaptive', int.strategy="eb" ),
-    num.threads="1:1",  # very memory intensive ... serial process
+    num.threads="4:2",  # very memory intensive ... serial process
     compress=TRUE,
     verbose=TRUE   
   ) 
@@ -107,7 +107,6 @@
     outfilename=outfilename
   )
   tmout
-
 
   
 
