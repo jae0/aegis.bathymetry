@@ -508,7 +508,7 @@
       APS = NULL
 
       #required for carstm formulae
-      M$space = match( M$AUID, as.character(sppoly$AUID) ) 
+      M$space = match( M$AUID, as.character(sppoly$AUID) ) ## must be index matching nb graphs
       
       save( M, file=fn, compress=TRUE )
       return( M )
