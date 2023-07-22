@@ -71,7 +71,8 @@
         return(gdem)
       }
 
-      require(rgdal)
+message("FIXE ME::: deprecated libs, use sf/stars")
+#      require(rgdal)
       demfile.adf = file.path( p$datadir, "greenlaw_DEM", "mdem_50", "w001001.adf" )  # in ArcInfo adf format
       dem = new( "GDALReadOnlyDataset", demfile.adf )
       # gdem = asSGDF_GROD( dem, output.dim=dim(dem) ) # regrid to another dim

@@ -9,11 +9,14 @@
 
     if (is.null(crs)) stop("crs is required")
 
-    require(maps)
-    require(mapdata)
-    require(maptools)
-    require(rgdal)
-    require(sp)
+message("FIXE ME::: deprecated libs, use sf/stars")
+
+    # deprecated: use sf
+    # require(maps)
+    # require(mapdata)
+    # require(maptools)
+    # require(rgdal)
+    # require(sp)
 
     if (is.null(crs)) crs = sp::CRS( sp::proj4string(lonlat) )
     if (is.null(crs)) crs = sp::CRS( projection_proj4string("lonlat_wgs84") )
@@ -38,6 +41,9 @@
       if ( return.value=="land")      return( which ( !is.na(land)) )
     }
 
+{
+   message("FIX ME!!! :: map/maptools deprecated " ) 
+    # use sf
 
     coastline = maps::map( database=db, regions=regions, fill=TRUE, plot=FALSE, ...)
     if ( return.value=="coast.lonlat") return (coastline)
@@ -46,6 +52,8 @@
     if ( return.value=="coast.polygon") return (coastlineSp)
 
     land = sp::over( SpatialPoints( lonlat, crs ), coastlineSp )
+
+}
     save( land, file=fn, compress=TRUE )
     return(fn)
 

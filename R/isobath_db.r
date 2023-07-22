@@ -49,11 +49,17 @@ isobath_db = function(
 
             x = seq(min(attributes( isobaths)$corners$plon), max(attributes( isobaths)$corners$plon), by=attributes( isobaths)$pres)
             y = seq(min(attributes( isobaths)$corners$plat), max(attributes( isobaths)$corners$plat), by=attributes( isobaths)$pres)
-
+            
+            {
+            message( "FIX ME:: maptools depreciated use stars::st_contour")
+            # cl = stars::st_contour( stars, breaks= depths )
             cl = contourLines( x=x, y=y, Zsmoothed$z, levels=depths )
 
             iso_crs = attributes( isobaths)$proj4string_planar 
+            
             isobaths = maptools::ContourLines2SLDF(cl, proj4string=sp::CRS(iso_crs) )
+            }
+
             isobaths = as( isobaths, "sf")
             st_crs(isobaths) = st_crs( iso_crs )  
 
@@ -88,9 +94,15 @@ isobath_db = function(
     x = seq(min(p$corners$plon), max(p$corners$plon), by=p$pres)
     y = seq(min(p$corners$plat), max(p$corners$plat), by=p$pres)
 
+{
+    message( "FIX ME !!! :: maptools depreciated use stars::st_contour")
+    # ?stars::st_as_stars
+    # cl = stars::st_contour( stars, breaks= depths )
+
     cl = contourLines( x=x, y=y, Zsmoothed$z, levels=depths )
 
     isobaths = maptools::ContourLines2SLDF(cl, proj4string=sp::CRS( p$aegis_proj4string_planar_km ) )
+}
     isobaths = as( isobaths, "sf")
     st_crs(isobaths) = st_crs( p$aegis_proj4string_planar_km  ) 
 
