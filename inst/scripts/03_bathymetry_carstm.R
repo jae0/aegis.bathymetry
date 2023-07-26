@@ -13,6 +13,8 @@
 ### --------------------------------------------------------------------------------------------------------
 
 
+set.seed(12345)
+
 
 # construct basic parameter list defining the main characteristics of the study
 # and some plotting parameters (bounding box, projection, bathymetry layout, coastline)
@@ -79,7 +81,6 @@
 
   res = carstm_model( p=p, DS="carstm_modelled_summary", sppoly=sppoly ) # to load currently saved results
   res$summary  
-
 
   # bbox = c(-71.5, 41, -52.5,  50.5 )
   additional_features = additional_features_tmap( 

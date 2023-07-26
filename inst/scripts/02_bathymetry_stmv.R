@@ -20,6 +20,8 @@ NOTE::: Choose your settings carefully (below)
   #  ~24 hrs to scale
   # ~18 + 10 + xxx =  hrs to interpolate
   
+set.seed(12345)
+
   p = aegis.bathymetry::bathymetry_parameters( project_class="stmv" )
 
   # p$DATA = 'bathymetry_db( p=p, DS="stmv_inputs" )'   # if using lower resolution data
