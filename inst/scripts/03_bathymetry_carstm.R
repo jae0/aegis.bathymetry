@@ -35,6 +35,8 @@ set.seed(12345)
 
     }
 
+  p$space_name = sppoly$AUID 
+  p$space_id = 1:nrow(sppoly)  # numst match M$space
 
 # run the model ... about 24 hrs depending upon number of posteriors to keep
 
@@ -42,7 +44,6 @@ set.seed(12345)
     p=p, 
     sppoly=areal_units( p=p ),
     data='bathymetry_db( p=p, DS="carstm_inputs", sppoly=sppoly )', 
-    space_id = sppoly$AUID,
     nposteriors = 1000,  # do not need too many as stmv solutions are default
     # redo_fit=TRUE, # to start optim from a solution close to the final in 2021 ... 
     # redo_fit=FALSE, # to start optim from a solution close to the final in 2021 ... 
@@ -83,9 +84,9 @@ set.seed(12345)
   res$summary  
 
   # bbox = c(-71.5, 41, -52.5,  50.5 )
-  additional_features = additional_features_tmap( 
+  additional_features = features_to_add( 
       p=p, 
-      isobaths=c( 100, 200, 300, 100, 500  ), 
+      isobaths=c( 100, 200, 300, 400, 500  ), 
       coastline =  c("canada", "us"), 
       xlim=c(-80,-40), 
       ylim=c(38, 60) 
@@ -97,19 +98,17 @@ set.seed(12345)
 
   
   vn = "predictions"  
-  brks = pretty(  quantile( carstm_results_unpack( res, vn )[,"mean"], probs=c(0,0.975), na.rm=TRUE )  )
+  # brks = pretty(  quantile( carstm_results_unpack( res, vn )[,"mean"], probs=c(0,0.975), na.rm=TRUE )  )
   brks = seq(0,600, 100)
   outfilename = file.path( outputdir, "bathymetry_predictions_carstm.png")
 
-  tmout = carstm_map( res=res, vn = vn,
-    breaks = brks, 
+  plt = carstm_map( res=res, vn = vn,
     title="Bathymetry predicted (m)",
-    palette="-Spectral",
-    plot_elements=c(  "compass", "scale_bar", "legend" ),
+    colors=rev(RColorBrewer::brewer.pal(5, "RdYlBu")),
     additional_features=additional_features,
     outfilename=outfilename
   )
-  tmout
+  plt
 
   
 
@@ -120,15 +119,14 @@ set.seed(12345)
 
   outfilename= file.path( outputdir, "bathymetry_spatialeffect_carstm.png")
 
-  tmout = carstm_map( res=res, vn=vn, 
+  plt = carstm_map( res=res, vn=vn, 
     breaks = brks, 
     title="Bathymetry random spatial (m)",
-    palette="-Spectral",
-    plot_elements=c(  "compass", "scale_bar", "legend" ),
+    colors=rev(RColorBrewer::brewer.pal(5, "RdYlBu")),
     additional_features=additional_features,
     outfilename=outfilename
   )
-  tmout
+  plt
 
   
 # end
