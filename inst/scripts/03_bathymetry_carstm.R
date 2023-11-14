@@ -87,7 +87,7 @@ set.seed(12345)
   additional_features = features_to_add( 
       p=p, 
       isobaths=c( 100, 200, 300, 400, 500  ), 
-      coastline =  c("canada", "us"), 
+      coastline =  c("canada", "united states of america"), 
       xlim=c(-80,-40), 
       ylim=c(38, 60) 
   )
