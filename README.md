@@ -11,5 +11,26 @@ Here the primary methods used for spatial interpolation include:
 2. [carstm - Conditional autoregressive space-time models](https://github.com/jae0/carstm) - an implementation of CAR (Conditional AutoRegressive) and BYM (Besag-York_Mollie) approach to areal unit models. It is a convenience front end to INLA that inter-operates with aegis.* projects in a coherent manner to permit more expressive models. [Examples of how to use it are shown here](https://github.com/jae0/carstm/blob/master/inst/scripts/example_temperature_carstm.R) where ocean bottom temperatures are modelled across space (and time). The method for bathymetry itself is [found here](https://github.com/jae0/aegis.bathymetry/blob/master/inst/scripts/03_bathymetry_carstm.R).
 
 
+## Installation
 
 
+To install, run the following:
+
+```r
+  remotes::install_github( "jae0/aegis")  # helper functions
+  remotes::install_github( "jae0/aegis.bathymetry")
+``` 
+
+You probably will want to have an Rprofile set up properly such as:
+
+```r
+# libPaths("~/R")  # or where ever you like
+homedir = path.expand("~")
+code_root = file.path( homedir, "bio" )   ### replace with correct path to the parent directory of your git-projects
+data_root = file.path( homedir, "bio.data" )   ### replace with correct path to your data
+
+require( aegis )
+require( aegis.bathymetry )
+
+```
+ 
