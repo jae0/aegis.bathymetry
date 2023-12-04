@@ -24,7 +24,6 @@ To install, run the following:
 You probably will want to have an Rprofile set up properly such as:
 
 ```r
-# libPaths("~/R")  # or where ever you like
 homedir = path.expand("~")
 code_root = file.path( homedir, "bio" )   ### replace with correct path to the parent directory of your git-projects
 data_root = file.path( homedir, "bio.data" )   ### replace with correct path to your data
