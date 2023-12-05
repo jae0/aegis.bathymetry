@@ -9,15 +9,6 @@
 
     if (is.null(crs)) stop("crs is required")
 
-message("FIXE ME::: deprecated libs, use sf/stars")
-
-    # deprecated: use sf
-    # require(maps)
-    # require(mapdata)
-    # require(maptools)
-    # require(rgdal)
-    # require(sp)
-
     if (is.null(crs)) crs = sp::CRS( sp::proj4string(lonlat) )
     if (is.null(crs)) crs = sp::CRS( projection_proj4string("lonlat_wgs84") )
 
