@@ -65,6 +65,7 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
       areal_units_timeperiod = "none",
       areal_units_constraint_ntarget = 500,
       areal_units_constraint_nmin = 30 ,
+      areal_units_constraint = "none",
       tus="none",
       fraction_todrop = 1/5,
       fraction_cv = 1.0,
