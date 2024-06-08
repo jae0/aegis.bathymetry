@@ -150,9 +150,31 @@ Marginal log-Likelihood:  -13862283.54
     toplot="random_spatial", probs=c(0.025, 0.975), 
     colors=rev(RColorBrewer::brewer.pal(5, "RdYlBu")) ) 
 
-  carstm_plot_map( p=p, outputdir=outputdir, additional_features=additional_features, 
-    toplot="predictions", colors=rev(RColorBrewer::brewer.pal(5, "RdYlBu")),
-    brks=seq(1, 501, 100) )
+  plt = carstm_map( res=res, vn = vn,
+    title="Bathymetry predicted (m)",
+    colors=rev(RColorBrewer::brewer.pal(5, "RdYlBu")),
+    additional_features=additional_features,
+    outfilename=outfilename
+  )
+  plt
+
+  
+
+# random effects  ..i.e.,  deviation from lognormal model
+  vn = c( "random", "space", "re" )
+
+  brks = pseq(0, 600, 100)
+
+  outfilename= file.path( outputdir, "bathymetry_spatialeffect_carstm.png")
+
+  plt = carstm_map( res=res, vn=vn, 
+    breaks = brks, 
+    title="Bathymetry random spatial (m)",
+    colors=rev(RColorBrewer::brewer.pal(5, "RdYlBu")),
+    additional_features=additional_features,
+    outfilename=outfilename
+  )
+  plt
 
  
    
