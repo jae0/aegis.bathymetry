@@ -112,7 +112,7 @@ set.seed(12345)
   
 
 # random effects  ..i.e.,  deviation from lognormal model
-  vn = c( "random", "space", "combined" )
+  vn = c( "random", "space", "re" )
 
   brks = pseq(0, 600, 100)
 
