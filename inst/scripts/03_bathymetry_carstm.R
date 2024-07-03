@@ -34,7 +34,9 @@ set.seed(12345)
       str(M)
 
     }
-
+ 
+  sppoly = areal_units( p=p )  # this is the same as  aegis.polygons::01 polygons.R  
+ 
   p$space_name = sppoly$AUID 
   p$space_id = 1:nrow(sppoly)  # numst match M$space
 
@@ -44,17 +46,18 @@ set.seed(12345)
     p=p, 
     sppoly=areal_units( p=p ),
     data='bathymetry_db( p=p, DS="carstm_inputs", sppoly=sppoly )', 
-    nposteriors = 1000,  # do not need too many as stmv solutions are default
+    nposteriors = 1000,  # do not need too many as stmv solutions are default, this is to show proof of concept
     # redo_fit=TRUE, # to start optim from a solution close to the final in 2021 ... 
     # redo_fit=FALSE, # to start optim from a solution close to the final in 2021 ... 
     # debug = TRUE,      
     theta = c( 8.988, 3.704, -2.970 ),
-    # control.mode = list( restart=FALSE, theta= c( 8.988, 3.704, -2.970 ) ) ,
+    toget = c("summary", "random_spatial", "predictions"),
+    posterior_simulations_to_retain = c("predictions"),
+    control.mode = list( restart=TRUE  ) ,
     # control.inla = list( strategy='laplace'),
     # control.inla = list( strategy='adaptive', int.strategy="eb" ),
     # control.inla = list( strategy='adaptive', int.strategy="eb" ),
     num.threads="4:2",  # very memory intensive ... serial process
-    compress=TRUE,
     verbose=TRUE   
   ) 
 
@@ -79,9 +82,38 @@ set.seed(12345)
 # extract results and examine
   
   sppoly = areal_units( p=p )
+ 
+  smmy = carstm_model(  p=p, sppoly=sppoly, DS="carstm_modelled_summary" )  # parameters in p and direct summary
+  smmy$direct
+  Time used:
+    Pre = 68.4, Running = 318, Post = 107, Total = 493 
+Fixed effects:
+            mean    sd 0.025quant 0.5quant 0.975quant mode kld
+(Intercept) 7.93 0.001      7.928     7.93      7.931 7.93   0
 
-  res = carstm_model( p=p, DS="carstm_modelled_summary", sppoly=sppoly ) # to load currently saved results
-  res$summary  
+Random effects:
+  Name	  Model
+    space BYM2 model
+
+Model hyperparameters:
+                                             mean    sd 0.025quant 0.5quant
+Precision for the lognormal observations 9179.399 8.772   9159.719 9180.279
+Precision for space                        48.832 0.438     47.852   48.874
+Phi for space                               0.073 0.005      0.067    0.072
+                                         0.975quant     mode
+Precision for the lognormal observations   9193.556 9184.593
+Precision for space                          49.541   49.091
+Phi for space                                 0.085    0.068
+
+Deviance Information Criterion (DIC) ...............: 27491869.50
+Deviance Information Criterion (DIC, saturated) ....: 2903404.05
+Effective number of parameters .....................: 29299.72
+
+Watanabe-Akaike information criterion (WAIC) ...: 27286062.71
+Effective number of parameters .................: 29314.60
+
+Marginal log-Likelihood:  -13864228.09 
+ is computed 
 
   # bbox = c(-71.5, 41, -52.5,  50.5 )
   additional_features = features_to_add( 
@@ -96,12 +128,33 @@ set.seed(12345)
   if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
 
   
+  # you might require the "grid"  library:  install.packages("grid")
+  randomeffects = carstm_model(  p=p, sppoly=sppoly, DS="carstm_randomeffects" ) 
+  modelinfo = carstm_model(  p=p, sppoly=sppoly, DS="carstm_modelinfo" ) 
+  
+  brks = seq(0, 600, 100)
+  outfilename= file.path( outputdir, "bathymetry_spatialeffect_carstm.png")
+
+  plt = carstm_map(  res=randomeffects, vn=c( "space", "re_total" ), 
+#      breaks = brks, 
+      modelinfo=modelinfo,
+      title="Bathymetry random spatial (m)",
+      colors=rev(RColorBrewer::brewer.pal(5, "RdYlBu")),
+      additional_features=additional_features,
+      outfilename=outfilename
+    )
+  plt
+
+
+  predictions = carstm_model(  p=p, sppoly=sppoly, DS="carstm_predictions" ) 
+
   vn = "predictions"  
   # brks = pretty(  quantile( carstm_results_unpack( res, vn )[,"mean"], probs=c(0,0.975), na.rm=TRUE )  )
   brks = seq(0,600, 100)
   outfilename = file.path( outputdir, "bathymetry_predictions_carstm.png")
 
-  plt = carstm_map( res=res, vn = vn,
+  plt = carstm_map( res=predictions, vn = vn,
+    modelinfo=modelinfo,
     title="Bathymetry predicted (m)",
     colors=rev(RColorBrewer::brewer.pal(5, "RdYlBu")),
     additional_features=additional_features,
@@ -109,24 +162,7 @@ set.seed(12345)
   )
   plt
 
-  
-
-# random effects  ..i.e.,  deviation from lognormal model
-  vn = c( "random", "space", "combined" )
-
-  brks = pseq(0, 600, 100)
-
-  outfilename= file.path( outputdir, "bathymetry_spatialeffect_carstm.png")
-
-  plt = carstm_map( res=res, vn=vn, 
-    breaks = brks, 
-    title="Bathymetry random spatial (m)",
-    colors=rev(RColorBrewer::brewer.pal(5, "RdYlBu")),
-    additional_features=additional_features,
-    outfilename=outfilename
-  )
-  plt
-
+   
   
 # end
  
