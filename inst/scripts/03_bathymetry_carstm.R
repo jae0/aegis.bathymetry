@@ -79,7 +79,13 @@ set.seed(12345)
 
       plot(fit)
       plot(fit, plot.prior=TRUE, plot.hyperparameters=TRUE, plot.fixed.effects=FALSE )
- 
+
+      carstm_prior_posterior_compare( hypers=hypers, all.hypers=all.hypers, vn="Precision for space", transf=FALSE )  # no conversion to SD 
+      carstm_prior_posterior_compare( hypers=hypers, all.hypers=all.hypers, vn="Phi for space" )  
+
+      # posterior predictive check
+      carstm_posterior_predictive_check(p=p, M=substrate_db( p=p, DS="carstm_inputs" ), transf=TRUE  )
+
     }
 
 # extract results and examine
