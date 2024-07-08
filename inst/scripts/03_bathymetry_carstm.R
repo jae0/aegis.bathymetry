@@ -45,10 +45,10 @@ set.seed(12345)
   res = carstm_model( 
     p=p, 
     sppoly=areal_units( p=p ),
-    data='bathymetry_db( p=p, DS="carstm_inputs", sppoly=sppoly )', 
+    data='bathymetry_db( p=p, DS="carstm_inputs" )', 
     nposteriors = 1000,  # do not need too many as stmv solutions are default, this is to show proof of concept
     # redo_fit=TRUE, # to start optim from a solution close to the final in 2021 ... 
-    # redo_fit=FALSE, # to start optim from a solution close to the final in 2021 ... 
+    redo_fit=FALSE, # to start optim from a solution close to the final in 2021 ... 
     # debug = TRUE,      
     theta = c( 4.1828, -0.9646, 3.6723 ),
     toget = c("summary", "random_spatial", "predictions"),
@@ -86,6 +86,14 @@ set.seed(12345)
   smmy = carstm_model(  p=p, DS="carstm_summary" )  # parameters in p and direct summary
   smmy$direct 
 
+Deviance Information Criterion (DIC) ...............: 24755267.86
+Deviance Information Criterion (DIC, saturated) ....: 2843680.48
+Effective number of parameters .....................: 2288.50
+
+Watanabe-Akaike information criterion (WAIC) ...: 26358325.05
+Effective number of parameters .................: 881372.01
+
+Marginal log-Likelihood:  -12506191.81 
 
   # bbox = c(-71.5, 41, -52.5,  50.5 )
   additional_features = features_to_add( 
@@ -95,27 +103,17 @@ set.seed(12345)
       ylim=c(38, 60) 
   )
 
-# maps of some of the results
+  # maps of some of the results
   outputdir = file.path(p$modeldir, p$carstm_model_label, "maps" )
-  carstm_plot_map( p, outputdir, fn_root_prefix , additional_features, toplot="random_spatial", probs=c(0.025, 0.975) ) 
 
+  carstm_plot_map( p=p, outputdir=outputdir, additional_features=additional_features, 
+    toplot="random_spatial", probs=c(0.025, 0.975),  transf=log10, 
+    colors=rev(RColorBrewer::brewer.pal(5, "RdYlBu")) ) 
 
-  vn = "predictions"  
-  # brks = pretty(  quantile( carstm_results_unpack( res, vn )[,"mean"], probs=c(0,0.975), na.rm=TRUE )  )
-  brks = seq(0,600, 100)
-  
-  outfilename = file.path( outputdir, "bathymetry_predictions_carstm.png")
+  carstm_plot_map( p=p, outputdir=outputdir, additional_features=additional_features, 
+    toplot="predictions", colors=rev(RColorBrewer::brewer.pal(5, "RdYlBu")) )
 
-  plt = carstm_map( res=predictions, vn = vn,
-    modelinfo=modelinfo,
-    breaks=brks,
-    title="Bathymetry predicted (m)",
-    colors=rev(RColorBrewer::brewer.pal(5, "RdYlBu")),
-    additional_features=additional_features,
-    outfilename=outfilename
-  )
-  plt
-
+ 
    
   
 # end
