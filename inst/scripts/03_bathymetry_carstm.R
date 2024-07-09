@@ -54,6 +54,7 @@ set.seed(12345)
     # redo_fit=TRUE, # to start optim from a solution close to the final in 2021 ... 
     redo_fit=FALSE, # to start optim from a solution close to the final in 2021 ... 
     # debug = TRUE,      
+    debug ="random_spatial",
     theta = c( 4.1828, -0.9646, 3.6723 ),
     toget = c("summary", "random_spatial", "predictions"),
     posterior_simulations_to_retain = c("predictions"),
@@ -73,7 +74,7 @@ set.seed(12345)
       # loading saved fit and results
       # very large files .. slow 
 
-      fit = carstm_model( p=p, DS="carstm_modelled_fit" )  # extract currently saved model fit
+      fit = carstm_model( p=p, DS="modelled_fit" )  # extract currently saved model fit
       fit$summary$dic$dic
       fit$summary$dic$p.eff
 
