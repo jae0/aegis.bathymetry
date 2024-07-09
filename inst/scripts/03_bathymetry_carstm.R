@@ -48,16 +48,17 @@ set.seed(12345)
 
   carstm_model( 
     p=p, 
-    sppoly=areal_units( p=p ),
+    sppoly=sppoly,
     data='bathymetry_db( p=p, DS="carstm_inputs" )', 
     nposteriors = 1000,  # do not need too many as stmv solutions are default, this is to show proof of concept
     # redo_fit=TRUE, # to start optim from a solution close to the final in 2021 ... 
-    redo_fit=FALSE, # to start optim from a solution close to the final in 2021 ... 
+    # redo_fit=FALSE, # to start optim from a solution close to the final in 2021 ... 
     # debug = TRUE,      
-    debug ="random_spatial",
-    theta = c( 4.1828, -0.9646, 3.6723 ),
+    # debug ="random_spatial",
+    theta = c( 9.1236, 2.9961, 3.7036 ),
     toget = c("summary", "random_spatial", "predictions"),
     posterior_simulations_to_retain = c("predictions"),
+    family = "lognormal",
     control.mode = list( restart=TRUE  ) ,
     control.inla = list( strategy="laplace", optimiser="gsl", restart=1 ),  # gsl = gsl::bfgs2
     # control.inla = list( strategy='laplace'),
@@ -81,11 +82,17 @@ set.seed(12345)
       plot(fit)
       plot(fit, plot.prior=TRUE, plot.hyperparameters=TRUE, plot.fixed.effects=FALSE )
 
+
+      # EXAMINE POSTERIORS AND PRIORS
+      all.hypers = INLA:::inla.all.hyper.postprocess(fit$all.hyper)
+      hypers = fit$marginals.hyperpar
+      names(hypers)
+
       carstm_prior_posterior_compare( hypers=hypers, all.hypers=all.hypers, vn="Precision for space", transf=FALSE )  # no conversion to SD 
       carstm_prior_posterior_compare( hypers=hypers, all.hypers=all.hypers, vn="Phi for space" )  
 
       # posterior predictive check
-      carstm_posterior_predictive_check(p=p, M=substrate_db( p=p, DS="carstm_inputs" ), transf=TRUE  )
+      carstm_posterior_predictive_check(p=p, M=bathymetry_db( p=p, DS="carstm_inputs" )   )
 
     }
 
@@ -95,22 +102,34 @@ set.seed(12345)
  
   smmy = carstm_model(  p=p, DS="carstm_summary" )  # parameters in p and direct summary
   smmy$direct 
+Time used:
+    Pre = 40.3, Running = 197, Post = 67.3, Total = 304 
+Fixed effects:
+            mean sd 0.025quant 0.5quant 0.975quant mode kld
+(Intercept) 7.93  0      7.929     7.93       7.93 7.93   0
 
-Deviance Information Criterion (DIC) ...............: 24755267.86
-Deviance Information Criterion (DIC, saturated) ....: 2843680.48
-Effective number of parameters .....................: 2288.50
+Random effects:
+  Name	  Model
+    space BYM2 model
 
-Watanabe-Akaike information criterion (WAIC) ...: 26358325.05
-Effective number of parameters .................: 881372.01
+Model hyperparameters:
+                                             mean    sd 0.025quant 0.5quant
+Precision for the lognormal observations 9209.489 9.589   9187.494 9210.686
+Precision for space                        19.824 0.211     19.495   19.799
+Phi for space                               0.963 0.002      0.957    0.963
+                                         0.975quant     mode
+Precision for the lognormal observations   9224.153 9216.793
+Precision for space                          20.305   19.686
+Phi for space                                 0.966    0.965
 
-Marginal log-Likelihood:  -12506191.81 
+Deviance Information Criterion (DIC) ...............: 27491807.87
+Deviance Information Criterion (DIC, saturated) ....: 2912863.99
+Effective number of parameters .....................: 29302.25
 
-  names(res$hypers)
-  for (i in 1:length(names(res$hypers)) ){
-    o = carstm_prior_posterior_compare( hypers=res$hypers, all.hypers=res$all.hypers, vn=names(res$hypers)[i] )  
-    dev.new(); print(o)
-  }     
+Watanabe-Akaike information criterion (WAIC) ...: 27284247.15
+Effective number of parameters .................: 29419.03
 
+Marginal log-Likelihood:  -13862283.54 
  
   # bbox = c(-71.5, 41, -52.5,  50.5 )
   additional_features = features_to_add( 
@@ -124,11 +143,12 @@ Marginal log-Likelihood:  -12506191.81
   outputdir = file.path(p$modeldir, p$carstm_model_label, "maps" )
 
   carstm_plot_map( p=p, outputdir=outputdir, additional_features=additional_features, 
-    toplot="random_spatial", probs=c(0.025, 0.975),  transf=log10, 
+    toplot="random_spatial", probs=c(0.025, 0.975), 
     colors=rev(RColorBrewer::brewer.pal(5, "RdYlBu")) ) 
 
   carstm_plot_map( p=p, outputdir=outputdir, additional_features=additional_features, 
-    toplot="predictions", colors=rev(RColorBrewer::brewer.pal(5, "RdYlBu")) )
+    toplot="predictions", colors=rev(RColorBrewer::brewer.pal(5, "RdYlBu")),
+    brks=seq(1, 501, 100) )
 
  
    
