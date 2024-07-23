@@ -85,27 +85,27 @@ set.seed(12345)
 
       plot(fit)
       plot(fit, plot.prior=TRUE, plot.hyperparameters=TRUE, plot.fixed.effects=FALSE )
-
-
-      # EXAMINE POSTERIORS AND PRIORS
-      all.hypers = INLA:::inla.all.hyper.postprocess(fit$all.hyper)
-      hypers = fit$marginals.hyperpar
-      names(hypers)
-
-      carstm_prior_posterior_compare( hypers=hypers, all.hypers=all.hypers, vn="Precision for space", transf=FALSE )  # no conversion to SD 
-      carstm_prior_posterior_compare( hypers=hypers, all.hypers=all.hypers, vn="Phi for space" )  
-
-      # posterior predictive check
-      carstm_posterior_predictive_check(p=p, M=bathymetry_db( p=p, DS="carstm_inputs" )   )
-
+ 
     }
 
 # extract results and examine
   
   sppoly = areal_units( p=p )
- 
-  smmy = carstm_model(  p=p, DS="carstm_summary" )  # parameters in p and direct summary
-  smmy$direct 
+  
+  # posterior predictive check
+  M = speciescomposition_db( p=p, DS='carstm_inputs', sppoly=sppoly  )
+  carstm_posterior_predictive_check(p=p, M=M  )
+
+  # EXAMINE POSTERIORS AND PRIORS
+  res = carstm_model(  p=p, DS="carstm_summary" )  # parameters in p and summary
+
+  names(res$hypers)
+  for (i in 1:length(names(res$hypers)) ){
+    o = carstm_prior_posterior_compare( hypers=res$hypers, all.hypers=res$all.hypers, vn=names(res$hypers)[i] )  
+    dev.new(); print(o)
+  }     
+
+
 Time used:
     Pre = 40.3, Running = 197, Post = 67.3, Total = 304 
 Fixed effects:
