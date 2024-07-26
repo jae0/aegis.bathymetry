@@ -323,8 +323,12 @@ message("FIXE ME::: deprecated libs, use sf/stars")
    
       setDT(M)
       M = M[ which( M$lon > p$corners$lon[1] & M$lon < p$corners$lon[2]  & M$lat > p$corners$lat[1] & M$lat < p$corners$lat[2] ), ]
+      gc()
+
+      message( "This is going to take a lot of RAM (~130GB) ... terra is not as memory efficient as rgdal ")
       M = lonlat2planar( M, proj.type=p$aegis_proj4string_planar_km)  # first ensure correct projection
-  
+      gc()
+
       M$lon = NULL
       M$lat = NULL
       M$z = M[[p$variabletomodel]]
@@ -335,8 +339,9 @@ message("FIXE ME::: deprecated libs, use sf/stars")
       M$plat = trunc(M$plat / p$inputdata_spatial_discretization_planar_km + 1 ) * p$inputdata_spatial_discretization_planar_km
 
       gc()
-              
-      M = M[ geo_subset( spatial_domain=p$spatial_domain, Z=M ) , ] # need to Pbe careful with extrapolation ...  filter depths
+      
+      # geo_subset removes depths < 0 (above sea level)
+      M = M[ geo_subset( spatial_domain=p$spatial_domain, Z=M ) , ] # need to be careful with extrapolation ...  filter depths
 
       if (exists("quantile_bounds", p)) {
         TR = quantile(M[[p$variabletomodel]], probs=p$quantile_bounds, na.rm=TRUE )
@@ -348,6 +353,7 @@ message("FIXE ME::: deprecated libs, use sf/stars")
 
       setDT(M)
       M = M[, .( mean=mean(z, na.rm=TRUE), sd=sd(z, na.rm=TRUE), n=length(which(is.finite(z))) ), by=list(plon, plat) ]
+      M = M[ z > 1, ]
 
       colnames(M) = c( "plon", "plat", paste( p$variabletomodel, c("mean", "sd", "n"), sep=".") )
       M = planar2lonlat( M, p$aegis_proj4string_planar_km )
@@ -477,7 +483,7 @@ message("FIXE ME::: deprecated libs, use sf/stars")
       attr( M, "proj4string_lonlat" ) =  projection_proj4string("lonlat_wgs84")
           # p$quantile_bounds = c(0.0005, 0.9995)
  
-      
+      M = M[ which (M$z > 1), ]
 
       M$AUID = st_points_in_polygons(
         pts = st_as_sf( M, coords=c("lon","lat"), crs=crs_lonlat ),

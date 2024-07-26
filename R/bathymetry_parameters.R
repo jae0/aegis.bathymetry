@@ -6,7 +6,7 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
   # ---------------------
 
   # create/update library list
-  p$libs = c( p$libs, RLibrary ( "colorspace",  "lubridate",  "lattice",
+  p$libs = c( p$libs, RLibrary ( "colorspace",  "lubridate",  "lattice", "ggplot2",
     "parallel", "sf",  "INLA", "data.table" ) )
 
   p$libs = c( p$libs, project.library ( "aegis", "aegis.bathymetry",  "aegis.polygons", "aegis.coastline", "aegis.survey" ) )
@@ -56,7 +56,6 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
 
     # defaults in case not provided ...
     p = parameters_add_without_overwriting( p,
-      data_transformation=list( forward=function(x){ x+2500 }, backward=function(x) {x-2500} ),  # this is necessary as data spans zero (-XXX to +XXX) .. naive lognormal of this would break due to infinity at log( x<= 0) .. THIS KEEPS DATA POSITIVE VALUED
       areal_units_xydata = "bathymetry_db(p=p, DS='areal_units_input')",
       areal_units_type = "lattice", # "stmv_fields" to use ageis fields instead of carstm fields ... note variables are not the same
       areal_units_resolution_km = 5, # default in case not provided ... 25 km dim of lattice ~ 1 hr; 5km = 79hrs; 2km = ?? hrs
