@@ -25,6 +25,9 @@ set.seed(12345)
       # to recreate the underlying data:
       xydata=bathymetry_db(p=p, DS="areal_units_input", redo=TRUE)
     
+      # if any new parameter settings are used for sppoly creation, 
+      # then move them into temperature_parameters.R as the lookup mechanism 
+      # uses these parameter settings for file lookup 
       sppoly = areal_units( p=p , redo=TRUE )  # this is the same as  aegis.polygons::01 polygons.R  
       plot( sppoly[ "AUID" ] )
 
@@ -43,7 +46,7 @@ set.seed(12345)
  
 # run the model ... about 24 hrs depending upon number of posteriors to keep
 
-  O = carstm_model( 
+  carstm_model( 
     p=p, 
     sppoly=sppoly,
     data='bathymetry_db( p=p, DS="carstm_inputs" )', 
@@ -63,8 +66,7 @@ set.seed(12345)
     num.threads="4:2",  # very memory intensive ... serial process
     verbose=TRUE   
   ) 
-
-  O = NULL  # contains modelinfo and input parameters p for restarts
+  # return is modelinfo and input parameters p  (all saved to disk) for restarts
   
     # fixed and random effects are multiplicative effects 
     
@@ -121,8 +123,23 @@ set.seed(12345)
     additional_features=additional_features, 
     colors=rev(RColorBrewer::brewer.pal(5, "RdYlBu")) )
 
- 
+ s
 
+  # more direct control over map
+  # random effects  ..i.e.,  deviation from lognormal model ( pure spatial effect )
+    res = carstm_model(  p=p, DS="carstm_randomeffects" )  
+
+    outfilename= file.path( outputdir, paste("depth_spatialeffect_carstm", "png", sep=".") )
+    plt = carstm_map(  res=res, vn= c(  "space", "re_total" ), 
+        sppoly=sppoly,
+        transformation=log10,
+        title="Depth spatial error (log 10 m)",
+        colors=rev(RColorBrewer::brewer.pal(5, "RdYlBu")),
+        additional_features=additional_features,
+        outfilename=outfilename
+    )  
+    plt
+  
  
    
   
