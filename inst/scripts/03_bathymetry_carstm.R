@@ -82,12 +82,16 @@ set.seed(12345)
 
 
       # EXAMINE POSTERIORS AND PRIORS
-      all.hypers = INLA:::inla.all.hyper.postprocess(fit$all.hyper)
-      hypers = fit$marginals.hyperpar
-      names(hypers)
+      res = carstm_model(  p=p, DS="carstm_summary" )  # parameters in p and summary
 
-      carstm_prior_posterior_compare( hypers=hypers, all.hypers=all.hypers, vn="Precision for space", transf=FALSE )  # no conversion to SD 
-      carstm_prior_posterior_compare( hypers=hypers, all.hypers=all.hypers, vn="Phi for space" )  
+      outputdir = file.path(p$modeldir, p$carstm_model_label)
+      
+      res_vars = c( names( res$hypers), names(res$fixed) )
+      for (i in 1:length(res_vars) ) {
+        o = carstm_prior_posterior_compare( res, vn=res_vars[i], outputdir=outputdir )  
+        dev.new(); print(o)
+      }     
+ 
 
       # posterior predictive check
       carstm_posterior_predictive_check(p=p, M=bathymetry_db( p=p, DS="carstm_inputs" )   )
