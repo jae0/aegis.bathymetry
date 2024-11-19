@@ -803,7 +803,15 @@ message("FIXE ME::: deprecated libs, use sf/stars")
       pn = spatial_parameters( p=p, spatial_domain=p$spatial_domain )
       Z = spatial_grid(p)
       Z = planar2lonlat( Z,  proj.type=p$aegis_proj4string_planar_km   )
-      Z$z = aegis_lookup( paramaters="bathymetry", LOCS=Z[, c("lon", "lat")], project_class="core", output_format="points" , DS="aggregated_data", space_resolution=pn$pres, variable.name="z.mean" )  # core == unmodelled
+      
+      pL = aegis.bathymetry::bathymetry_parameters( project_class="stmv"  )
+      LUT= aegis_survey_lookuptable( aegis_project="bathymetry", 
+        project_class="core", DS="aggregated_data", pL=pL )
+
+      Z$z = aegis_lookup( pL=pL, LUT=LUT, 
+        LOCS=Z[, c("lon", "lat")], project_class="core", 
+        output_format="points", space_resolution=pn$pres, variable.name="z.mean" )  # core == unmodelled
+      
       Z = Z[ geo_subset( spatial_domain=p$spatial_domain, Z=Z ), ]
 
       fn = paste( "bathymetry", "baseline_prediction_locations", p$spatial_domain, "rdata" , sep=".")
