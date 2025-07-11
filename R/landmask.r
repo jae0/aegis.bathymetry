@@ -12,7 +12,7 @@
     if (is.null(crs)) crs = sp::CRS( sp::proj4string(lonlat) )
     if (is.null(crs)) crs = sp::CRS( projection_proj4string("lonlat_wgs84") )
 
-    fno = paste( tag, db, paste0(regions, collapse=""), paste0(crs, collapse=""), "rdata", sep=".")
+    fno = paste( tag, db, paste0(regions, collapse=""), paste0(crs, collapse=""), "rdz", sep=".")
 
     defaultdir = project.datadirectory( "aegis", "bathymetry" )
 
@@ -25,7 +25,7 @@
       #\\ When lonlat is NULL, this is a flag to return a previous generated and saved version
       #\\ found in bio.data/bathymetry/landmask/ ...
       land = NULL
-      if (file.exists( fn)) load(fn)
+      if (file.exists( fn)) land = read_write_fast(fn)
 
       if ( return.value=="test" )     return( land)
       if ( return.value=="not.land")  return( which ( is.na(land)) )
@@ -45,7 +45,7 @@
     land = sp::over( SpatialPoints( lonlat, crs ), coastlineSp )
 
 }
-    save( land, file=fn, compress=TRUE )
+    read_write_fast( land, file=fn )
     return(fn)
 
     if (0) {

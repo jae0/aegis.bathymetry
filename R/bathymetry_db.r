@@ -19,10 +19,9 @@
       # extent: (WSEN) = -+72,36,-45.,53
       # and saved as: bio.data/bathymetry/data/gebco.{xyz,nc}  # still waiting
       # and xz compressed
-      fn = file.path( p$datadir, "bathymetry.gebco.rdata" )
+      fn = file.path( p$datadir, "bathymetry.gebco.rdq" )
       if (file.exists (fn) ) {
-        load(fn)
-        return(gebco)
+        return(read_write_fast(fn))
       }
 
       fn_local = file.path( p$datadir, "gebco.xyz.xz") # xz compressed file
@@ -33,7 +32,7 @@
       names(gebco) = c("lon", "lat", "z")
       gebco$z = - gebco$z
       # levelplot( log(z+ min(gebco$z) ))~lon+lat, gebco, aspect="iso")
-      save( gebco, file=fn, compress=TRUE )
+      read_write_fast( gebco, file=fn )
     }
 
     # --------------
@@ -44,17 +43,16 @@
       # download manually from:  http://maps.ngdc.noaa.gov/viewers/wcs-client/
       # and saved as: bio.data/bathymetry/data/etopo1_bedrock.xyz
       # and xz compressed
-      fn = file.path( p$datadir, "bathymetry.etopo1.rdata" )
+      fn = file.path( p$datadir, "bathymetry.etopo1.rdz" )
       if (file.exists (fn) ) {
-        load(fn)
-        return(etopo1)
+        return(read_write_fast(fn))
       }
       fn_local = file.path( p$datadir, "etopo1_bedrock.xyz.xz") # xz compressed file
       etopo1 = read.table( xzfile( fn_local ) )
       names(etopo1) = c("lon", "lat", "z")
       etopo1$z = - etopo1$z
       # levelplot( log(z+ min(etopo1$z) ))~lon+lat, etopo1, aspect="iso")
-      save( etopo1, file=fn, compress=TRUE )
+      read_write_fast( etopo1, file=fn )
     }
 
     # --------------
@@ -65,13 +63,13 @@
       # 322624071 "grid points
       # 50 m  horizontal resolution
       # depth range: -5053.6 to 71.48 m
-      fn = file.path( p$datadir, "bathymetry.greenlaw.rdata" )
+      fn = file.path( p$datadir, "bathymetry.greenlaw.rdz" )
       if (file.exists (fn) ) {
-        load(fn)
-        return(gdem)
+        return(read_write_fast(fn))
       }
 
 message("FIXE ME::: deprecated libs, use sf/stars")
+
 #      require(rgdal)
       demfile.adf = file.path( p$datadir, "greenlaw_DEM", "mdem_50", "w001001.adf" )  # in ArcInfo adf format
       dem = new( "GDALReadOnlyDataset", demfile.adf )
@@ -84,7 +82,7 @@ message("FIXE ME::: deprecated libs, use sf/stars")
       gdem$plat = gdem$plat / 1000
       gdem = planar2lonlat( gdem, "utm20" )  # plon,plat in meters but crs for utm20 in km
       gdem = gdem[, c("lon", "lat", "z") ]
-      save( gdem, file=file.path( p$datadir, "bathymetry.greenlaw.rdata"), compress=TRUE )
+      read_write_fast( gdem, file=file.path( p$datadir, "bathymetry.greenlaw.rdz") )
     }
 
 
@@ -94,11 +92,10 @@ message("FIXE ME::: deprecated libs, use sf/stars")
 
     if (  DS %in% c("z.lonlat.rawdata.redo", "z.lonlat.rawdata") ) {
 			# raw data minimally modified all concatenated, dups removed
-      fn = file.path( p$datadir, "bathymetry.canada.east.lonlat.rawdata.rdata" )
+      fn = file.path( p$datadir, "bathymetry.canada.east.lonlat.rawdata.rdz" )
 
       if (DS =="z.lonlat.rawdata" ) {
-        load( fn )
-        return( bathy )
+        return( read_write_fast(fn) )
       }
 
       print( "This is going to take a lot of RAM!")
@@ -121,11 +118,11 @@ message("FIXE ME::: deprecated libs, use sf/stars")
 
       rm ( chs15); gc()
 
-      fn0 = file.path( p$datadir, "bathymetry.canada.east.lonlat.rawdata.temporary_0_1000.rdata" )
-      fn1 = file.path( p$datadir, "bathymetry.canada.east.lonlat.rawdata.temporary_1000_5000.rdata" )
+      fn0 = file.path( p$datadir, "bathymetry.canada.east.lonlat.rawdata.temporary_0_1000.rdz" )
+      fn1 = file.path( p$datadir, "bathymetry.canada.east.lonlat.rawdata.temporary_1000_5000.rdz" )
 
-      save ( chs0_1000, file=fn0 )
-      save ( chs1000_5000, file=fn1 )
+      read_write_fast ( chs0_1000, file=fn0 )
+      read_write_fast ( chs1000_5000, file=fn1 )
 
       rm ( chs0_1000, chs1000_5000 )
       gc()
@@ -158,20 +155,20 @@ message("FIXE ME::: deprecated libs, use sf/stars")
       gdem = gdem[ which( gdem$lat <  47.1) ,]
       gdem = gdem[ which( gdem$lon < -56.5) ,]
 
-      fn0g = file.path( p$datadir, "bathymetry.canada.east.lonlat.rawdata.temporary_0_1000_gdem.rdata" )
-      fn1g = file.path( p$datadir, "bathymetry.canada.east.lonlat.rawdata.temporary_1000_5000_gdem.rdata" )
+      fn0g = file.path( p$datadir, "bathymetry.canada.east.lonlat.rawdata.temporary_0_1000_gdem.rdz" )
+      fn1g = file.path( p$datadir, "bathymetry.canada.east.lonlat.rawdata.temporary_1000_5000_gdem.rdz" )
 
       # temporary break up of data to make it functional in smaller RAM systems
       gdem1000_5000 = gdem[ which( gdem$z > 1000 ), ]
       # u =  which(duplicated( gdem1000_5000))
       # if (length(u)>0) gdem1000_5000 = gdem1000_5000[-u,]
-      save ( gdem1000_5000, file=fn1g )
+      read_write_fast ( gdem1000_5000, file=fn1g )
       rm( gdem1000_5000 ); gc()
 
       gdem0_1000 = gdem[ which( gdem$z <= 1000 ), ]
       # u =  which(duplicated( gdem0_1000 ))
       # if (length(u)>0) gdem0_1000 = gdem0_1000[-u,]
-      save ( gdem0_1000, file=fn0g )
+      read_write_fast ( gdem0_1000, file=fn0g )
       rm( gdem0_1000 )
       rm( gdem)
       gc()
@@ -247,45 +244,39 @@ message("FIXE ME::: deprecated libs, use sf/stars")
 
       gc()
 
-      load( fn0)
-      bathy0 = rbind( bathy0, chs0_1000 )
-      rm(chs0_1000) ;gc()
+      
+      bathy0 = rbind( bathy0, read_write_fast(fn0) )
+      bathy0 = rbind( bathy0, read_write_fast(fn0g ) )
 
-      load( fn0g )
-      bathy0 = rbind( bathy0, gdem0_1000 )
-      rm ( gdem0_1000 ) ;gc()
+      gc()
 
       u =  which(duplicated( bathy0 ))
       if (length(u)>0) bathy0 = bathy0[ -u, ]
 
-      fn0b = file.path( p$datadir, "bathymetry.canada.east.lonlat.rawdata.temporary_0_1000_bathy.rdata" )
-      save ( bathy0, file=fn0b )
+      fn0b = file.path( p$datadir, "bathymetry.canada.east.lonlat.rawdata.temporary_0_1000_bathy.rdz" )
+      read_write_fast ( data=bathy0, fn=fn0b )
       rm (bathy0); gc()
 
     # ---
 
-      load( fn1 )
-      bathy1 = rbind( bathy1, chs1000_5000 )
-      rm (  chs1000_5000 ) ; gc()
+      
+      bathy1 = rbind( bathy1, read_write_fast( fn1 ) )
+      bathy1 = rbind( bathy1, read_write_fast( fn1g) )
 
-      load( fn1g )
-      bathy1 = rbind( bathy1, gdem1000_5000 )
-      rm ( gdem1000_5000 ) ; gc()
+      gc()
 
       u =  which(duplicated( bathy1 ))
       if (length(u)>0) bathy1 = bathy1[ -u, ]
       rm (u)
-
-      load( fn0b )
-
-      bathy = rbind( bathy0, bathy1 )
-      rm( bathy1, bathy0 ) ; gc()
+ 
+      bathy = rbind( read_write_fast( fn0b ), bathy1 )
+      rm( bathy1 ) ; gc()
 
       bid = paste( bathy$lon, bathy$lat, round(bathy$z, 1) ) # crude way to find dups
       bathy = bathy[!duplicated(bid),]
-      save( bathy, file=fn, compress=T )
+      read_write_fast( bathy, file=fn )
 
-      # save ascii in case someone needs it ...
+      # read_write_fast ascii in case someone needs it ...
       fn.bathymetry.xyz = file.path( p$datadir, "bathymetry.canada.east.xyz" )
       fn.xz = xzfile( paste( fn.bathymetry.xyz, ".xz", sep="" ) )
       write.table( bathy, file=fn.xz, col.names=F, quote=F, row.names=F)
@@ -308,12 +299,12 @@ message("FIXE ME::: deprecated libs, use sf/stars")
 
       if (!exists("inputdata_spatial_discretization_planar_km", p) )  p$inputdata_spatial_discretization_planar_km = 1
 
-      fn = file.path( p$datadir, paste( "bathymetry", "aggregated_data", p$spatial_domain,  round(p$inputdata_spatial_discretization_planar_km, 6) , "rdata", sep=".") )
+      fn = file.path( p$datadir, paste( "bathymetry", "aggregated_data", p$spatial_domain,  round(p$inputdata_spatial_discretization_planar_km, 6) , "rdz", sep=".") )
       M = NULL
       if (!redo)  {
         if (file.exists(fn)) {
           message("Using: ", fn)
-          load( fn)
+          M=read_write_fast( fn)
           return( M )
         }
       }
@@ -361,7 +352,7 @@ message("FIXE ME::: deprecated libs, use sf/stars")
       attr( M, "proj4string_planar" ) =  p$aegis_proj4string_planar_km
       attr( M, "proj4string_lonlat" ) =  projection_proj4string("lonlat_wgs84")
       setDF(M)
-      save(M, file=fn, compress=TRUE)
+      read_write_fast(M, file=fn)
 
       return( M )
     }
@@ -374,13 +365,13 @@ message("FIXE ME::: deprecated libs, use sf/stars")
 
       
       outdir = file.path( p$data_root, "modelled", p$carstm_model_label ) 
-      fn = file.path( outdir, "areal_units_input.rdata"  )
+      fn = file.path( outdir, "areal_units_input.rdz"  )
       if ( !file.exists(outdir)) dir.create( outdir, recursive=TRUE, showWarnings=FALSE )
 
       xydata = NULL
       if (!redo)  {
         if (file.exists(fn)) {
-          load( fn)
+          xydata = read_write_fast( fn)
           return( xydata )
         }
       }
@@ -388,7 +379,7 @@ message("FIXE ME::: deprecated libs, use sf/stars")
       names(xydata)[which(names(xydata)=="z.mean" )] = "z"
       xydata = xydata[ , c("lon", "lat"  )]
 
-      save(xydata, file=fn, compress=TRUE )
+      read_write_fast(xydata, file=fn )
       return( xydata )
     }
 
@@ -420,7 +411,7 @@ message("FIXE ME::: deprecated libs, use sf/stars")
 
       if (!redo)  {
         if (file.exists(fn)) {
-          load( fn)
+          M = read_write_fast( fn)
           return( M )
         }
       }
@@ -517,7 +508,7 @@ message("FIXE ME::: deprecated libs, use sf/stars")
       #required for carstm formulae
       M$space = match( M$AUID, as.character(sppoly$AUID) ) ## must be index matching nb graphs
       
-      save( M, file=fn, compress=TRUE )
+      read_write_fast( M, file=fn )
       return( M )
     }
 
@@ -527,9 +518,9 @@ message("FIXE ME::: deprecated libs, use sf/stars")
 
     if ( DS %in% c("bathymetry", "stmv_inputs", "stmv_inputs_redo" )) {
 
-      fn = file.path( p$modeldir, paste( "bathymetry", "stmv_inputs", "rdata", sep=".") )
+      fn = file.path( p$modeldir, paste( "bathymetry", "stmv_inputs", "rdz", sep=".") )
       if (DS %in% c("bathymetry", "stmv_inputs") ) {
-        load( fn)
+        hm = read_write_fastload( fn)
         return( hm )
       }
 
@@ -542,7 +533,7 @@ message("FIXE ME::: deprecated libs, use sf/stars")
 
       hm = list( input=B, output=list( LOCS = spatial_grid(p) ) )
       B = NULL; gc()
-      save( hm, file=fn, compress=FALSE)
+      read_write_fast( hm, file=fn )
       hm = NULL
       gc()
       return(fn)
@@ -554,9 +545,9 @@ message("FIXE ME::: deprecated libs, use sf/stars")
 
     if ( DS %in% c("stmv_inputs_highres", "stmv_inputs_highres_redo" )) {
 
-      fn = file.path( p$modeldir, paste( "bathymetry", "stmv_inputs_highres", "rdata", sep=".") )
+      fn = file.path( p$modeldir, paste( "bathymetry", "stmv_inputs_highres", "rdz", sep=".") )
       if (DS %in% c("stmv_inputs_highres") ) {
-        load( fn)
+        hm = read_write_fastload( fn)
         return( hm )
       }
 
@@ -579,7 +570,7 @@ message("FIXE ME::: deprecated libs, use sf/stars")
 
       hm = list( input=B, output=list( LOCS = spatial_grid(p) ) )
       B = NULL; gc()
-      save( hm, file=fn, compress=FALSE)
+      read_write_fast( hm, file=fn )
       hm = NULL
       gc()
       return(fn)
@@ -612,11 +603,11 @@ message("FIXE ME::: deprecated libs, use sf/stars")
       #// merge all stmv results and compute stats and warp to different grids
       outdir = file.path( p$modeldir, p$stmv_model_label, p$project_class, paste(  p$stmv_global_modelengine, p$stmv_local_modelengine, sep="_") )
 
-      fn = file.path( outdir, paste( "bathymetry", "complete", p$spatial_domain, "rdata", sep=".") )
+      fn = file.path( outdir, paste( "bathymetry", "complete", p$spatial_domain, "rdz", sep=".") )
 
       if ( DS %in% c( "complete") ) {
         Z = NULL
-        if ( file.exists ( fn) ) load( fn)
+        if ( file.exists ( fn) ) Z=read_write_fast( fn)
         return( Z )
       }
 
@@ -667,7 +658,7 @@ message("FIXE ME::: deprecated libs, use sf/stars")
       colnames(BS) = paste("b", colnames(BS), sep=".")
       Z = cbind( Z, BS )
 
-      save( Z, file=fn, compress=TRUE)
+      read_write_fast( Z, file=fn)
 
       BS = ddZ = ddiffc = ddiffr = NULL
       gc()
@@ -704,8 +695,8 @@ message("FIXE ME::: deprecated libs, use sf/stars")
           }
         Z = Z[ , names(Z0) ]
 
-        fn = file.path( outdir, paste( "bathymetry", "complete", p1$spatial_domain, "rdata", sep=".") )
-        save (Z, file=fn, compress=TRUE)
+        fn = file.path( outdir, paste( "bathymetry", "complete", p1$spatial_domain, "rdz", sep=".") )
+        read_write_fast (Z, file=fn)
       }
 
       return(fn)
@@ -732,10 +723,9 @@ message("FIXE ME::: deprecated libs, use sf/stars")
 
       if ( DS=="baseline" ) {
         #  used to obtain coordinates
-        fn = paste( "bathymetry", "baseline", p$spatial_domain, "rdata" , sep=".")
+        fn = paste( "bathymetry", "baseline", p$spatial_domain, "rdz" , sep=".")
         outfile =  file.path( outdir, fn )
-        Z = NULL
-        load( outfile )
+        Z = read_write_fast( outfile )
         Znames = names(Z)
         if (is.null(varnames)) varnames =c("plon", "plat")  # default is to send locs only .. different reative to all other data streams
         varnames = intersect( Znames, varnames )  # send anything that results in no match causes everything to be sent
@@ -766,10 +756,10 @@ message("FIXE ME::: deprecated libs, use sf/stars")
         ii = which( Z$ddZ > 20 )
         if (length(ii) > 0) Z$ddZ[ii] = 20
 
-        fn = paste( "bathymetry", "baseline", domain, "rdata" , sep="." )
+        fn = paste( "bathymetry", "baseline", domain, "rdz" , sep="." )
         outfile =  file.path( outdir, fn )
 
-        save (Z, file=outfile, compress=T )
+        read_write_fast (Z, file=outfile )
         print( outfile )
       }
       # require (lattice); levelplot( z~plon+plat, data=Z, aspect="iso")
@@ -786,11 +776,11 @@ message("FIXE ME::: deprecated libs, use sf/stars")
 
       if ( DS=="baseline_prediction_locations" ) {
         #  used to obtain coordinates
-        fn = paste( "bathymetry", "baseline_prediction_locations", p$spatial_domain, "rdata" , sep=".")
+        fn = paste( "bathymetry", "baseline_prediction_locations", p$spatial_domain, "rdz" , sep=".")
         outfile =  file.path( outdir, fn )
         Z = NULL
         if (file.exists(fn)) {
-          load( outfile )
+          Z = read_write_fast( outfile )
           Znames = names(Z)
           if (is.null(varnames)) varnames =c("plon", "plat")  # default is to send locs only .. different reative to all other data streams
           varnames = intersect( Znames, varnames )  # send anything that results in no match causes everything to be sent
@@ -814,10 +804,10 @@ message("FIXE ME::: deprecated libs, use sf/stars")
       
       Z = Z[ geo_subset( spatial_domain=p$spatial_domain, Z=Z ), ]
 
-      fn = paste( "bathymetry", "baseline_prediction_locations", p$spatial_domain, "rdata" , sep=".")
+      fn = paste( "bathymetry", "baseline_prediction_locations", p$spatial_domain, "rdz" , sep=".")
       outfile =  file.path( outdir, fn )
 
-      save (Z, file=outfile, compress=TRUE )
+      read_write_fast (Z, file=outfile )
       print( outfile )
 
       # require (lattice); levelplot( z~plon+plat, data=Z, aspect="iso")

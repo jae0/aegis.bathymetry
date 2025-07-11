@@ -31,10 +31,10 @@ isobath_db = function(
     
       if ( DS == "isobath" ) {
     
-        fn.iso = file.path( data_dir, "isobaths", paste("isobaths", spatial_domain_input, "rdata", sep=".") )  # in case there is an alternate project
+        fn.iso = file.path( data_dir, "isobaths", paste("isobaths", spatial_domain_input, "rdz", sep=".") )  # in case there is an alternate project
         
         if (file.exists(fn.iso)) {
-          load(fn.iso)
+          isobaths = read_write_fast(fn.iso)
           isobaths = as( isobaths, "sf")  # in case an old file from sp*
 
           nn = row.names(isobaths)
@@ -77,7 +77,7 @@ isobath_db = function(
     # here is redoing or p is passed and a lower (alt) resolution, p-specific isobath is desired 
     if (is.null(p)) p = aegis.bathymetry::bathymetry_parameters( spatial_domain=spatial_domain_input ) 
 
-    fn.iso = file.path( data_dir, "isobaths", paste("isobaths", spatial_domain, "rdata", sep=".") )  # in case there is an alternate project
+    fn.iso = file.path( data_dir, "isobaths", paste("isobaths", spatial_domain, "rdz", sep=".") )  # in case there is an alternate project
 
     Z = bathymetry_db( p=p, DS="aggregated_data" )
     Zi = array_map( "xy->2", Z[, c("plon", "plat")], gridparams=p$gridparams )
@@ -116,7 +116,7 @@ isobath_db = function(
     attr( isobaths, "proj4string_planar" ) =  p$aegis_proj4string_planar_km
     attr( isobaths, "proj4string_lonlat" ) =  projection_proj4string("lonlat_wgs84")
 
-    save( isobaths, file=fn.iso, compress=TRUE)
+    read_write_fast( isobaths, file=fn.iso)
 
     if ( ! st_crs( isobaths ) == st_crs( project_to) ) isobaths = st_transform( isobaths, st_crs( project_to ) )
 

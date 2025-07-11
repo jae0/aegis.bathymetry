@@ -8,14 +8,14 @@ map_area_unit_problem = function( inp = NULL, logz=FALSE, just_return_results=FA
     p = list()
     p$data_root = project.datadirectory( "aegis", "bathymetry" )
     p$datadir = file.path( p$data_root, "data" )
-    fn = file.path(p$datadir, "maup.rdata")
-    fn_res = file.path(p$datadir, "maup_summary.rdata")
-    if (logz) fn_res = file.path(p$datadir, "maup_log_summary.rdata")
+    fn = file.path(p$datadir, "maup.rdz")
+    fn_res = file.path(p$datadir, "maup_summary.rdz")
+    if (logz) fn_res = file.path(p$datadir, "maup_log_summary.rdz")
     if (just_return_results) {
-      load(fn_res)
+      maup = read_write_fast(fn_res)
       return(maup)
     }
-    if (file.exists(fn) ) load( fn )
+    if (file.exists(fn) ) inp = read_write_fast( fn )
     if (is.null(inp)) {
       inp = bathymetry_db( p=p, "z.lonlat.rawdata")
       box = list( lon=c(-55,-45), lat=c(40, 50) )
@@ -24,7 +24,7 @@ map_area_unit_problem = function( inp = NULL, logz=FALSE, just_return_results=FA
         inp$lat > box$lat[1] & inp$lat < box$lat[2]
       ), ]
       inp = lonlat2planar( inp, proj.type=projection_proj4string("utm20"))
-      save (inp, file=file.path(p$datadir, "maup.rdata"), compress=TRUE )
+      read_write_fast (inp, file=fn )
     }
   }
 
@@ -90,7 +90,7 @@ map_area_unit_problem = function( inp = NULL, logz=FALSE, just_return_results=FA
 
   attr( maup, "variogram" ) = gr
 
-  save(maup, file=fn_res, compress=TRUE)
+  read_write_fast(maup, file=fn_res)
 
   if (0) {
 
