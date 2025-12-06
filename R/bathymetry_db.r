@@ -102,7 +102,7 @@ message("FIXE ME::: deprecated libs, use sf/stars")
 
 			# this data was obtained from CHS via David Greenberg in 2004; range = -5467.020, 383.153; n=28,142,338
       fn_nwa = file.path( p$datadir, "nwa.chs15sec.xyz.xz") # xz compressed file
-      chs15 = data.table::fread( xzfile( fn_nwa ) )
+      chs15 = read.table( xzfile( fn_nwa ) )
       setDT(chs15)
       names(chs15) = c("lon", "lat", "z")
       chs15$z = - chs15$z
@@ -129,6 +129,9 @@ message("FIXE ME::: deprecated libs, use sf/stars")
       # pei = which( chs15$lon < -60.5 & chs15$lon > -64.5 & chs15$lat>45.5 & chs15$lat<48.5 )
       # levelplot( z~lon+lat, data=chs15[pei,] )
 
+if (0) {
+  
+  # oversmooth?
 
       # Michelle Greenlaw's DEM from 2014
       # range -3000 to 71.5 m; n=155,241,029 .. but mostly interpolated
@@ -175,6 +178,7 @@ message("FIXE ME::: deprecated libs, use sf/stars")
       rm( gdem)
       gc()
 
+}
 
       # chs and others above use chs depth convention: "-" is below sea level,
 			# in snowcrab and groundfish convention "-" is above sea level
@@ -183,7 +187,7 @@ message("FIXE ME::: deprecated libs, use sf/stars")
 
       etopo1 = bathymetry_db( DS="etopo1" )
       setDT(etopo1)
-      etopo$source = "etopo1min"
+      etopo1$source = "etopo1min"
 
       bathy = rbind( chs15, etopo1 )
       rm(etopo1)
@@ -220,6 +224,7 @@ message("FIXE ME::: deprecated libs, use sf/stars")
         setnames(scl, "depth", "z")
 
         scl = scl[ is.finite(lon) & is.finite(lat) &is.finite(z) ,]
+        scl$depth[ scl$z > 10 & scl$z < 300 ]
 
 				j = which(duplicated(scl))
         if (length (j) > 0 ) scl = scl[-j,]
