@@ -1,5 +1,5 @@
 
-  bathymetry_db = function( p=NULL, DS=NULL, varnames=NULL, redo=FALSE, sppoly=NULL, ... ) {
+  bathymetry_db = function( p=NULL, DS=NULL, varnames=NULL, redo=FALSE, sppoly=NULL, additional.data=c("sc_survey", "groundfish", "lobster", "sc_logbooks" ), ... ) {
 
     #\\ Note inverted convention: depths are positive valued
     #\\ i.e., negative valued for above sea level and positive valued for below sea level
@@ -102,10 +102,11 @@ message("FIXE ME::: deprecated libs, use sf/stars")
 
 			# this data was obtained from CHS via David Greenberg in 2004; range = -5467.020, 383.153; n=28,142,338
       fn_nwa = file.path( p$datadir, "nwa.chs15sec.xyz.xz") # xz compressed file
-      chs15 = read.table( xzfile( fn_nwa ) )
+      chs15 = data.table::fread( xzfile( fn_nwa ) )
+      setDT(chs15)
       names(chs15) = c("lon", "lat", "z")
-      # chs15 = chs15[ which( chs15$z < 1000 ) , ]
       chs15$z = - chs15$z
+      chs15$source = "chs15sec"
 
       # temporary break up of data to make it functional in smaller RAM systems
       chs1000_5000 = chs15[ which( chs15$z > 1000 ), ]
@@ -115,8 +116,6 @@ message("FIXE ME::: deprecated libs, use sf/stars")
       chs0_1000 = chs15[ which( chs15$z <= 1000 ), ]
       u =  which(duplicated( chs0_1000 ))
       if (length(u)>0) chs0_1000 = chs0_1000[-u,]
-
-      rm ( chs15); gc()
 
       fn0 = file.path( p$datadir, "bathymetry.canada.east.lonlat.rawdata.temporary_0_1000.rdz" )
       fn1 = file.path( p$datadir, "bathymetry.canada.east.lonlat.rawdata.temporary_1000_5000.rdz" )
@@ -134,6 +133,8 @@ message("FIXE ME::: deprecated libs, use sf/stars")
       # Michelle Greenlaw's DEM from 2014
       # range -3000 to 71.5 m; n=155,241,029 .. but mostly interpolated
       gdem = bathymetry_db( DS="Greenlaw_DEM" )
+      setDT(gdem)
+
       gdem$z = - gdem$z
 
       # pei = which( gdem$lon < -60.5 & gdem$lon > -65 & gdem$lat>45.5 & gdem$lat<49 )
@@ -149,7 +150,7 @@ message("FIXE ME::: deprecated libs, use sf/stars")
                    c( -62, 46.5 ) )
 
       a = which( point.in.polygon( gdem$lon, gdem$lat, bd1[,1], bd1[,2] ) != 0 )
-      gdem = gdem[- a,]
+      gdem = gdem[ -a,]
 
       # remove also the northern and eastern margins for edge effects
       gdem = gdem[ which( gdem$lat <  47.1) ,]
@@ -159,6 +160,7 @@ message("FIXE ME::: deprecated libs, use sf/stars")
       fn1g = file.path( p$datadir, "bathymetry.canada.east.lonlat.rawdata.temporary_1000_5000_gdem.rdz" )
 
       # temporary break up of data to make it functional in smaller RAM systems
+      gdem$source = "greenlaw50m"
       gdem1000_5000 = gdem[ which( gdem$z > 1000 ), ]
       # u =  which(duplicated( gdem1000_5000))
       # if (length(u)>0) gdem1000_5000 = gdem1000_5000[-u,]
@@ -177,18 +179,30 @@ message("FIXE ME::: deprecated libs, use sf/stars")
       # chs and others above use chs depth convention: "-" is below sea level,
 			# in snowcrab and groundfish convention "-" is above sea level
 			# retain postive values at this stage to help contouring near coastlines
+      
 
-      bathy = bathymetry_db( DS="etopo1" )
+      etopo1 = bathymetry_db( DS="etopo1" )
+      setDT(etopo1)
+      etopo$source = "etopo1min"
 
-      additional.data=c("snowcrab", "groundfish", "lobster")
+      bathy = rbind( chs15, etopo1 )
+      rm(etopo1)
+      rm(chs15) 
+      gc()
 
-			if ( "snowcrab" %in% additional.data ) {
+
+			if ( "sc_survey" %in% additional.data ) {
         # range from 23.8 to 408 m below sea level ... these have dropped the "-" for below sea level; n=5925 (in 2014)
         # project.library( "bio.snowcrab")
-        sc = bio.snowcrab::snowcrab.db( DS="set.clean")[,c("lon", "lat", "z") ]
-				sc = sc [ which (is.finite( rowSums( sc ) ) ) ,]
+        sc = bio.snowcrab::snowcrab.db( DS="set.clean")[, c("lon", "lat", "z") ]
+				setDT(sc)
+
+        sc = sc [ is.finite(lon) & is.finite(lat) &is.finite(z) ,]
+
 				j = which(duplicated(sc))
         if (length (j) > 0 ) sc = sc[-j,]
+        sc$source = "sc_survey"
+
         bathy = rbind( bathy, sc )
 			  # p = p0
         rm (sc); gc()
@@ -198,16 +212,42 @@ message("FIXE ME::: deprecated libs, use sf/stars")
         # contourplot( z~lon+lat, sc, cuts=10, labels=F )
       }
 
+			if ( "sc_logbooks" %in% additional.data ) {
+        # range from 23.8 to 408 m below sea level ... these have dropped the "-" for below sea level; n=5925 (in 2014)
+        # project.library( "bio.snowcrab")
+        scl = bio.snowcrab::logbook.db( DS="logbook")[, c("lon", "lat", "depth") ]
+				setDT(scl)
+        setnames(scl, "depth", "z")
+
+        scl = scl[ is.finite(lon) & is.finite(lat) &is.finite(z) ,]
+
+				j = which(duplicated(scl))
+        if (length (j) > 0 ) scl = scl[-j,]
+        scl$source = "sc_logbooks"
+
+        bathy = rbind( bathy, scl )
+			  # p = p0
+        rm (scl); gc()
+
+        #scl$lon = round(scl$lon,1)
+        #scl$lat = round(scl$lat,1)
+        # contourplot( z~lon+lat, scl, cuts=10, labels=F )
+      }
+
       if ( "groundfish" %in% additional.data ) {
         # n=13031; range = 0 to 1054
 
         warning( "Should use bottom contact estimates as a priority ?" )
 				gf = groundfish_survey_db( DS="set.base" )[, c("lon","lat", "sdepth") ]
-				gf = gf[ which( is.finite(rowSums(gf) ) ) ,]
+				setDT(gf)
         names(gf) = c("lon", "lat", "z")
+
+        gf = gf[ is.finite(lon) & is.finite(lat) &is.finite(z)  , ]
 				j = which(duplicated(gf))
         if (length (j) > 0 ) gf = gf[-j,]
- 				bathy = rbind( bathy, gf )
+ 				gf$source = "gf_survey"
+
+        bathy = rbind( bathy, gf )
         rm (gf); gc()
 
         #gf$lon = round(gf$lon,1)
@@ -221,7 +261,10 @@ message("FIXE ME::: deprecated libs, use sf/stars")
         p0temp = aegis.temperature::temperature_parameters( yrs=1900:current.year )
         lob = temperature_db( p=p0temp, DS="lobster", yr=1900:current.year ) # FSRS data ...  new additions have to be made at the rawdata level manually; yr must be passed to retrieve data ..
         lob = lob[, c("lon","lat", "z") ]
-        lob = lob[ which( is.finite(rowSums(lob) ) ) ,]
+        setDT(lob)
+        lob$source = "fsrs"
+
+        lob = lob[ is.finite(lon) & is.finite(lat) &is.finite(z)   ,]
         j = which(duplicated(lob))
         if (length (j) > 0 ) lob = lob[-j,]
         bathy = rbind( bathy, lob )
@@ -232,56 +275,12 @@ message("FIXE ME::: deprecated libs, use sf/stars")
         #contourplot( z~lon+lat, lob, cuts=10, labels=F )
 
       }
-
-
-      u =  which(duplicated( bathy ))
-      if (length(u)>0) bathy = bathy[ -u, ]
-      rm (u)
-
-      bathy0 = bathy[ which(bathy$z <= 1000), ]
-      bathy1 = bathy[ which(bathy$z  > 1000), ]
-      rm(bathy)
-
-      gc()
-
-      
-      bathy0 = rbind( bathy0, read_write_fast(fn0) )
-      bathy0 = rbind( bathy0, read_write_fast(fn0g ) )
-
-      gc()
-
-      u =  which(duplicated( bathy0 ))
-      if (length(u)>0) bathy0 = bathy0[ -u, ]
-
-      fn0b = file.path( p$datadir, "bathymetry.canada.east.lonlat.rawdata.temporary_0_1000_bathy.rdz" )
-      read_write_fast ( data=bathy0, fn=fn0b )
-      rm (bathy0); gc()
-
-    # ---
-
-      
-      bathy1 = rbind( bathy1, read_write_fast( fn1 ) )
-      bathy1 = rbind( bathy1, read_write_fast( fn1g) )
-
-      gc()
-
-      u =  which(duplicated( bathy1 ))
-      if (length(u)>0) bathy1 = bathy1[ -u, ]
-      rm (u)
- 
-      bathy = rbind( read_write_fast( fn0b ), bathy1 )
-      rm( bathy1 ) ; gc()
-
-      bid = paste( bathy$lon, bathy$lat, round(bathy$z, 1) ) # crude way to find dups
+  
+      bid = paste( round(bathy$lon,4), round(bathy$lat,4), round(bathy$z, 1) ) # crude way to find dups
       bathy = bathy[!duplicated(bid),]
+      
       read_write_fast( bathy, file=fn )
-
-      # read_write_fast ascii in case someone needs it ...
-      fn.bathymetry.xyz = file.path( p$datadir, "bathymetry.canada.east.xyz" )
-      fn.xz = xzfile( paste( fn.bathymetry.xyz, ".xz", sep="" ) )
-      write.table( bathy, file=fn.xz, col.names=F, quote=F, row.names=F)
-      system( paste( "xz",  fn.bathymetry.xyz ))  # compress for space
-
+ 
       if (file.exists (fn.bathymetry.xyz) ) file.remove(fn.bathymetry.xyz)
       if (file.exists (fn0) ) file.remove( fn0 )
       if (file.exists (fn1) ) file.remove( fn1 )
@@ -322,9 +321,9 @@ message("FIXE ME::: deprecated libs, use sf/stars")
 
       M$lon = NULL
       M$lat = NULL
-      M$z = M[[p$variabletomodel]]
+      setnames(M, p$variabletomodel, "z" )
 
-        # thin data a bit ... remove potential duplicates and robustify
+      # thin data a bit ... remove potential duplicates and robustify
 
       M$plon = trunc(M$plon / p$inputdata_spatial_discretization_planar_km + 1 ) * p$inputdata_spatial_discretization_planar_km
       M$plat = trunc(M$plat / p$inputdata_spatial_discretization_planar_km + 1 ) * p$inputdata_spatial_discretization_planar_km
@@ -332,19 +331,17 @@ message("FIXE ME::: deprecated libs, use sf/stars")
       gc()
       
       # geo_subset removes depths < 0 (above sea level)
-      M = M[ geo_subset( spatial_domain=p$spatial_domain, Z=M ) , ] # need to be careful with extrapolation ...  filter depths
+      M = M[ geo_subset( spatial_domain=p$spatial_domain, Z=M ) , ] # need to be careful with extrapolation ...   filter depths
 
       if (exists("quantile_bounds", p)) {
-        TR = quantile(M[[p$variabletomodel]], probs=p$quantile_bounds, na.rm=TRUE )
-        keep = which( M[[p$variabletomodel]] >=  TR[1] & M[[p$variabletomodel]] <=  TR[2] )
+        TR = quantile(M$z, probs=p$quantile_bounds, na.rm=TRUE )
+        keep = which( M$z >=  TR[1] & M$z <=  TR[2] )
         if (length(keep) > 0 ) M = M[ keep, ]
         keep = NULL
         gc()
       }
 
-      setDT(M)
       M = M[, .( mean=mean(z, na.rm=TRUE), sd=sd(z, na.rm=TRUE), n=length(which(is.finite(z))) ), by=list(plon, plat) ]
-      M = M[ z > 1, ]
 
       colnames(M) = c( "plon", "plat", paste( p$variabletomodel, c("mean", "sd", "n"), sep=".") )
       M = planar2lonlat( M, p$aegis_proj4string_planar_km )

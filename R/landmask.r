@@ -53,11 +53,10 @@
         coastline_source="eastcoast_gadm"
         crs_lonlat = st_crs(projection_proj4string("lonlat_wgs84"))
         coast = st_transform( coastline_db( p=p, DS=coastline_source ), crs_lonlat )
-        coast$inside = TRUE
         inside = st_points_in_polygons(
           pts = st_as_sf( set[, c("lon", "lat")], coords=c("lon","lat"), crs=crs_lonlat ),
           polys = coast,
-          varname = "inside"
+          method="sp::point.in.polygon" # fastest (no joins)
         )
     }
 
