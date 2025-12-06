@@ -107,25 +107,7 @@ message("FIXE ME::: deprecated libs, use sf/stars")
       names(chs15) = c("lon", "lat", "z")
       chs15$z = - chs15$z
       chs15$source = "chs15sec"
-
-      # temporary break up of data to make it functional in smaller RAM systems
-      chs1000_5000 = chs15[ which( chs15$z > 1000 ), ]
-      u =  which(duplicated( chs1000_5000))
-      if (length(u)>0) chs1000_5000 = chs1000_5000[-u,]
-
-      chs0_1000 = chs15[ which( chs15$z <= 1000 ), ]
-      u =  which(duplicated( chs0_1000 ))
-      if (length(u)>0) chs0_1000 = chs0_1000[-u,]
-
-      fn0 = file.path( p$datadir, "bathymetry.canada.east.lonlat.rawdata.temporary_0_1000.rdz" )
-      fn1 = file.path( p$datadir, "bathymetry.canada.east.lonlat.rawdata.temporary_1000_5000.rdz" )
-
-      read_write_fast ( chs0_1000, file=fn0 )
-      read_write_fast ( chs1000_5000, file=fn1 )
-
-      rm ( chs0_1000, chs1000_5000 )
-      gc()
-
+ 
       # pei = which( chs15$lon < -60.5 & chs15$lon > -64.5 & chs15$lat>45.5 & chs15$lat<48.5 )
       # levelplot( z~lon+lat, data=chs15[pei,] )
 
@@ -158,25 +140,10 @@ if (0) {
       # remove also the northern and eastern margins for edge effects
       gdem = gdem[ which( gdem$lat <  47.1) ,]
       gdem = gdem[ which( gdem$lon < -56.5) ,]
-
-      fn0g = file.path( p$datadir, "bathymetry.canada.east.lonlat.rawdata.temporary_0_1000_gdem.rdz" )
-      fn1g = file.path( p$datadir, "bathymetry.canada.east.lonlat.rawdata.temporary_1000_5000_gdem.rdz" )
-
+ 
       # temporary break up of data to make it functional in smaller RAM systems
       gdem$source = "greenlaw50m"
-      gdem1000_5000 = gdem[ which( gdem$z > 1000 ), ]
-      # u =  which(duplicated( gdem1000_5000))
-      # if (length(u)>0) gdem1000_5000 = gdem1000_5000[-u,]
-      read_write_fast ( gdem1000_5000, file=fn1g )
-      rm( gdem1000_5000 ); gc()
-
-      gdem0_1000 = gdem[ which( gdem$z <= 1000 ), ]
-      # u =  which(duplicated( gdem0_1000 ))
-      # if (length(u)>0) gdem0_1000 = gdem0_1000[-u,]
-      read_write_fast ( gdem0_1000, file=fn0g )
-      rm( gdem0_1000 )
-      rm( gdem)
-      gc()
+    
 
 }
 
@@ -285,14 +252,7 @@ if (0) {
       bathy = bathy[!duplicated(bid),]
       
       read_write_fast( bathy, file=fn )
- 
-      if (file.exists (fn.bathymetry.xyz) ) file.remove(fn.bathymetry.xyz)
-      if (file.exists (fn0) ) file.remove( fn0 )
-      if (file.exists (fn1) ) file.remove( fn1 )
-      if (file.exists (fn0g) ) file.remove( fn0g )
-      if (file.exists (fn1g) ) file.remove( fn1g )
-      if (file.exists (fn0b) ) file.remove( fn0b )
-
+  
       return ( fn )
     }
 
