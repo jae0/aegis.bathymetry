@@ -482,7 +482,7 @@ if (0) {
 
       fn = file.path( p$modeldir, paste( "bathymetry", "stmv_inputs", "rdz", sep=".") )
       if (DS %in% c("bathymetry", "stmv_inputs") ) {
-        hm = read_write_fastload( fn)
+        hm = read_write_fast( fn)
         return( hm )
       }
 
@@ -509,7 +509,7 @@ if (0) {
 
       fn = file.path( p$modeldir, paste( "bathymetry", "stmv_inputs_highres", "rdz", sep=".") )
       if (DS %in% c("stmv_inputs_highres") ) {
-        hm = read_write_fastload( fn)
+        hm = read_write_fast( fn)
         return( hm )
       }
 
@@ -517,8 +517,8 @@ if (0) {
 
       # p$quantile_bounds = c(0.0005, 0.9995)
       if (exists("quantile_bounds", p)) {
-        TR = quantile(B[,p$variabletomodel], probs=p$quantile_bounds, na.rm=TRUE )
-        keep = which( B[,p$variabletomodel] >=  TR[1] & B[,p$variabletomodel] <=  TR[2] )
+        TR = quantile(B[[p$variabletomodel]], probs=p$quantile_bounds, na.rm=TRUE )
+        keep = which( B[[p$variabletomodel]] >=  TR[1] & B[[p$variabletomodel]] <=  TR[2] )
         if (length(keep) > 0 ) B = B[ keep, ]
       }
 
