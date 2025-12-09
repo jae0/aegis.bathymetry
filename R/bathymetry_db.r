@@ -294,8 +294,8 @@ if (0) {
       M$plat = trunc(M$plat / p$inputdata_spatial_discretization_planar_km + 1 ) * p$inputdata_spatial_discretization_planar_km
 
       gc()
-      
-      # removes depths < 0 (above sea level)
+       
+      # filter_by_spatial_domain removes depths < 0 (above sea level)
       M = M[ filter_by_spatial_domain( spatial_domain=p$spatial_domain, Z=M ) , ] # need to be careful with extrapolation ...   filter depths
 
       if (exists("quantile_bounds", p)) {
