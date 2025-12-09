@@ -4,9 +4,12 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
   require(aegis)
   require(aegis.bathymetry)
 
-  homedir = path.expand("~")
-  code_root = file.path( homedir, "bio" )   ### replace with correct path to the parent directory of your git-projects
-  data_root = file.path( homedir, "bio.data" )   ### replace with correct path to your data
+  if (0) {
+    # these probably best in Rprofile
+    homedir = path.expand("~")
+    code_root = file.path( homedir, "bio" )   ### replace with correct path to the parent directory of your git-projects
+    data_root = file.path( homedir, "bio.data" )   ### replace with correct path to your data
+  }
 
   p = parameters_add( p, list(...) ) # add passed args to parameter list, priority to args
 
