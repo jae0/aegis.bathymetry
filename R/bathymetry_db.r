@@ -295,8 +295,8 @@ if (0) {
 
       gc()
       
-      # geo_subset removes depths < 0 (above sea level)
-      M = M[ geo_subset( spatial_domain=p$spatial_domain, Z=M ) , ] # need to be careful with extrapolation ...   filter depths
+      # removes depths < 0 (above sea level)
+      M = M[ filter_by_spatial_domain( spatial_domain=p$spatial_domain, Z=M ) , ] # need to be careful with extrapolation ...   filter depths
 
       if (exists("quantile_bounds", p)) {
         TR = quantile(M$z, probs=p$quantile_bounds, na.rm=TRUE )
@@ -703,7 +703,7 @@ if (0) {
         #   pn = spatial_parameters( p=pn, spatial_domain="SSE" )
         # }
         Z = bathymetry_db( p=pn, DS="complete" )
-        Z = Z[ geo_subset( spatial_domain=domain, Z=Z ), ]
+        Z = Z[ filter_by_spatial_domain( spatial_domain=domain, Z=Z ), ]
 
         # range checks
         ii = which( Z$dZ < exp(-6))
@@ -764,7 +764,7 @@ if (0) {
         LOCS=Z[, c("lon", "lat")], project_class="core", 
         output_format="points", space_resolution=pn$pres, variable.name="z.mean" )  # core == unmodelled
       
-      Z = Z[ geo_subset( spatial_domain=p$spatial_domain, Z=Z ), ]
+      Z = Z[ filter_by_spatial_domain( spatial_domain=p$spatial_domain, Z=Z ), ]
 
       fn = paste( "bathymetry", "baseline_prediction_locations", p$spatial_domain, "rdz" , sep=".")
       outfile =  file.path( outdir, fn )
