@@ -35,7 +35,7 @@ isobath_db = function(
         
         if (file.exists(fn.iso)) {
           isobaths = read_write_fast(fn.iso)
-          isobaths = as( isobaths, "sf")  # in case an old file from sp*
+          # isobaths = as( isobaths, "sf")  # in case an old file from sp*
 
           nn = row.names(isobaths)
           if ( st_crs( isobaths ) != st_crs(project_to) ) isobaths = st_transform( isobaths, st_crs( project_to ) )
@@ -44,32 +44,22 @@ isobath_db = function(
 
           if (length( notfound) > 0 ) {
             message( "matching isobaths not found, computing on the fly  .. " )
-
-            Zsmoothed = attributes( isobaths)$Zsmoothed 
-
-            x = seq(min(attributes( isobaths)$corners$plon), max(attributes( isobaths)$corners$plon), by=attributes( isobaths)$pres)
-            y = seq(min(attributes( isobaths)$corners$plat), max(attributes( isobaths)$corners$plat), by=attributes( isobaths)$pres)
             
-            {
-            message( "FIX ME:: maptools depreciated use stars::st_contour")  
-            # cl = stars::st_contour( stars, breaks= depths )
-            # also: terra::rast(volcano) # Example SpatRaster object
-            # x <-  as.contour(r)  # -- > then convert to sf
-            
-            cl = contourLines( x=x, y=y, Zsmoothed$z, levels=depths )  # now in graphics::contourLines ?
+            Z =  st_as_sf(Z, coords=c("plon", "plat"), crs=st_crs(p$aegis_proj4string_planar_km) ) 
 
-            iso_crs = attributes( isobaths)$proj4string_planar 
-            
-            isobaths = maptools::ContourLines2SLDF(cl, proj4string=sp::CRS(iso_crs) )
-            }
+            Z = stars::st_rasterize( Z["z.mean"], dx=p$pres, dy=p$pres )
 
-            isobaths = as( isobaths, "sf")
-            st_crs(isobaths) = st_crs( iso_crs )  
+            isobaths = st_contour( Z, contour_lines = FALSE, na.rm = TRUE, breaks = depths )
+            isobaths = as( isobaths, "sf") 
+            isobaths = isobaths[, "Min"]
+            names(isobaths) = c("levels" , "geometry")
+            st_crs(isobaths) = st_crs( p$aegis_proj4string_planar_km  ) 
 
             isobaths = st_transform( isobaths, st_crs(projection_proj4string("lonlat_wgs84")) )  ## longlat  as storage format
             row.names(isobaths) = as.character(isobaths$level)
   
           }
+          
           retain = which( row.names(isobaths) %in% as.character(depths) )
           return( isobaths[retain,]  )
         }
@@ -83,37 +73,20 @@ isobath_db = function(
     fn.iso = file.path( data_dir, "isobaths", paste("isobaths", spatial_domain, "rdz", sep=".") )  # in case there is an alternate project
 
     Z = bathymetry_db( p=p, DS="aggregated_data" )
-    Zi = array_map( "xy->2", Z[, c("plon", "plat")], gridparams=p$gridparams )
+    
+    Z =  st_as_sf(Z, coords=c("plon", "plat"), crs=st_crs(p$aegis_proj4string_planar_km) ) 
 
-    # remove raw data outside of the bounding box
-    good = which( Zi[,1] >= 1 & Zi[,1] <= p$nplons & Zi[,2] >= 1 & Zi[,2] <= p$nplats )
-    Zi = Zi[good,]
-    Z = Z[good,]
+    Z = stars::st_rasterize( Z["z.mean"], dx=p$pres, dy=p$pres )
 
-    Zmatrix = matrix(NA, nrow=p$nplons, ncol=p$nplats )
-    Zmatrix[Zi] = Z$z.mean
-    Zsmoothed = image.smooth( Zmatrix, aRange=aRange )
-
-    x = seq(min(p$corners$plon), max(p$corners$plon), by=p$pres)
-    y = seq(min(p$corners$plat), max(p$corners$plat), by=p$pres)
-
-{
-    message( "FIX ME !!! :: maptools depreciated use stars::st_contour")
-    # ?stars::st_as_stars
-    # cl = stars::st_contour( stars, breaks= depths )
-
-    cl = contourLines( x=x, y=y, Zsmoothed$z, levels=depths )
-
-    isobaths = maptools::ContourLines2SLDF(cl, proj4string=sp::CRS( p$aegis_proj4string_planar_km ) )
-}
-    isobaths = as( isobaths, "sf")
+    isobaths = st_contour( Z, contour_lines = FALSE, na.rm = TRUE, breaks = depths )
+    isobaths = as( isobaths, "sf") 
+    isobaths = isobaths[, "Min"]
+    names(isobaths) = c("levels" , "geometry")
     st_crs(isobaths) = st_crs( p$aegis_proj4string_planar_km  ) 
 
     isobaths = st_transform( isobaths, st_crs(projection_proj4string("lonlat_wgs84")) )  ## longlat  as storage format
     row.names(isobaths) = as.character(isobaths$level)
 
-    attr( isobaths, "Zsmoothed" ) = Zsmoothed
-    attr( isobaths, "aRange" ) =  aRange
     attr( isobaths, "corners" ) =  p$corners
     attr( isobaths, "pres" ) =  p$pres
     attr( isobaths, "proj4string_planar" ) =  p$aegis_proj4string_planar_km

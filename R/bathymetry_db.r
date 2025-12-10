@@ -181,28 +181,31 @@ if (0) {
         # contourplot( z~lon+lat, sc, cuts=10, labels=F )
       }
 
-			if ( "sc_logbooks" %in% additional.data ) {
-        # range from 23.8 to 408 m below sea level ... these have dropped the "-" for below sea level; n=5925 (in 2014)
-        # project.library( "bio.snowcrab")
-        scl = bio.snowcrab::logbook.db( DS="logbook")[, c("lon", "lat", "depth") ]
-				setDT(scl)
-        setnames(scl, "depth", "z")
 
-        scl = scl[ is.finite(lon) & is.finite(lat) &is.finite(z) ,]
-        scl$depth[ scl$z > 10 & scl$z < 300 ]
+      # Too noisy:
+			# if ( "sc_logbooks" %in% additional.data ) {
+      #   # range from 23.8 to 408 m below sea level ... these have dropped the "-" for below sea level; n=5925 (in 2014)
+      #   # project.library( "bio.snowcrab")
+      #   scl = bio.snowcrab::logbook.db( DS="logbook")[, c("lon", "lat", "depth") ]
+			# 	setDT(scl)
+      #   setnames(scl, "depth", "z")
 
-				j = which(duplicated(scl))
-        if (length (j) > 0 ) scl = scl[-j,]
-        scl$source = "sc_logbooks"
+      #   scl = scl[ is.finite(lon) & is.finite(lat) &is.finite(z) ,]
+      #   scl$depth[ scl$z > 10 & scl$z < 300 ]
 
-        bathy = rbind( bathy, scl )
-			  # p = p0
-        rm (scl); gc()
+			# 	j = which(duplicated(scl))
+      #   if (length (j) > 0 ) scl = scl[-j,]
+      #   scl$source = "sc_logbooks"
 
-        #scl$lon = round(scl$lon,1)
-        #scl$lat = round(scl$lat,1)
-        # contourplot( z~lon+lat, scl, cuts=10, labels=F )
-      }
+      #   bathy = rbind( bathy, scl )
+			#   # p = p0
+      #   rm (scl); gc()
+
+      #   #scl$lon = round(scl$lon,1)
+      #   #scl$lat = round(scl$lat,1)
+      #   # contourplot( z~lon+lat, scl, cuts=10, labels=F )
+      # }
+
 
       if ( "groundfish" %in% additional.data ) {
         # n=13031; range = 0 to 1054
