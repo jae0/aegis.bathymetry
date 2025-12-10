@@ -98,8 +98,6 @@ message("FIXE ME::: deprecated libs, use sf/stars")
         return( read_write_fast(fn) )
       }
 
-      print( "This is going to take a lot of RAM!")
-
 			# this data was obtained from CHS via David Greenberg in 2004; range = -5467.020, 383.153; n=28,142,338
       fn_nwa = file.path( p$datadir, "nwa.chs15sec.xyz.xz") # xz compressed file
       chs15 = read.table( xzfile( fn_nwa ) )
@@ -280,7 +278,6 @@ if (0) {
       M = M[ which( M$lon > p$corners$lon[1] & M$lon < p$corners$lon[2]  & M$lat > p$corners$lat[1] & M$lat < p$corners$lat[2] ), ]
       gc()
 
-      message( "This is going to take a lot of RAM (~130GB) ... terra is not as memory efficient as rgdal ")
       M = lonlat2planar( M, proj.type=p$aegis_proj4string_planar_km)  # first ensure correct projection
       gc()
 
