@@ -14,7 +14,7 @@
 
 
 set.seed(12345)
-
+options(sf_use_s2 = FALSE)  # seems to cause some problems ... in areal_units()
 
 # construct basic parameter list defining the main characteristics of the study
 # and some plotting parameters (bounding box, projection, bathymetry layout, coastline)
@@ -44,7 +44,7 @@ set.seed(12345)
   p$space_id = 1:nrow(sppoly)  # numst match M$space
   
  
-# run the model ... about 24 hrs depending upon number of posteriors to keep
+# run the model ... about 5 min (fit) depending upon number of posteriors to keep
 
   carstm_model( 
     p=p, 
@@ -53,13 +53,13 @@ set.seed(12345)
     # redo_fit=FALSE, # to start optim from a solution close to the final in 2021 ... 
     # debug = TRUE,      
     # debug ="random_spatial",
-    theta = c( 9.1236, 2.9961, 3.7036 ),
+    theta = c( 9.1236, 2.9961, 3.7036 ),  #  3.9729 2.1851 3.8436 
     toget = c("summary", "random_spatial", "predictions"),
     # nposteriors = 0,  # do not need samples ut this is where you need to specify along with posterior_simulations_to_retain
     # posterior_simulations_to_retain = c("predictions"),
     family = "lognormal",
-    control.mode = list( restart=TRUE  ) ,
-    control.inla = list( strategy="laplace", optimiser="gsl", restart=1 ),  # gsl = gsl::bfgs2
+    # control.mode = list( restart=TRUE  ) ,
+    # control.inla = list( strategy="laplace", optimiser="gsl", restart=1 ),  # gsl = gsl::bfgs2
     # control.inla = list( strategy='laplace'),
     # control.inla = list( strategy='auto', int.strategy="eb" ),
     # control.inla = list( strategy='adaptive', int.strategy="eb" ),
