@@ -1,6 +1,6 @@
 
 
-  ### stmv/carstm hybrid:  slow
+  ### stmv/carstm hybrid:  slow  .. check back when computers get faster
   
   ### generate a modelled surface using areal units placed on a lattice system (1km x 1 km grid)
   ### CARSTM-based, however, run within a range of influence of dimension defined by : p$stmv_distance_interpolation = 5

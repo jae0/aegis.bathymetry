@@ -16,7 +16,7 @@ for ( dom in p$spatial_domain_subareas ) {
 
 
 ### -----------------------------------------------------------------
-# to update/recreate new polygons, run the following:  aegis.bathymetry/inst/scripts/01.bathymetry_data.R
+# to update/recreate new polygons (after refreshing depth data)
 
 bathyclines.redo = FALSE
 

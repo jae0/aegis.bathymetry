@@ -51,9 +51,12 @@ isobath_db = function(
             y = seq(min(attributes( isobaths)$corners$plat), max(attributes( isobaths)$corners$plat), by=attributes( isobaths)$pres)
             
             {
-            message( "FIX ME:: maptools depreciated use stars::st_contour")
+            message( "FIX ME:: maptools depreciated use stars::st_contour")  
             # cl = stars::st_contour( stars, breaks= depths )
-            cl = contourLines( x=x, y=y, Zsmoothed$z, levels=depths )
+            # also: terra::rast(volcano) # Example SpatRaster object
+            # x <-  as.contour(r)  # -- > then convert to sf
+            
+            cl = contourLines( x=x, y=y, Zsmoothed$z, levels=depths )  # now in graphics::contourLines ?
 
             iso_crs = attributes( isobaths)$proj4string_planar 
             

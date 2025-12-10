@@ -1,8 +1,8 @@
   
 
-NOTE::: This takes about 2 days to run on a fast machine 
-NOTE::: Do not run unless you want to want to update the lookup tables from stmv
-NOTE::: Choose your settings carefully (below) 
+# NOTE::: This takes about 2 days to run on a fast machine 
+# NOTE::: Do not run unless you want to want to update the lookup tables (stmv-based)
+# NOTE::: Choose your settings carefully (below) 
 
 
   # Bathymetry 
