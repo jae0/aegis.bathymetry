@@ -69,12 +69,12 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
       # data_transformation=list( forward=function(x){ x+2500 }, backward=function(x) {x-2500} ),
       areal_units_xydata = "bathymetry_db(p=p, DS='areal_units_input')",
       areal_units_type = "lattice", # "stmv_fields" to use ageis fields instead of carstm fields ... note variables are not the same
-      areal_units_resolution_km = 5, # default in case not provided ... 25 km dim of lattice ~ 1 hr; 5km = 79hrs; 2km = ?? hrs
+      areal_units_resolution_km = 1, # default in case not provided ... 25 km dim of lattice ~ 1 hr; 5km = 79hrs; 2km = ?? hrs
       areal_units_proj4string_planar_km = p$aegis_proj4string_planar_km,  # coord system to use for areal estimation and gridding for carstm
       areal_units_overlay = "none",
       areal_units_timeperiod = "none",
-      areal_units_constraint_ntarget = 500,
-      areal_units_constraint_nmin = 30 ,
+      areal_units_constraint_ntarget = 5,
+      areal_units_constraint_nmin = 1 ,
       areal_units_constraint = "none",
       tus="none",
       fraction_todrop = 1/5,
@@ -83,7 +83,7 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
       nAU_min = 30,
       carstm_modelengine = "inla",  # {model engine}.{label to use to store}
       carstm_model_label = "default",  
-      carstm_inputs_prefilter = "aggregated",
+      carstm_inputs_prefilter = "rawdata",
       carstm_inputs_prefilter_n = 10  # used only if "sampled"
     )
 
