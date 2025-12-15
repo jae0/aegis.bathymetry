@@ -51,11 +51,7 @@ options(sf_use_s2 = FALSE)  # seems to cause some problems ... in areal_units()
     }
  
   sppoly = areal_units( p=p )  # this is the same as  aegis.polygons::01 polygons.R  
- 
-  p$space_name = sppoly$AUID 
-  p$space_id = 1:nrow(sppoly)  # numst match M$space
   
- 
 # run the model ... about 5 min (fit) depending upon number of posteriors to keep
 
   carstm_model( 
