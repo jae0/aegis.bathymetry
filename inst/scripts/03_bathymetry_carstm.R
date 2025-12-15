@@ -20,6 +20,14 @@ options(sf_use_s2 = FALSE)  # seems to cause some problems ... in areal_units()
 # and some plotting parameters (bounding box, projection, bathymetry layout, coastline)
   p = aegis.bathymetry::bathymetry_parameters( project_class="carstm", areal_units_resolution_km = 5 )  # defaults are hard coded as a lattice .. anything else takes a very long time
  
+  # bbox = c(-71.5, 41, -52.5,  50.5 )
+  additional_features = features_to_add( 
+      p=p, 
+      isobaths=c( 100, 200, 300, 400, 500  ), 
+      xlim=c(-80,-40), 
+      ylim=c(38, 60) 
+  )
+
 
     if (0) {
       # to recreate the underlying data:
@@ -29,8 +37,12 @@ options(sf_use_s2 = FALSE)  # seems to cause some problems ... in areal_units()
       # then move them into temperature_parameters.R as the lookup mechanism 
       # uses these parameter settings for file lookup 
       sppoly = areal_units( p=p , redo=TRUE )  # this is the same as  aegis.polygons::01 polygons.R  
-      plot( sppoly[ "AUID" ] )
+    
+      plt = areal_units( sppoly=sppoly, xydata=xydata, additional_features=additional_features, plotit=TRUE )
+      
+      (plt)
 
+  
       #NOTE:: as this is a lognormal model, all values < 1 is removed below
       M = bathymetry_db( p=p, DS="carstm_inputs", sppoly=sppoly , redo=TRUE )
 
@@ -151,14 +163,6 @@ Marginal log-Likelihood:  -13862283.54
   
 
  
-  # bbox = c(-71.5, 41, -52.5,  50.5 )
-  additional_features = features_to_add( 
-      p=p, 
-      isobaths=c( 100, 200, 300, 400, 500  ), 
-      xlim=c(-80,-40), 
-      ylim=c(38, 60) 
-  )
-
   # maps of some of the results
   outputdir = file.path(p$modeldir, p$carstm_model_label, "maps" )
 
