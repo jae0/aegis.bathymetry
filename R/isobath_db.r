@@ -6,8 +6,7 @@ isobath_db = function(
              1000, 1200, 1250, 1400, 1500, 1750, 2000, 2500, 3000, 4000, 5000 ),
   DS="isobath",
   project_to=projection_proj4string("lonlat_wgs84"),
-  data_dir=project.datadirectory( "aegis", "bathymetry" ),
-  aRange = 3  # # pixels to approx 1 SD ,
+  data_dir=project.datadirectory( "aegis", "bathymetry" )
    ) {
 
   #\\ create or return isobaths and coastlines/coast polygons
@@ -18,9 +17,6 @@ isobath_db = function(
     # behviour determmined by p. If passed then a p-specific Zsmooth is created otherwise use the highest resoltuion for the region
     require (fields)
     
-    if ( spatial_domain %in% c( "canada.east.superhighres", "canada.east.highres", "canada.east", "SSE", "SSE.mpa" , "snowcrab" ) ) spatial_domain_input = "canada.east.superhighres"
-        
-
     isobaths = NULL
 
     options( max.contour.segments=50000 )
@@ -31,7 +27,7 @@ isobath_db = function(
     
       if ( DS == "isobath" ) {
     
-        fn.iso = file.path( data_dir, "isobaths", paste("isobaths", spatial_domain_input, "rdz", sep=".") )  # in case there is an alternate project
+        fn.iso = file.path( data_dir, "isobaths", paste("isobaths", spatial_domain, "rdz", sep=".") )  # in case there is an alternate project
         
         if (file.exists(fn.iso)) {
           isobaths = read_write_fast(fn.iso)
@@ -68,7 +64,7 @@ isobath_db = function(
     } 
     
     # here is redoing or p is passed and a lower (alt) resolution, p-specific isobath is desired 
-    if (is.null(p)) p = aegis.bathymetry::bathymetry_parameters( spatial_domain=spatial_domain_input ) 
+    if (is.null(p)) p = aegis.bathymetry::bathymetry_parameters( spatial_domain=spatial_domain ) 
 
     fn.iso = file.path( data_dir, "isobaths", paste("isobaths", spatial_domain, "rdz", sep=".") )  # in case there is an alternate project
 
