@@ -18,7 +18,8 @@ options(sf_use_s2 = FALSE)  # seems to cause some problems ... in areal_units()
 
 # construct basic parameter list defining the main characteristics of the study
 # and some plotting parameters (bounding box, projection, bathymetry layout, coastline)
-  p = aegis.bathymetry::bathymetry_parameters( project_class="carstm", areal_units_resolution_km = 5 )  # defaults are hard coded as a lattice .. anything else takes a very long time
+  p = aegis.bathymetry::bathymetry_parameters( project_class="carstm")  
+# defaults are hard coded as a lattice .. anything else takes a very long time
  
   # bbox = c(-71.5, 41, -52.5,  50.5 )
   additional_features = features_to_add( 
