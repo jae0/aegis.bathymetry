@@ -44,7 +44,7 @@ bathymetry_parameters = function( p=list(), project_name="bathymetry", project_c
 
   p$discretization = discretizations(p=p$discretization)  # key for discretization levels
 
-  p = parameters_add_without_overwriting( p, inputdata_spatial_discretization_planar_km = p$pres/2) # is a bit too slow ..; controls resolution of data prior to modelling (km .. ie 20 linear units smaller than the final discretization pres)
+  p = parameters_add_without_overwriting( p, inputdata_spatial_discretization_planar_km = p$pres ) # is a bit too slow ..; controls resolution of data prior to modelling (km .. ie 20 linear units smaller than the final discretization pres)
 
 
   # ---------------------
