@@ -168,7 +168,7 @@ Marginal log-Likelihood:  -13862283.54
     toplot="random_spatial", probs=c(0.025, 0.975), transf=log10,  # log10 transform for map
     colors=rev(RColorBrewer::brewer.pal(5, "RdYlBu")) ) 
  
-  # predictions are on response scale
+  # predictions are on log10 of response scale
   carstm_plot_map( p=p, outputdir=outputdir,  
     toplot="predictions", transf=log10,  # log10 transform for map
     additional_features=additional_features, 
