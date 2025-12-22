@@ -15,7 +15,7 @@ isobath_db = function(
   if (DS %in% c( "isobath", "isobath.redo" )) {
     
     # behviour determmined by p. If passed then a p-specific Zsmooth is created otherwise use the highest resoltuion for the region
-    require (fields)
+    # require (fields)
     
     isobaths = NULL
 
@@ -45,15 +45,26 @@ isobath_db = function(
 
             Z = stars::st_rasterize( Z["z.mean"], dx=p$pres, dy=p$pres )
 
-            isobaths = st_contour( Z, contour_lines = FALSE, na.rm = TRUE, breaks = depths )
-            isobaths = as( isobaths, "sf") 
-            isobaths = isobaths[, "Min"]
-            names(isobaths) = c("levels" , "geometry")
-            st_crs(isobaths) = st_crs( p$aegis_proj4string_planar_km  ) 
-
+            isobaths = st_contour( Z, contour_lines = TRUE, na.rm = TRUE, breaks = depths )
+            
+            names(isobaths) = c("depth" , "geometry")
+                    
+            isobaths = (
+              isobaths %>% 
+              dplyr::group_by(depth) %>%
+              dplyr::summarise(geometry = st_union(geometry)) %>%
+              as.data.frame() %>%
+              st_sf()
+            )
+        
             isobaths = st_transform( isobaths, st_crs(projection_proj4string("lonlat_wgs84")) )  ## longlat  as storage format
-            row.names(isobaths) = as.character(isobaths$level)
-  
+            row.names(isobaths) = as.character(isobaths$depth)
+          
+            attr( isobaths, "corners" ) =  p$corners
+            attr( isobaths, "pres" ) =  p$pres
+            attr( isobaths, "proj4string_planar" ) =  p$aegis_proj4string_planar_km
+            attr( isobaths, "proj4string_lonlat" ) =  projection_proj4string("lonlat_wgs84")
+
           }
           
           retain = which( row.names(isobaths) %in% as.character(depths) )
@@ -74,14 +85,22 @@ isobath_db = function(
 
     Z = stars::st_rasterize( Z["z.mean"], dx=p$pres, dy=p$pres )
 
-    isobaths = st_contour( Z, contour_lines = FALSE, na.rm = TRUE, breaks = depths )
-    isobaths = as( isobaths, "sf") 
-    isobaths = isobaths[, "Min"]
-    names(isobaths) = c("levels" , "geometry")
+    isobaths = st_contour( Z, contour_lines = TRUE, na.rm = TRUE, breaks = depths )
+    
+    names(isobaths) = c("depth" , "geometry")
+    
+    isobaths = (
+      isobaths %>% 
+      dplyr::group_by(depth) %>%
+      dplyr::summarise(geometry = st_union(geometry)) %>%
+      as.data.frame() %>%
+      st_sf()
+    )
+ 
     st_crs(isobaths) = st_crs( p$aegis_proj4string_planar_km  ) 
 
     isobaths = st_transform( isobaths, st_crs(projection_proj4string("lonlat_wgs84")) )  ## longlat  as storage format
-    row.names(isobaths) = as.character(isobaths$level)
+    row.names(isobaths) = as.character(isobaths$depth)
 
     attr( isobaths, "corners" ) =  p$corners
     attr( isobaths, "pres" ) =  p$pres

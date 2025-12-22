@@ -31,7 +31,7 @@ if( bathyclines.redo ) {
               1000, 1200, 1250, 1400, 1500, 1750, 2000, 2500, 3000, 4000, 5000 )
   
   p = aegis.bathymetry::bathymetry_parameters()  # default params
-  doms = c( p$spatial_domain, p$spatial_domain_subareas )
+  doms = c( p$spatial_domain, p$spatial_domain_subareas )[6:1]
   for ( dom in doms ) {
     print(dom)
     plygn = isobath_db( 
@@ -57,7 +57,7 @@ if (0) {
     # some test plots
     RLibrary( "aegis.bathymetry" , "aegis.coastline", "aegis.polygons")
 
-    p = bathymetry_parameters( spatial_domain="canada.east" ) # reset to lower resolution
+    p = bathymetry_parameters( spatial_domain="SSE" ) # reset to lower resolution
     depths = c( 100, 200, 300, 500, 1000)
     plygn = isobath_db(  depths=depths  )
 
